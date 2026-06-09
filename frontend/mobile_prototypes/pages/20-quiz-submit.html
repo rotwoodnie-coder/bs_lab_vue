@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>每日答题 · 待提交 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+
+  <div class="topbar page-topbar safe-top">
+    <a href="20-quiz.html?q=5" class="icon-btn page-back" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </a>
+    <h1 class="topbar-title">🧠 每日答题</h1>
+    <span class="badge badge-success shrink-0">5/5 已选</span>
+  </div>
+
+  <div class="px-4 mt-3">
+    <div class="card card-pad quiz-nudge">
+      <div class="row items-center justify-between gap-2 mb-2">
+        <span class="text-sm font-bold">今日进度</span>
+        <span class="badge badge-success">5 / 5 题已选</span>
+      </div>
+      <div class="progress"><div class="progress-fill progress-fill-success" style="width:100%"></div></div>
+      <div class="quiz-progress-dots mt-3">
+        <span class="quiz-progress-dot is-done">1</span>
+        <span class="quiz-progress-dot is-done">2</span>
+        <span class="quiz-progress-dot is-done">3</span>
+        <span class="quiz-progress-dot is-done">4</span>
+        <span class="quiz-progress-dot is-done is-current">5</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-4 mt-2">
+    <p class="quiz-tip-banner">✅ 全部题目已作答，确认无误后点击下方「提交答卷」统一计分。</p>
+  </div>
+
+  <div class="px-4 mt-3">
+    <div class="card">
+      <div class="card-header row items-center gap-2 flex-wrap">
+        <span class="badge badge-info">选择题</span>
+        <span class="text-xs muted">第 5 题 / 共 5 题</span>
+        <span class="badge badge-slate ml-auto">地理 · 三年级</span>
+      </div>
+      <div class="card-body">
+        <p class="text-base font-bold leading-tight">风向标用来测量什么？</p>
+        <div class="stack mt-4">
+          <div class="option-btn selected card card-pad row items-center gap-3"><span class="tile-icon tile-sm tint-slate">A</span><span class="text-sm">风向</span></div>
+          <div class="option-btn card card-pad row items-center gap-3"><span class="tile-icon tile-sm tint-slate">B</span><span class="text-sm">温度</span></div>
+          <div class="option-btn card card-pad row items-center gap-3"><span class="tile-icon tile-sm tint-slate">C</span><span class="text-sm">湿度</span></div>
+          <div class="option-btn card card-pad row items-center gap-3"><span class="tile-icon tile-sm tint-slate">D</span><span class="text-sm">气压</span></div>
+        </div>
+        <div class="row gap-2 mt-4">
+          <a href="20-quiz.html?q=4" class="btn btn-outline flex-1">上一题</a>
+          <a href="20-quiz-result-partial.html?correct=4" class="btn btn-gradient flex-1">提交答卷</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item"><span class="nav-icon"><i data-lucide="house" class="icon"></i></span><span class="nav-label">首页</span></a>
+      <a href="10-tasks.html" class="nav-item"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">我的任务</span></a>
+      <a href="15-profile-student.html" class="nav-item"><span class="nav-icon nav-icon--avatar"><span class="avatar avatar-sm avatar-grad-warm nav-avatar">张</span></span><span class="nav-label">我的</span></a>
+    </div>
+  </nav>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

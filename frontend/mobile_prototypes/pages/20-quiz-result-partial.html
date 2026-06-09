@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>答题结果 · 部分正确 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+
+  <div class="topbar page-topbar safe-top">
+    <a href="10-tasks.html" class="icon-btn page-back" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </a>
+    <h1 class="topbar-title">答题结果</h1>
+  </div>
+
+  <div class="px-4 mt-3">
+    <div class="quiz-result-hero quiz-result-hero--partial">
+      <div class="text-4xl mb-2">💪</div>
+      <div class="quiz-result-hero__score text-warning">4 / 5</div>
+      <p class="text-base font-bold mt-2">不错，还有提升空间</p>
+      <p class="text-sm muted mt-1">今日答题已计入 · 连对天数重置为 0</p>
+      <span class="badge badge-info mt-3">+8 积分</span>
+    </div>
+  </div>
+
+  <div class="px-4 mt-4 stack-3">
+    <div class="card card-pad">
+      <h2 class="text-sm font-bold mb-2">本次统计</h2>
+      <div class="grid-3 gap-2 text-center">
+        <div class="surface-2 rounded-xl p-3"><div class="text-lg font-bold text-success">4</div><div class="text-xs muted">答对</div></div>
+        <div class="surface-2 rounded-xl p-3"><div class="text-lg font-bold text-danger">1</div><div class="text-xs muted">答错</div></div>
+        <div class="surface-2 rounded-xl p-3"><div class="text-lg font-bold text-warning">+8</div><div class="text-xs muted">获得积分</div></div>
+      </div>
+    </div>
+
+    <div class="card card-pad">
+      <h2 class="text-sm font-bold mb-2">错题怎么办？</h2>
+      <p class="text-xs muted mb-3">今日<strong>正式答题仅计分一次</strong>（已提交 4/5）。可先查看解析，或通过练习巩固——练习<strong>不计积分</strong>、不影响连对天数。</p>
+      <div class="stack-2">
+        <a href="20-quiz-review-wrong.html" class="btn btn-primary btn-block">查看错题解析（1 题）</a>
+        <a href="20-quiz.html?mode=practice" class="btn btn-outline btn-block">重做练习（不计分）</a>
+        <a href="20-quiz-history.html" class="btn btn-ghost btn-block text-sm">查看答题记录</a>
+      </div>
+    </div>
+
+    <details class="card card-pad">
+      <summary class="text-sm font-bold cursor-pointer">正式答题 vs 练习模式</summary>
+      <p class="text-xs muted mt-2"><strong>正式答题：</strong>每日首次提交计分，影响积分与连对天数。<strong>练习模式：</strong>可反复重做同一套题，仅用于巩固，记录保存在「答题记录」中。</p>
+    </details>
+
+    <a href="10-tasks.html" class="btn btn-gradient btn-block btn-lg">返回我的任务</a>
+  </div>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item"><span class="nav-icon"><i data-lucide="house" class="icon"></i></span><span class="nav-label">首页</span></a>
+      <a href="10-tasks.html" class="nav-item active"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">我的任务</span></a>
+      <a href="15-profile-student.html" class="nav-item"><span class="nav-icon nav-icon--avatar"><span class="avatar avatar-sm avatar-grad-warm nav-avatar">张</span></span><span class="nav-label">我的</span></a>
+    </div>
+  </nav>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

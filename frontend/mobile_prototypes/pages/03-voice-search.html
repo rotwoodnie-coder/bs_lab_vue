@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>语音搜索 · 宝山区小实验社区 · 学生</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell theme-primary" data-layout="voice-search">
+
+  <div class="voice-search-page" data-voice-search-page>
+    <div class="voice-search-page__top">
+      <a href="03-search.html" class="voice-search-page__close" aria-label="关闭" data-voice-close>
+        <i data-lucide="x" class="icon"></i>
+      </a>
+    </div>
+
+    <p class="voice-search-page__listen-tip" data-voice-listen-tip>正在听，请说话！</p>
+
+    <main class="voice-search-page__main">
+      <div class="voice-search-page__content">
+        <p class="voice-search-page__status" data-voice-status hidden></p>
+        <p class="voice-search-page__transcript" data-voice-transcript aria-live="polite"></p>
+        <p class="voice-search-page__hint">识别完成后将自动返回搜索并展示结果</p>
+      </div>
+
+      <div class="voice-search-page__hero" data-voice-hero>
+        <div class="voice-search-page__mic-block">
+          <div class="voice-search-page__mic-row">
+            <button type="button" class="voice-search-page__pulse" data-voice-pulse aria-label="麦克风">
+              <span class="voice-search-page__pulse-ring"></span>
+              <span class="voice-search-page__pulse-ring"></span>
+              <span class="voice-search-page__pulse-ring"></span>
+              <span class="voice-search-page__pulse-core">
+                <i data-lucide="mic" class="icon" data-mic-size="lg"></i>
+              </span>
+            </button>
+            <div class="voice-search-page__waves" aria-hidden="true">
+              <span class="voice-search-page__wave-bar"></span>
+              <span class="voice-search-page__wave-bar"></span>
+              <span class="voice-search-page__wave-bar"></span>
+              <span class="voice-search-page__wave-bar"></span>
+              <span class="voice-search-page__wave-bar"></span>
+            </div>
+          </div>
+          <p class="voice-search-page__retry-tip" data-voice-retry-tip hidden>点击麦克风重试</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/search.js"></script>
+</body>
+</html>

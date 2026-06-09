@@ -1,0 +1,52 @@
+import { createApp } from 'vue'
+
+import { createPinia } from 'pinia'
+
+import './styles/tokens.css'
+
+import './styles/base.css'
+
+import './styles/components.css'
+
+import './styles/layout.css'
+
+import './styles/layout-pad.css'
+
+import './styles/layout-pad-pages.css'
+
+import './styles/layout-adaptive.css'
+
+import './styles/home-elevated.css'
+
+import './styles/bind-register-flow.css'
+
+import './styles/legacy.css'
+
+import App from './App.vue'
+
+import router from './router'
+
+import { bootstrapAuthSession } from './bootstrap/auth'
+
+
+
+async function startApp() {
+
+  const app = createApp(App)
+
+  const pinia = createPinia()
+
+  app.use(pinia)
+
+  await bootstrapAuthSession()
+
+  app.use(router)
+
+  app.mount('#app')
+
+}
+
+
+
+startApp()
+

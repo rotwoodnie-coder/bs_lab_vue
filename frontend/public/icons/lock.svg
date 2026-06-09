@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="lock icon">
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="#FFF7ED"/>
+  <rect x="20" y="30" width="24" height="18" rx="5" fill="#F59E0B"/>
+  <path d="M24 30v-5a8 8 0 0 1 16 0v5" stroke="#B45309" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <circle cx="32" cy="39" r="3" fill="#FFFBEB"/>
+  <path d="M32 39v4" stroke="#FFFBEB" stroke-width="3" stroke-linecap="round"/>
+</svg>

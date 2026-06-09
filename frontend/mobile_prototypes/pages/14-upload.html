@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>成果上传 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell" data-layout="upload-split">
+
+  <div class="topbar safe-top">
+    <button type="button" class="icon-btn" onclick="history.back()" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </button>
+    <span class="topbar-title">成果上传</span>
+    <button type="button" class="icon-btn" onclick="alert('打开相机拍照')" aria-label="拍照">
+      <i data-lucide="camera" class="icon"></i>
+    </button>
+    <button type="button" class="icon-btn" onclick="alert('从相册选择照片或视频')" aria-label="相册">
+      <i data-lucide="image" class="icon"></i>
+    </button>
+  </div>
+
+  <div class="px-4 safe-top" data-upload-creative-banner hidden style="padding-top:8px;">
+    <p class="quiz-tip-banner">💡 <strong>创意实验</strong> · 自由上传实验成果，不关联老师作业，提交后归入作品墙「创意实验」</p>
+  </div>
+
+  <div id="uploadFormBlock" class="flex-1 min-h-0" style="display:flex;flex-direction:column;overflow:hidden;">
+
+    <!-- Pad 横屏：左大图预览 + 右缩略图与表单 -->
+    <div class="pad-upload" id="uploadPadLayout">
+      <section class="pad-upload__stage" aria-label="主预览">
+        <div class="upload-main-hero card-media-grad-warm" data-upload-main-hero>
+          <span class="badge badge-info upload-main-hero__badge" data-upload-main-type>照片</span>
+          <span class="upload-main-hero__icon" data-upload-main-icon>🧪</span>
+          <button type="button" class="upload-main-hero__play" onclick="alert('播放视频预览')" aria-label="播放">
+            <i data-lucide="play" class="icon"></i>
+          </button>
+          <span class="upload-main-hero__duration" data-upload-main-duration></span>
+          <div class="upload-main-hero__toolbar">
+            <div class="upload-main-hero__progress"><div class="upload-main-hero__progress-fill"></div></div>
+            <span class="upload-main-hero__hint">点击画面播放 · 支持 mp4 短视频</span>
+          </div>
+        </div>
+        <div class="card card-pad row items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="text-sm font-bold truncate" data-upload-main-title>彩虹分层_01.jpg</div>
+            <div class="text-xs muted" data-upload-main-meta>1.2 MB · 主图预览</div>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm" onclick="alert('设为主图/主视频：在右侧缩略图点击切换')">主图</button>
+        </div>
+      </section>
+
+      <aside class="pad-upload__rail" aria-label="文件与提交">
+        <div class="row items-center justify-between gap-2">
+          <div>
+            <div class="text-sm font-bold">已选成果</div>
+            <div class="text-xs muted" id="uploadFileCountPad">8 个文件 · 最多 9 张图 + 3 段视频</div>
+          </div>
+          <div class="row gap-1 shrink-0">
+            <button type="button" class="btn btn-soft btn-sm" onclick="alert('拍照')"><i data-lucide="camera" class="icon icon-sm"></i></button>
+            <button type="button" class="btn btn-soft btn-sm" onclick="alert('相册')"><i data-lucide="image" class="icon icon-sm"></i></button>
+          </div>
+        </div>
+
+        <div class="pad-upload__thumb-grid" data-upload-thumb-grid>
+          <!-- thumbs injected by shared markup below via clone - use static list -->
+        </div>
+
+        <div class="field">
+          <label class="label">📝 备注 (可选)</label>
+          <textarea class="textarea" rows="2" placeholder="输入实验心得…">分层效果明显，蜂蜜层最下层。</textarea>
+        </div>
+        <div class="field" data-upload-hide-related hidden>
+          <label class="label">📎 关联作业</label>
+          <select class="select">
+            <option>彩虹液体分层实验</option>
+            <option>自制简易风向标</option>
+            <option>种子发芽观察</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-gradient btn-block btn-lg" id="uploadSubmitBtnPad" onclick="showUploadSuccess()">📤 确认提交</button>
+        <p class="text-xs muted-2 text-center" id="uploadHintPad">⚡ 网络断开时自动保存到本地</p>
+      </aside>
+    </div>
+
+    <!-- 手机竖屏 -->
+    <div class="pad-upload__mobile-only px-4 stack-4 pb-28 overflow-y-auto">
+      <div>
+        <div class="row items-center justify-between mb-2">
+          <span class="text-sm font-bold">主预览</span>
+          <span class="text-xs muted" id="uploadFileCountMobile">8 个文件</span>
+        </div>
+        <div class="upload-main-hero upload-mobile-main card-media-grad-warm" data-upload-main-hero>
+          <span class="badge badge-info upload-main-hero__badge" data-upload-main-type>照片</span>
+          <span class="upload-main-hero__icon" data-upload-main-icon>🧪</span>
+          <button type="button" class="upload-main-hero__play" onclick="alert('播放视频预览')" aria-label="播放">
+            <i data-lucide="play" class="icon"></i>
+          </button>
+          <span class="upload-main-hero__duration" data-upload-main-duration></span>
+          <div class="upload-main-hero__toolbar">
+            <div class="upload-main-hero__progress"><div class="upload-main-hero__progress-fill"></div></div>
+            <span class="upload-main-hero__hint">点击播放视频</span>
+          </div>
+        </div>
+        <p class="text-xs muted mt-2 truncate"><span data-upload-main-title>彩虹分层_01.jpg</span> · <span data-upload-main-meta>1.2 MB</span></p>
+      </div>
+
+      <div>
+        <div class="text-xs font-medium muted mb-2">全部文件（点击切换主预览）</div>
+        <div class="upload-mobile-thumbs" data-upload-thumb-grid></div>
+      </div>
+
+      <div class="field">
+        <label class="label">📝 备注 (可选)</label>
+        <textarea class="textarea" rows="3" placeholder="输入实验心得…">分层效果明显，蜂蜜层最下层。</textarea>
+      </div>
+      <div class="field" data-upload-hide-related hidden>
+        <label class="label">📎 关联作业</label>
+        <select class="select">
+          <option>彩虹液体分层实验</option>
+          <option>自制简易风向标</option>
+          <option>种子发芽观察</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn-gradient btn-block btn-lg" id="uploadSubmitBtnMobile" onclick="showUploadSuccess()">📤 确认提交</button>
+      <p class="text-xs muted-2 text-center" id="uploadHintMobile">⚡ 网络断开时自动保存到本地</p>
+    </div>
+
+    <!-- 缩略图模板（由脚本克隆到 Pad / 手机两栏） -->
+    <template id="uploadThumbTemplate">
+      <button type="button" class="upload-thumb" data-upload-thumb
+        onclick="selectUploadThumb(this)">
+        <span class="upload-thumb__inner"></span>
+        <span class="upload-thumb__tag"></span>
+        <span class="upload-thumb__dur"></span>
+        <button type="button" class="upload-thumb__remove"
+          onclick="event.stopPropagation(); removeUploadThumb(this)"
+          aria-label="删除">
+          <i data-lucide="x" class="icon" style="width:12px;height:12px;"></i>
+        </button>
+      </button>
+    </template>
+  </div>
+
+  <div id="uploadSuccessBlock" hidden class="px-4 stack-3 pb-8 anim-fade-up flex-1 overflow-y-auto">
+    <div class="card card-pad tint-green text-center">
+      <div class="text-2xl mb-2">✅</div>
+      <div class="text-base font-bold text-success">作业已提交</div>
+      <p class="text-xs muted mt-2">老师将尽快批阅，可在「我的任务」中查看状态</p>
+    </div>
+    <a href="20-quiz.html" class="card card-pad card-link quiz-nudge row items-center gap-3">
+      <div class="tile-icon tile-sm tint-violet shrink-0">🧠</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-bold">继续完成每日答题</div>
+        <p class="text-xs muted mt-1">今日 5 题 · 已完成 0/5 · 约 3 分钟</p>
+      </div>
+      <span class="btn btn-soft btn-sm shrink-0">去答题</span>
+    </a>
+    <a href="10-tasks.html" class="btn btn-outline btn-block">返回我的任务</a>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<script>
+var UPLOAD_FILES = [
+  { type: 'image', name: '彩虹分层_01.jpg', size: '1.2 MB', grad: 'card-media-grad-warm', icon: '🧪', duration: '' },
+  { type: 'image', name: '分层特写_02.jpg', size: '0.9 MB', grad: 'card-media-grad-sunset', icon: '🌈', duration: '' },
+  { type: 'image', name: '器材摆放.jpg', size: '1.1 MB', grad: 'card-media-grad-forest', icon: '🌿', duration: '' },
+  { type: 'image', name: '现象记录.jpg', size: '0.8 MB', grad: 'card-media-grad-amber-rose', icon: '🔬', duration: '' },
+  { type: 'video', name: '实验过程.mp4', size: '8.6 MB', grad: 'card-media-grad-ocean', icon: '▶', duration: '0:42' },
+  { type: 'image', name: '对比组.jpg', size: '1.0 MB', grad: 'card-media-grad-cool', icon: '💧', duration: '' },
+  { type: 'image', name: '操作细节.jpg', size: '0.7 MB', grad: 'card-media-grad-amber-rose', icon: '✨', duration: '' },
+  { type: 'video', name: '完整记录.mp4', size: '12 MB', grad: 'card-media-grad-sunset', icon: '▶', duration: '1:15' }
+];
+
+var GRAD_CLASSES = [
+  'card-media-grad-warm', 'card-media-grad-cool', 'card-media-grad-sunset',
+  'card-media-grad-ocean', 'card-media-grad-forest', 'card-media-grad-amber-rose'
+];
+
+function createThumbEl(file, index) {
+  var tpl = document.getElementById('uploadThumbTemplate');
+  var btn = tpl.content.firstElementChild.cloneNode(true);
+  btn.dataset.type = file.type;
+  btn.dataset.name = file.name;
+  btn.dataset.size = file.size;
+  btn.dataset.grad = file.grad;
+  btn.dataset.icon = file.icon;
+  btn.dataset.duration = file.duration || '';
+  if (index === 0) btn.classList.add('is-active');
+
+  var inner = btn.querySelector('.upload-thumb__inner');
+  inner.classList.add(file.grad);
+  inner.textContent = file.type === 'video' ? '▶' : file.icon;
+
+  var tag = btn.querySelector('.upload-thumb__tag');
+  tag.textContent = file.type === 'video' ? '视频' : '图';
+
+  var dur = btn.querySelector('.upload-thumb__dur');
+  if (file.duration) {
+    dur.textContent = file.duration;
+    dur.style.display = 'block';
+  } else {
+    dur.style.display = 'none';
+  }
+  return btn;
+}
+
+function createAddThumbEl() {
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'upload-thumb upload-thumb--add';
+  btn.setAttribute('onclick', "alert('继续从相册选择或拍摄照片、视频')");
+  btn.innerHTML = '<span class="upload-thumb__inner">+</span>';
+  return btn;
+}
+
+function mountThumbs() {
+  document.querySelectorAll('[data-upload-thumb-grid]').forEach(function (grid) {
+    grid.innerHTML = '';
+    UPLOAD_FILES.forEach(function (file, i) {
+      grid.appendChild(createThumbEl(file, i));
+    });
+    grid.appendChild(createAddThumbEl());
+  });
+}
+
+function renderMainPreview(source) {
+  var type = source.dataset.type;
+  var isVideo = type === 'video';
+  document.querySelectorAll('[data-upload-main-hero]').forEach(function (hero) {
+    GRAD_CLASSES.forEach(function (c) { hero.classList.remove(c); });
+    hero.classList.remove('is-video');
+    hero.classList.add(source.dataset.grad);
+    if (isVideo) hero.classList.add('is-video');
+  });
+  document.querySelectorAll('[data-upload-main-icon]').forEach(function (el) {
+    el.textContent = isVideo ? '' : source.dataset.icon;
+    el.style.display = isVideo ? 'none' : '';
+  });
+  document.querySelectorAll('[data-upload-main-type]').forEach(function (el) {
+    el.textContent = isVideo ? '视频' : '照片';
+    el.className = 'badge upload-main-hero__badge ' + (isVideo ? 'badge-warning' : 'badge-info');
+  });
+  document.querySelectorAll('[data-upload-main-duration]').forEach(function (el) {
+    el.textContent = source.dataset.duration || '';
+  });
+  document.querySelectorAll('[data-upload-main-title]').forEach(function (el) {
+    el.textContent = source.dataset.name;
+  });
+  document.querySelectorAll('[data-upload-main-meta]').forEach(function (el) {
+    var meta = source.dataset.size;
+    if (source.dataset.duration) meta += ' · ' + source.dataset.duration;
+    if (el.closest('.pad-upload__stage')) meta += ' · 主图预览';
+    el.textContent = meta;
+  });
+}
+
+function selectUploadThumb(btn) {
+  if (btn.classList.contains('upload-thumb--add')) return;
+  document.querySelectorAll('[data-upload-thumb]').forEach(function (t) {
+    t.classList.toggle('is-active', t === btn);
+  });
+  var name = btn.dataset.name;
+  document.querySelectorAll('[data-upload-thumb]').forEach(function (t) {
+    if (t.dataset.name === name) t.classList.add('is-active');
+    else if (!t.classList.contains('upload-thumb--add')) t.classList.remove('is-active');
+  });
+  renderMainPreview(btn);
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+
+function updateUploadFileCount() {
+  var n = document.querySelectorAll('[data-upload-thumb]:not(.upload-thumb--add)').length;
+  var pad = document.getElementById('uploadFileCountPad');
+  var mob = document.getElementById('uploadFileCountMobile');
+  if (pad) pad.textContent = n + ' 个文件 · 最多 9 张图 + 3 段视频';
+  if (mob) mob.textContent = n + ' 个文件';
+  [document.getElementById('uploadSubmitBtnPad'), document.getElementById('uploadSubmitBtnMobile')].forEach(function (b) {
+    if (b) b.disabled = n === 0;
+  });
+}
+
+function removeUploadThumb(removeBtn) {
+  var item = removeBtn.closest('[data-upload-thumb]');
+  if (!item || item.classList.contains('upload-thumb--add')) return;
+  if (!confirm('确定删除「' + item.dataset.name + '」？')) return;
+  var wasActive = item.classList.contains('is-active');
+  var name = item.dataset.name;
+  document.querySelectorAll('[data-upload-thumb]').forEach(function (t) {
+    if (t.dataset.name === name) t.remove();
+  });
+  UPLOAD_FILES = UPLOAD_FILES.filter(function (f) { return f.name !== name; });
+  if (wasActive) {
+    var first = document.querySelector('[data-upload-thumb]:not(.upload-thumb--add)');
+    if (first) selectUploadThumb(first);
+  }
+  updateUploadFileCount();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+
+function showUploadSuccess() {
+  var n = document.querySelectorAll('[data-upload-thumb]:not(.upload-thumb--add)').length;
+  if (n === 0) {
+    alert('请至少上传一张照片或视频');
+    return;
+  }
+  document.getElementById('uploadFormBlock').hidden = true;
+  document.getElementById('uploadSuccessBlock').hidden = false;
+}
+
+mountThumbs();
+var first = document.querySelector('[data-upload-thumb].is-active') || document.querySelector('[data-upload-thumb]:not(.upload-thumb--add)');
+if (first) renderMainPreview(first);
+updateUploadFileCount();
+
+(function () {
+  var type = new URLSearchParams(window.location.search).get('type');
+  if (type === 'creative') {
+    var banner = document.querySelector('[data-upload-creative-banner]');
+    if (banner) banner.hidden = false;
+    document.querySelectorAll('[data-upload-hide-related]').forEach(function (el) { el.hidden = true; });
+    var title = document.querySelector('.topbar-title');
+    if (title) title.textContent = '创意实验上传';
+  }
+  if (type === 'remix') {
+    document.querySelectorAll('[data-upload-hide-related]').forEach(function (el) { el.hidden = true; });
+  }
+})();
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/prototype.js"></script>
+</body>
+</html>

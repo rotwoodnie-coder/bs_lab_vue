@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教师AI助教 - 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell theme-teacher safe-top" data-layout="chat-detail">
+
+  <div class="pad-chat">
+
+    <div class="topbar safe-top">
+      <a href="17-profile-teacher.html" class="icon-btn">
+        <i data-lucide="arrow-left" class="icon"></i>
+      </a>
+      <h1 class="topbar-title">🤖 教师AI助教</h1>
+      <span class="badge badge-info text-xs">GPT-4o</span>
+    </div>
+
+    <div class="pad-chat__messages stack-4 px-4">
+      <div class="grid grid-3 gap-2 py-2">
+        <div class="quick-entry card card-pad text-center" onclick="quickFunction(0)">
+          <div class="text-2xl mb-1"><i data-lucide="file-text" class="icon icon-lg"></i></div>
+          <div class="text-xs font-bold leading-tight">智能教案</div>
+        </div>
+        <div class="quick-entry card card-pad text-center" onclick="quickFunction(1)">
+          <div class="text-2xl mb-1"><i data-lucide="lightbulb" class="icon icon-lg"></i></div>
+          <div class="text-xs font-bold leading-tight">实验方案</div>
+        </div>
+        <div class="quick-entry card card-pad text-center" onclick="quickFunction(2)">
+          <div class="text-2xl mb-1"><i data-lucide="bar-chart-3" class="icon icon-lg"></i></div>
+          <div class="text-xs font-bold leading-tight">数据分析</div>
+        </div>
+      </div>
+
+      <div class="col gap-3" id="chatArea">
+        <div class="msg-bubble msg-ai anim-fade-up">
+          <div class="row items-center gap-2 mb-1">
+            <span>🤖</span>
+            <span class="text-xs font-bold">AI助教</span>
+          </div>
+          你好！我是你的 AI 教学助手。有什么可以帮助你的？比如：
+          <ul class="mt-1 stack" style="padding-left:16px;">
+            <li>生成一份科学实验教案</li>
+            <li>推荐适合某个知识点的实验</li>
+            <li>分析班级实验数据</li>
+          </ul>
+        </div>
+
+        <div class="row wrap gap-2 px-1">
+          <button class="btn btn-ghost btn-sm rounded-full" onclick="quickQuestion(0)">生成电路实验教案</button>
+          <button class="btn btn-ghost btn-sm rounded-full" onclick="quickQuestion(1)">推荐三年级物理实验</button>
+          <button class="btn btn-ghost btn-sm rounded-full" onclick="quickQuestion(2)">分析本周提交率</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pad-chat__composer">
+      <div class="row gap-2">
+        <input type="text" class="input flex-1" id="chatInputPad" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+
+    <div class="pad-chat__mobile-composer px-4 py-3 surface" style="border-top:1px solid var(--color-border);">
+      <div class="row gap-2">
+        <input type="text" class="input flex-1" id="chatInput" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var msgId = 0;
+var aiResponses = [
+  '好的！我来为你生成一份关于"简单电路"的实验教案：\n\n📚 **实验主题**：简单串联电路\n🎯 **教学目标**：理解电流回路概念\n📦 **材料**：电池、导线、小灯泡\n⏱ **时长**：20分钟\n\n需要进一步细化某个环节吗？',
+  '根据"电路"这个知识点，我推荐以下实验：\n\n1️⃣ **点亮小灯泡** — 基础电路认知\n2️⃣ **串联 vs 并联** — 对比不同连接方式\n3️⃣ **电路检测器** — 检测导体与绝缘体\n\n需要查看某个实验的详细步骤吗？',
+  '📊 **本周提交数据概览**：\n\n• 三年级一班：27/36（75%）\n• 三年级二班：21/34（62%）\n• 三年级三班：30/35（86%）\n• 三年级四班：25/35（71%）\n\n📈 总提交率 73%，较上周提升 5%。三班表现最好！'
+];
+
+function sendMessage() {
+  var input = document.getElementById('chatInputPad') || document.getElementById('chatInput');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  if (document.getElementById('chatInputPad') && document.getElementById('chatInput')) {
+    document.getElementById('chatInputPad').value = '';
+    document.getElementById('chatInput').value = '';
+  }
+
+  var chat = document.getElementById('chatArea');
+  var userMsg = document.createElement('div');
+  userMsg.className = 'msg-bubble msg-user';
+  userMsg.textContent = text;
+  chat.appendChild(userMsg);
+  chat.scrollTop = chat.scrollHeight;
+
+  setTimeout(function() {
+    var aiMsg = document.createElement('div');
+    aiMsg.className = 'msg-bubble msg-ai';
+    msgId++;
+    aiMsg.innerHTML = '<div class="row items-center gap-2 mb-1"><span>🤖</span><span class="text-xs font-bold">AI助教</span></div>' + aiResponses[Math.floor(Math.random() * aiResponses.length)];
+    chat.appendChild(aiMsg);
+    chat.scrollTop = chat.scrollHeight;
+  }, 600);
+}
+
+function quickQuestion(idx) {
+  var questions = [
+    '请生成一份关于"简单电路"的实验教案',
+    '推荐适合三年级学生的物理实验',
+    '分析本周各班级的实验提交率'
+  ];
+  var input = document.getElementById('chatInputPad') || document.getElementById('chatInput');
+  input.value = questions[idx];
+}
+
+function quickFunction(idx) {
+  var labels = ['智能教案生成', '实验方案建议', '教学数据分析'];
+  var chat = document.getElementById('chatArea');
+  var userMsg = document.createElement('div');
+  userMsg.className = 'msg-bubble msg-user';
+  userMsg.textContent = '我要使用「' + labels[idx] + '」功能';
+  chat.appendChild(userMsg);
+
+  setTimeout(function() {
+    var aiMsg = document.createElement('div');
+    aiMsg.className = 'msg-bubble msg-ai';
+    aiMsg.innerHTML = '<div class="row items-center gap-2 mb-1"><span>🤖</span><span class="text-xs font-bold">AI助教</span></div>' + aiResponses[idx];
+    chat.appendChild(aiMsg);
+    chat.scrollTop = chat.scrollHeight;
+  }, 600);
+}
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/prototype.js"></script>
+</body>
+</html>

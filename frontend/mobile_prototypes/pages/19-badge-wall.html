@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勋章墙 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container theme-primary pad-shell" data-layout="badge-wall">
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item has-nav-badge" aria-label="我的任务，有待办">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item active">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-badges">
+    <header class="pad-badges__topbar">
+      <a href="15-profile-student.html" class="icon-btn" aria-label="返回">
+        <i data-lucide="chevron-left" class="icon"></i>
+      </a>
+      <h1 class="pad-workbench__title">🏅 勋章墙</h1>
+      <div class="pad-badges__filters scroll-x">
+        <span class="chip active">全部</span>
+        <span class="chip">已获得</span>
+        <span class="chip">未获得</span>
+      </div>
+    </header>
+
+    <div class="pad-badges__body">
+      <div class="pad-badges__summary">
+        <div class="pad-badges__summary-num">5</div>
+        <div class="pad-badges__summary-meta">
+          <p class="text-sm">已解锁 <strong>5</strong> 枚 · 共 <strong>8</strong> 枚勋章</p>
+          <p class="text-xs muted mt-1">再完成 3 项挑战即可解锁「探索者」</p>
+          <div class="progress">
+            <div class="progress-fill progress-fill-warning" style="width:62.5%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pad-badges__grid">
+        <article class="badge-card">
+          <div class="badge-card__icon">🏆</div>
+          <div class="badge-card__title">实验达人</div>
+          <p class="badge-card__desc">完成 5 个实验</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card">
+          <div class="badge-card__icon">🔬</div>
+          <div class="badge-card__title">科学新星</div>
+          <p class="badge-card__desc">首次提交作品</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card">
+          <div class="badge-card__icon">🌟</div>
+          <div class="badge-card__title">创意之星</div>
+          <p class="badge-card__desc">作品被展示</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card">
+          <div class="badge-card__icon">📸</div>
+          <div class="badge-card__title">记录达人</div>
+          <p class="badge-card__desc">上传 5 次成果</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card badge-card--locked">
+          <div class="badge-card__icon">💡</div>
+          <div class="badge-card__title">探索者</div>
+          <p class="badge-card__desc">完成 10 个实验</p>
+          <span class="badge-card__status badge badge-slate">6 / 10</span>
+        </article>
+        <a href="20-quiz.html" class="badge-card badge-card--locked badge-card--action" aria-label="去每日答题，冲刺答题王者">
+          <div class="badge-card__icon">🏅</div>
+          <div class="badge-card__title">答题王者</div>
+          <p class="badge-card__desc">累计答对 20 题 · 从每日答题开始</p>
+          <span class="badge-card__status badge badge-slate">8 / 20</span>
+        </a>
+        <article class="badge-card badge-card--locked">
+          <div class="badge-card__icon">👑</div>
+          <div class="badge-card__title">小小科学家</div>
+          <p class="badge-card__desc">总积分 1000</p>
+          <span class="badge-card__status badge badge-slate">680 / 1000</span>
+        </article>
+        <article class="badge-card badge-card--locked">
+          <div class="badge-card__icon">🎯</div>
+          <div class="badge-card__title">全勤之星</div>
+          <p class="badge-card__desc">连续 7 天登录</p>
+          <span class="badge-card__status badge badge-slate">3 / 7</span>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手机竖屏 -->
+  <div class="pad-badges__mobile-only safe-top pb-28">
+    <div class="topbar px-4">
+      <div class="row items-center gap-3">
+        <a href="15-profile-student.html" class="icon-btn" aria-label="返回">
+          <i data-lucide="chevron-left" class="icon"></i>
+        </a>
+        <h1 class="topbar-title">🏅 我的勋章墙</h1>
+      </div>
+    </div>
+
+    <div class="px-4 mt-3">
+      <div class="scroll-x mb-3">
+        <span class="chip active">全部</span>
+        <span class="chip">已获得</span>
+        <span class="chip">未获得</span>
+      </div>
+
+      <div class="banner banner-warm text-center rounded-xl py-6 px-4">
+        <div class="text-5xl font-bold text-warning">5</div>
+        <div class="banner-sub">枚勋章已获得 · 共 8 枚</div>
+        <div class="progress mt-3 mx-auto" style="max-width:280px">
+          <div class="progress-fill progress-fill-warning" style="width:62.5%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-4 py-4">
+      <div class="grid grid-3 gap-3">
+        <article class="badge-card">
+          <div class="badge-card__icon">🏆</div>
+          <div class="badge-card__title">实验达人</div>
+          <p class="badge-card__desc">完成 5 个实验</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card">
+          <div class="badge-card__icon">🔬</div>
+          <div class="badge-card__title">科学新星</div>
+          <p class="badge-card__desc">首次提交作品</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card">
+          <div class="badge-card__icon">🌟</div>
+          <div class="badge-card__title">创意之星</div>
+          <p class="badge-card__desc">作品被展示</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card">
+          <div class="badge-card__icon">📸</div>
+          <div class="badge-card__title">记录达人</div>
+          <p class="badge-card__desc">上传 5 次成果</p>
+          <span class="badge-card__status badge badge-success">已获得</span>
+        </article>
+        <article class="badge-card badge-card--locked">
+          <div class="badge-card__icon">💡</div>
+          <div class="badge-card__title">探索者</div>
+          <p class="badge-card__desc">完成 10 个实验</p>
+          <span class="badge-card__status badge badge-slate">6 / 10</span>
+        </article>
+        <a href="20-quiz.html" class="badge-card badge-card--locked badge-card--action" aria-label="去每日答题，冲刺答题王者">
+          <div class="badge-card__icon">🏅</div>
+          <div class="badge-card__title">答题王者</div>
+          <p class="badge-card__desc">累计答对 20 题 · 从每日答题开始</p>
+          <span class="badge-card__status badge badge-slate">8 / 20</span>
+        </a>
+        <article class="badge-card badge-card--locked">
+          <div class="badge-card__icon">👑</div>
+          <div class="badge-card__title">小小科学家</div>
+          <p class="badge-card__desc">总积分 1000</p>
+          <span class="badge-card__status badge badge-slate">680 / 1000</span>
+        </article>
+        <article class="badge-card badge-card--locked">
+          <div class="badge-card__icon">🎯</div>
+          <div class="badge-card__title">全勤之星</div>
+          <p class="badge-card__desc">连续 7 天登录</p>
+          <span class="badge-card__status badge badge-slate">3 / 7</span>
+        </article>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

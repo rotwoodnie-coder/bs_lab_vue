@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>绑定孩子 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+  <style>
+    /* ── 面包屑条 ── */
+    .breadcrumb-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-1);
+      min-height: 36px;
+      padding: var(--space-2) 0;
+    }
+    .breadcrumb-bar:empty { display: none; }
+    .breadcrumb-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--ease);
+      border: none;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    .breadcrumb-chip:active { transform: scale(0.94); opacity: 0.8; }
+    .breadcrumb-chip .chip-icon { width: 14px; height: 14px; }
+    .breadcrumb-sep { color: var(--color-text-3); font-size: 12px; user-select: none; }
+
+    /* ── 步骤面板入场 ── */
+    .step-panel { display: none; }
+    .step-panel.active {
+      display: block;
+      animation: fadeInUp 0.35s var(--ease) both;
+    }
+    .step-panel.leaving {
+      display: block;
+      animation: fadeOutDown 0.2s var(--ease) both;
+      pointer-events: none;
+    }
+    @keyframes fadeOutDown {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(16px); }
+    }
+
+    /* ── 选择卡片：采用 Lucide 图标 ── */
+    .option-card { padding: 13px var(--space-4); }
+    .option-card .opt-icon {
+      width: 20px; height: 20px;
+      color: var(--color-text-3);
+      transition: color var(--dur-fast) var(--ease);
+    }
+    .option-card.selected .opt-icon { color: var(--brand); }
+    .step-panel.active .stack > * + * { margin-top: var(--space-2); }
+
+    .option-card.selected .option-check { opacity: 1; }
+    .option-card.advancing {
+      animation: selectPulse 0.28s var(--ease);
+    }
+    @keyframes selectPulse {
+      0% { transform: scale(1); }
+      40% { transform: scale(0.97); }
+      70% { transform: scale(1.01); }
+      100% { transform: scale(1); }
+    }
+
+    /* ── 步骤 4 确认卡片 ── */
+    .confirm-summary {
+      background: var(--color-surface-2);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border-soft);
+    }
+    .confirm-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+    }
+    .confirm-row + .confirm-row { border-top: 1px solid var(--color-border-soft); }
+    .confirm-row .cr-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .confirm-row .cr-icon .cr-svg { width: 18px; height: 18px; }
+    .confirm-row .cr-label { font-size: var(--text-xs); color: var(--color-text-3); }
+    .confirm-row .cr-value { font-size: var(--text-base); font-weight: var(--weight-bold); color: var(--color-text-1); margin-top: 1px; }
+
+    /* 已禁用选项 */
+    .option-card.disabled { opacity: 0.5; pointer-events: none; }
+
+    /* ── 底部 sticky 操作栏 ── */
+    .bottom-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--color-surface);
+      padding-top: var(--space-3);
+      padding-bottom: max(var(--space-3), env(safe-area-inset-bottom, 12px));
+      border-top: 1px solid var(--color-border-soft);
+      margin-top: var(--space-4);
+      margin-left: calc(-1 * var(--space-5));
+      margin-right: calc(-1 * var(--space-5));
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+
+    .bind-col-head {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="screen theme-student pad-bind" data-layout="bind-columns">
+  <div class="screen-body stack-4 px-5">
+
+    <!-- ── 顶栏 ── -->
+    <div class="text-center safe-top">
+      <div class="tile-icon tile-lg tile-grad mx-auto mb-3">
+        <i data-lucide="user-plus" class="icon icon-lg"></i>
+      </div>
+      <h1 class="text-xl font-bold">绑定孩子</h1>
+      <p class="text-xs muted mt-1" id="stepHint">选择学校</p>
+    </div>
+
+    <!-- ── 面包屑（已选项目） ── -->
+    <div class="breadcrumb-bar" id="breadcrumb"></div>
+
+    <!-- ── 步骤指示器 ── -->
+    <div class="stepper mb-3" id="stepIndicator"><!-- JS 渲染 --></div>
+
+    <!-- ── 步骤面板（竖屏分步 / 横屏三列同屏）── -->
+    <div class="bind-layout flex-1" style="min-height:280px;">
+
+      <div class="bind-columns-wrap">
+      <!-- 第 1 步：选择学校 -->
+      <div class="step-panel bind-col" data-step="1">
+        <h2 class="bind-col-head">选择学校</h2>
+        <div class="stack bind-col-list" id="schoolList">
+          <div class="option-card" data-value="实验小学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">实验小学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="第一小学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">第一小学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="实验中学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">实验中学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="第一中学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">第一中学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第 2 步：选择年级 -->
+      <div class="step-panel bind-col" data-step="2">
+        <h2 class="bind-col-head">选择年级</h2>
+        <div class="stack bind-col-list" id="gradeList">
+          <div class="option-card" data-value="一年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">一年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="二年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">二年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="三年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">三年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="四年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">四年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="五年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">五年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="六年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">六年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第 3 步：选择班级 -->
+      <div class="step-panel bind-col" data-step="3">
+        <h2 class="bind-col-head">选择班级</h2>
+        <div class="stack bind-col-list" id="classList">
+          <div class="option-card" data-value="1 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">1 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="2 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">2 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="3 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">3 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="4 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">4 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="5 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">5 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="6 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">6 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- 第 4 步：确认绑定 -->
+      <div class="step-panel bind-confirm" data-step="4">
+        <p class="text-xs muted mb-3 bind-confirm-hint">请确认信息，输入孩子姓名后完成绑定</p>
+
+        <div class="confirm-summary mb-4">
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="school" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">学校</div>
+              <div class="cr-value" id="confirmSchool">—</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="book-open" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">年级</div>
+              <div class="cr-value" id="confirmGrade">—</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="users" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">班级</div>
+              <div class="cr-value" id="confirmClass">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="text-xs muted mb-2 block" for="childName" style="font-weight:var(--weight-medium);">孩子姓名</label>
+          <input type="text" id="childName" placeholder="请输入孩子姓名" maxlength="20"
+                 class="input text-sm font-medium">
+        </div>
+
+        <div class="card card-pad row items-start gap-3 surface-2" style="border:none;">
+          <i data-lucide="lock" class="icon text-lg shrink-0" style="color:var(--brand);"></i>
+          <p class="text-xs leading-relaxed muted">
+            绑定后，您将可以查看孩子的作业、作品和成长记录。一个家长账号最多可绑定 <strong>3 个孩子</strong>。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 底部操作栏 ── -->
+    <div class="bottom-bar">
+      <div class="flex gap-3">
+        <button id="prevBtn" class="btn btn-outline btn-block btn-lg flex-1" disabled>上一步</button>
+        <button id="nextBtn" class="btn btn-gradient btn-block btn-lg flex-1" disabled>下一步</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const state = { school: '', grade: '', class: '', name: '' };
+  let currentStep = 1;
+  const TOTAL_STEPS = 4;
+  let advancing = false;
+
+  const stepHint   = document.getElementById('stepHint');
+  const indicator  = document.getElementById('stepIndicator');
+  const breadcrumb = document.getElementById('breadcrumb');
+  const prevBtn    = document.getElementById('prevBtn');
+  const nextBtn    = document.getElementById('nextBtn');
+
+  const stepLabels    = ['选择学校', '选择年级', '选择班级', '确认绑定'];
+  const stepIcons     = ['school', 'book-open', 'users'];
+  const stepStateKeys = ['school', 'grade', 'class'];
+
+  function isPadColumns() {
+    return window.matchMedia('(min-width: 768px) and (orientation: landscape)').matches;
+  }
+
+  function stepDone(stepNum) {
+    if (stepNum === 1) return !!state.school;
+    if (stepNum === 2) return !!state.grade;
+    if (stepNum === 3) return !!state['class'];
+    if (stepNum === 4) return !!(state.school && state.grade && state['class'] && state.name.trim());
+    return false;
+  }
+
+  /* ── 渲染步骤指示器 ── */
+  function renderIndicator(active) {
+    indicator.innerHTML = '';
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'stepper-dot';
+      let status = 'pending';
+      if (isPadColumns()) {
+        if (i < 4) status = stepDone(i) ? 'done' : 'pending';
+        else if (stepDone(4)) status = 'done';
+        else if (stepDone(3)) status = 'active';
+      } else {
+        if (i < active) status = 'done';
+        else if (i === active) status = 'active';
+      }
+      dot.classList.add(status);
+      dot.textContent = status === 'done' ? '✓' : String(i);
+      indicator.appendChild(dot);
+      if (i < TOTAL_STEPS) {
+        const line = document.createElement('span');
+        line.className = 'stepper-line';
+        const lineDone = isPadColumns() ? (i < 4 ? stepDone(i) : stepDone(4)) : i < active;
+        line.classList.add(lineDone ? 'done' : 'pending');
+        indicator.appendChild(line);
+      }
+    }
+  }
+
+  /* ── 渲染面包屑（使用 Lucide 图标） ── */
+  function renderBreadcrumb() {
+    breadcrumb.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 3; i++) {
+      const val = state[stepStateKeys[i]];
+      if (!val) break;
+      if (frag.childNodes.length > 0) {
+        const sep = document.createElement('span');
+        sep.className = 'breadcrumb-sep';
+        sep.textContent = '›';
+        frag.appendChild(sep);
+      }
+      const chip = document.createElement('button');
+      chip.className = 'breadcrumb-chip';
+      chip.innerHTML = '<i data-lucide="' + stepIcons[i] + '" class="icon chip-icon"></i><span>' + val + '</span>';
+      chip.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (!advancing) goToStep(i + 1);
+      });
+      frag.appendChild(chip);
+    }
+    breadcrumb.appendChild(frag);
+    // 重新渲染 Lucide 图标
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function applyPadColumnsLayout() {
+    const panels = document.querySelectorAll('.step-panel');
+    if (isPadColumns()) {
+      panels.forEach(function (el) {
+        el.classList.remove('leaving');
+        if (el.classList.contains('bind-col') || el.dataset.step === '4') {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+      stepHint.textContent = '请依次选择学校、年级、班级，并填写姓名';
+      prevBtn.hidden = true;
+      nextBtn.textContent = '确认绑定';
+      syncConfirmFields();
+      updateNextButtonState();
+      renderIndicator(currentStep);
+      renderBreadcrumb();
+      return true;
+    }
+    prevBtn.hidden = false;
+    return false;
+  }
+
+  function syncConfirmFields() {
+    document.getElementById('confirmSchool').textContent = state.school || '—';
+    document.getElementById('confirmGrade').textContent  = state.grade  || '—';
+    document.getElementById('confirmClass').textContent  = state['class'] || '—';
+  }
+
+  /* ── 切换步骤（竖屏分步；横屏三列同屏不切换面板） ── */
+  function goToStep(step) {
+    currentStep = Math.max(1, Math.min(TOTAL_STEPS, step));
+    syncConfirmFields();
+
+    if (applyPadColumnsLayout()) return;
+
+    const panels = document.querySelectorAll('.step-panel');
+    panels.forEach(function (el) { el.classList.remove('active', 'leaving'); });
+
+    const panel = document.querySelector('.step-panel[data-step="' + currentStep + '"]');
+    panel.classList.add('active');
+
+    renderIndicator(currentStep);
+    renderBreadcrumb();
+    stepHint.textContent = stepLabels[currentStep - 1];
+
+    prevBtn.disabled = currentStep === 1;
+    nextBtn.textContent = currentStep === TOTAL_STEPS ? '确认绑定' : '下一步';
+    updateNextButtonState();
+  }
+
+  /* ── 更新下一步按钮状态 ── */
+  function updateNextButtonState() {
+    if (isPadColumns()) {
+      nextBtn.disabled = !(state.school && state.grade && state['class'] && state.name.trim());
+      return;
+    }
+    switch (currentStep) {
+      case 1: nextBtn.disabled = !state.school; break;
+      case 2: nextBtn.disabled = !state.grade;  break;
+      case 3: nextBtn.disabled = !state['class']; break;
+      case 4: nextBtn.disabled = !state.name.trim(); break;
+    }
+  }
+
+  /* ── 自动跳转 ── */
+  function autoAdvance() {
+    if (isPadColumns()) {
+      syncConfirmFields();
+      updateNextButtonState();
+      renderIndicator(currentStep);
+      renderBreadcrumb();
+      return;
+    }
+    if (currentStep < 3) {
+      advancing = true;
+      nextBtn.disabled = true;
+      setTimeout(function () {
+        goToStep(currentStep + 1);
+        advancing = false;
+      }, 320);
+    } else if (currentStep === 3) {
+      advancing = true;
+      nextBtn.disabled = true;
+      setTimeout(function () {
+        goToStep(currentStep + 1);
+        advancing = false;
+      }, 320);
+    }
+  }
+
+  /* ── 选项卡片选择（含自动跳转） ── */
+  function setupCardSelection(containerId, stateKey, stepNum) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener('click', function (e) {
+      if (advancing) return;
+      const card = e.target.closest('.option-card');
+      if (!card) return;
+      if (card.classList.contains('selected')) return;
+
+      container.querySelectorAll('.option-card').forEach(function (c) {
+        c.classList.remove('selected', 'advancing');
+      });
+      card.classList.add('selected', 'advancing');
+
+      state[stateKey] = card.dataset.value;
+      syncConfirmFields();
+      updateNextButtonState();
+      renderBreadcrumb();
+      renderIndicator(currentStep);
+
+      if (!isPadColumns() && currentStep === stepNum && stepNum <= 3) {
+        autoAdvance();
+      } else if (isPadColumns()) {
+        autoAdvance();
+      }
+    });
+  }
+
+  setupCardSelection('schoolList', 'school', 1);
+  setupCardSelection('gradeList', 'grade',  2);
+  setupCardSelection('classList', 'class',  3);
+
+  /* ── 姓名输入 ── */
+  document.getElementById('childName').addEventListener('input', function () {
+    state.name = this.value.trim();
+    updateNextButtonState();
+    if (isPadColumns()) renderIndicator(currentStep);
+  });
+
+  /* ── 按钮事件 ── */
+  prevBtn.addEventListener('click', function () {
+    if (!advancing) goToStep(currentStep - 1);
+  });
+
+  nextBtn.addEventListener('click', function () {
+    if (this.disabled || advancing) return;
+    if (!isPadColumns() && currentStep < TOTAL_STEPS) {
+      goToStep(currentStep + 1);
+    } else {
+      const params = new URLSearchParams({
+        school: state.school,
+        grade: state.grade,
+        class: state['class'],
+        name: state.name
+      });
+      window.location.href = '02-bind-success.html?' + params.toString();
+    }
+  });
+
+  window.addEventListener('resize', function () {
+    if (isPadColumns()) applyPadColumnsLayout();
+    else goToStep(currentStep);
+  });
+
+  /* ── 初始化 ── */
+  if (isPadColumns()) applyPadColumnsLayout();
+  else goToStep(1);
+})();
+</script>
+</body>
+</html>

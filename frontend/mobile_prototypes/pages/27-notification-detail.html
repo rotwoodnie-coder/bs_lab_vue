@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>消息详情 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-notification-detail>
+
+  <div class="topbar page-topbar safe-top">
+    <a href="27-notifications.html" class="icon-btn page-back" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </a>
+    <h1 class="topbar-title">消息详情</h1>
+  </div>
+
+  <div data-notification-detail-body></div>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item has-nav-badge">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/notifications.js"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成长档案 - 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container theme-primary safe-top pad-shell" data-layout="growth-archive">
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item active">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-workbench">
+    <header class="pad-workbench__topbar">
+      <a href="15-profile-student.html" class="icon-btn" aria-label="返回">
+        <i data-lucide="chevron-left" class="icon"></i>
+      </a>
+      <h1 class="pad-workbench__title">🌱 成长档案</h1>
+      <div class="pad-workbench__topbar-actions">
+        <button type="button" class="btn btn-ghost btn-sm" data-growth-plan-open>
+          <i data-lucide="sliders-horizontal" class="icon"></i> 调整方案
+        </button>
+        <button type="button" class="btn btn-gradient btn-sm" onclick="alert('分享成长档案')">
+          <i data-lucide="share-2" class="icon"></i> 分享
+        </button>
+      </div>
+    </header>
+
+    <div class="pad-workbench__body">
+      <div class="pad-profile__banner banner banner-amber-rose stack-2">
+        <div class="flex items-center gap-4">
+          <div class="avatar avatar-lg avatar-grad-warm">张</div>
+          <div>
+            <div class="text-base font-bold">张小明</div>
+            <div class="text-sm banner-sub">三年级(1)班 · 小学</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pad-profile__stats" style="grid-template-columns:repeat(3,minmax(0,1fr));">
+        <div class="card rounded-xl card-pad text-center tint-amber">
+          <div class="text-2xl font-bold text-warning">24</div>
+          <div class="text-xs muted mt-1">🧪 实验数</div>
+        </div>
+        <div class="card rounded-xl card-pad text-center tint-blue">
+          <div class="text-2xl font-bold text-brand">680</div>
+          <div class="text-xs muted mt-1">⭐ 积分</div>
+        </div>
+        <div class="card rounded-xl card-pad text-center tint-green">
+          <div class="text-2xl font-bold text-success">5</div>
+          <div class="text-xs muted mt-1">🏅 勋章</div>
+        </div>
+      </div>
+
+      <div class="pad-profile__content" style="grid-template-columns:minmax(0,1fr);">
+        <div class="card rounded-xl card-pad" id="growth-plan">
+          <div class="row items-center justify-between mb-3">
+            <h2 class="text-base font-bold">📋 展示方案</h2>
+            <button type="button" class="btn btn-ghost btn-sm" data-growth-plan-open>调整方案</button>
+          </div>
+          <div class="stack-2 text-sm">
+            <div class="row items-center justify-between surface-2 rounded-xl p-3">
+              <span>展示内容</span>
+              <span class="text-xs muted" data-plan-content>实验 · 作品 · 勋章</span>
+            </div>
+            <div class="row items-center justify-between surface-2 rounded-xl p-3">
+              <span>可见范围</span>
+              <span class="text-xs muted" data-plan-visibility>本人 + 家长</span>
+            </div>
+            <div class="row items-center justify-between surface-2 rounded-xl p-3">
+              <span>时间范围</span>
+              <span class="text-xs muted" data-plan-range>本学期</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-xl card-pad">
+          <h2 class="text-base font-bold mb-4">📖 学习轨迹</h2>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot filled"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs muted mb-1">今天 09:30</p>
+                <div class="surface-2 rounded-xl p-3">
+                  <div class="row items-center gap-2">
+                    <span class="text-lg">🌈</span>
+                    <div class="flex-1">
+                      <div class="text-sm font-bold">完成"彩虹分层实验"</div>
+                      <div class="text-xs muted mt-1">获得 🏆 实验达人勋章</div>
+                    </div>
+                    <span class="badge badge-success">+50分</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot filled violet"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs muted mb-1">昨天 16:20</p>
+                <div class="surface-2 rounded-xl p-3">
+                  <div class="row items-center gap-2">
+                    <span class="text-lg">🪁</span>
+                    <div class="flex-1">
+                      <div class="text-sm font-bold">提交"纸风车"作品</div>
+                      <div class="row gap-2 mt-1">
+                        <span class="badge badge-info">作品已展示</span>
+                        <span class="badge badge-success">+20分</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot filled blue"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs muted mb-1">前天 10:15</p>
+                <div class="surface-2 rounded-xl p-3">
+                  <div class="row items-center gap-2">
+                    <span class="text-lg">💧</span>
+                    <div class="flex-1">
+                      <div class="text-sm font-bold">完成"水的表面张力"实验</div>
+                      <div class="text-xs muted mt-1">首次独立操作成功 🔬</div>
+                    </div>
+                    <span class="badge badge-success">+30分</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot filled amber"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs muted mb-1">上周</p>
+                <div class="surface-2 rounded-xl p-3">
+                  <div class="row items-center gap-2">
+                    <span class="text-lg">📊</span>
+                    <div class="flex-1">
+                      <div class="text-sm font-bold">完成 3 个实验</div>
+                      <div class="text-xs muted mt-1">班级排名第 5，超越 85% 同学</div>
+                    </div>
+                    <span class="badge badge-warning">排名 ↑3</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot filled amber"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs muted mb-1">5天前</p>
+                <div class="surface-2 rounded-xl p-3">
+                  <div class="row items-center gap-2">
+                    <span class="text-lg">📸</span>
+                    <div class="flex-1">
+                      <div class="text-sm font-bold">上传 3 份实验成果照片</div>
+                      <span class="badge badge-info mt-1">获得记录达人</span>
+                    </div>
+                    <span class="badge badge-success">+15分</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot filled slate"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs muted mb-1">4月28日</p>
+                <div class="surface-2 rounded-xl p-3">
+                  <div class="row items-center gap-2">
+                    <span class="text-lg">🌸</span>
+                    <div class="flex-1">
+                      <div class="text-sm font-bold">完成"植物生长观察"系列实验</div>
+                      <div class="text-xs muted mt-1">连续观察 7 天</div>
+                    </div>
+                    <span class="badge badge-success">+40分</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a href="19-badge-wall.html" class="btn btn-gradient btn-block mt-5">
+            <i data-lucide="award" class="icon"></i> 查看勋章墙
+          </a>
+        </div>
+      </div>
+
+      <div class="pad-profile__mobile-only pb-6">
+        <div class="topbar safe-top">
+          <a href="15-profile-student.html" class="icon-btn"><i data-lucide="chevron-left" class="icon"></i></a>
+          <h1 class="topbar-title">🌱 成长档案</h1>
+          <div class="row gap-1">
+            <button type="button" class="icon-btn" data-growth-plan-open aria-label="调整方案"><i data-lucide="sliders-horizontal" class="icon"></i></button>
+            <button type="button" class="icon-btn" onclick="alert('分享成长档案')" aria-label="分享"><i data-lucide="share-2" class="icon"></i></button>
+          </div>
+        </div>
+
+        <div class="row items-center gap-4 px-4 py-5">
+          <div class="avatar avatar-lg avatar-grad-warm">张</div>
+          <div>
+            <div class="text-base font-bold">张小明</div>
+            <div class="text-sm muted mt-1">三年级(1)班 · 小学</div>
+          </div>
+        </div>
+
+        <div class="grid grid-3 gap-3 px-4 mb-3">
+          <div class="card card-pad text-center tint-amber">
+            <div class="text-2xl font-bold text-warning">24</div>
+            <div class="text-xs muted mt-1">🧪 实验数</div>
+          </div>
+          <div class="card card-pad text-center tint-blue">
+            <div class="text-2xl font-bold text-brand">680</div>
+            <div class="text-xs muted mt-1">⭐ 积分</div>
+          </div>
+          <div class="card card-pad text-center tint-green">
+            <div class="text-2xl font-bold text-success">5</div>
+            <div class="text-xs muted mt-1">🏅 勋章</div>
+          </div>
+        </div>
+
+        <div class="px-4 mb-4">
+          <div class="card card-pad rounded-xl" id="growth-plan-mobile">
+            <div class="row items-center justify-between mb-3">
+              <h2 class="text-sm font-bold">📋 展示方案</h2>
+              <button type="button" class="btn btn-ghost btn-sm" data-growth-plan-open>调整</button>
+            </div>
+            <div class="stack-2 text-sm">
+              <div class="row items-center justify-between surface-2 rounded-xl p-3">
+                <span class="text-xs">展示内容</span>
+                <span class="text-xs muted" data-plan-content>实验 · 作品 · 勋章</span>
+              </div>
+              <div class="row items-center justify-between surface-2 rounded-xl p-3">
+                <span class="text-xs">可见范围</span>
+                <span class="text-xs muted" data-plan-visibility>本人 + 家长</span>
+              </div>
+              <div class="row items-center justify-between surface-2 rounded-xl p-3">
+                <span class="text-xs">时间范围</span>
+                <span class="text-xs muted" data-plan-range>本学期</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 mb-4">
+          <a href="20-quiz.html" class="card card-pad card-link quiz-nudge row items-center gap-3">
+            <div class="tile-icon tile-sm tint-violet shrink-0">🧠</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-bold">每日答题</div>
+              <p class="text-xs muted mt-1">今日 0/5 · 冲刺「答题王者」8/20</p>
+            </div>
+            <i data-lucide="chevron-right" class="icon muted-2 shrink-0"></i>
+          </a>
+        </div>
+
+        <div class="px-4 py-3">
+          <h2 class="text-base font-bold">📖 学习轨迹</h2>
+        </div>
+
+        <div class="px-4 stack pb-4">
+          <div class="timeline-item">
+            <div class="timeline-dot filled"></div>
+            <div class="text-xs muted mb-1">今天 09:30</div>
+            <div class="card card-pad">
+              <div class="row items-center gap-2">
+                <span class="text-lg">🌈</span>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">完成"彩虹分层实验"</div>
+                  <div class="text-xs muted mt-1">获得 🏆 实验达人勋章</div>
+                </div>
+                <span class="badge badge-success">+50分</span>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot violet"></div>
+            <div class="text-xs muted mb-1">昨天 16:20</div>
+            <div class="card card-pad">
+              <div class="row items-center gap-2">
+                <span class="text-lg">🪁</span>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">提交"纸风车"作品</div>
+                  <div class="row gap-2 mt-1">
+                    <span class="badge badge-info">作品已展示</span>
+                    <span class="badge badge-success">+20分</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot violet"></div>
+            <div class="text-xs muted mb-1">前天 10:15</div>
+            <div class="card card-pad">
+              <div class="row items-center gap-2">
+                <span class="text-lg">💧</span>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">完成"水的表面张力"实验</div>
+                  <div class="text-xs muted mt-1">首次独立操作成功 🔬</div>
+                </div>
+                <span class="badge badge-success">+30分</span>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot amber"></div>
+            <div class="text-xs muted mb-1">上周</div>
+            <div class="card card-pad">
+              <div class="row items-center gap-2">
+                <span class="text-lg">📊</span>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">完成 3 个实验</div>
+                  <div class="text-xs muted mt-1">班级排名第 5，超越 85% 同学</div>
+                </div>
+                <span class="badge badge-warning">排名 ↑3</span>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot amber"></div>
+            <div class="text-xs muted mb-1">5天前</div>
+            <div class="card card-pad">
+              <div class="row items-center gap-2">
+                <span class="text-lg">📸</span>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">上传 3 份实验成果照片</div>
+                  <span class="badge badge-info mt-1">获得记录达人</span>
+                </div>
+                <span class="badge badge-success">+15分</span>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot slate"></div>
+            <div class="text-xs muted mb-1">4月28日</div>
+            <div class="card card-pad">
+              <div class="row items-center gap-2">
+                <span class="text-lg">🌸</span>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">完成"植物生长观察"系列实验</div>
+                  <div class="text-xs muted mt-1">连续观察 7 天</div>
+                </div>
+                <span class="badge badge-success">+40分</span>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot slate"></div>
+            <div class="text-xs muted mb-1">更早</div>
+            <div class="card card-pad">
+              <div class="row items-center gap-2">
+                <span class="text-lg">🔭</span>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">完成"自制望远镜"实验</div>
+                  <div class="text-xs muted mt-1">作品获老师点赞 👍</div>
+                </div>
+                <span class="badge badge-success">+25分</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 mb-4">
+          <a href="19-badge-wall.html" class="btn btn-gradient btn-block">
+            <i data-lucide="award" class="icon"></i> 查看勋章墙
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="sheet-overlay" data-growth-plan-overlay data-growth-plan-close></div>
+<div class="sheet" data-growth-plan-sheet>
+  <div class="sheet-handle"></div>
+  <div class="px-4 pb-2">
+    <div class="row items-center justify-between mb-4">
+      <h2 class="text-base font-bold">调整展示方案</h2>
+      <button type="button" class="icon-btn" data-growth-plan-close aria-label="关闭">
+        <i data-lucide="x" class="icon"></i>
+      </button>
+    </div>
+    <form data-growth-plan-form class="stack-4 text-left">
+      <fieldset class="stack-2" style="border:none;padding:0;margin:0;">
+        <legend class="text-sm font-bold mb-2">展示内容</legend>
+        <label class="row items-center gap-2 text-sm"><input type="checkbox" name="plan-content" value="exp" checked> 实验记录</label>
+        <label class="row items-center gap-2 text-sm"><input type="checkbox" name="plan-content" value="work" checked> 作品上传</label>
+        <label class="row items-center gap-2 text-sm"><input type="checkbox" name="plan-content" value="badge" checked> 勋章成就</label>
+        <label class="row items-center gap-2 text-sm"><input type="checkbox" name="plan-content" value="rank"> 班级排名</label>
+      </fieldset>
+      <fieldset class="stack-2" style="border:none;padding:0;margin:0;">
+        <legend class="text-sm font-bold mb-2">可见范围</legend>
+        <label class="row items-center gap-2 text-sm"><input type="radio" name="plan-visibility" value="self"> 仅本人</label>
+        <label class="row items-center gap-2 text-sm"><input type="radio" name="plan-visibility" value="parent" checked> 本人 + 家长</label>
+        <label class="row items-center gap-2 text-sm"><input type="radio" name="plan-visibility" value="class"> 本人 + 家长 + 班级</label>
+      </fieldset>
+      <fieldset class="stack-2" style="border:none;padding:0;margin:0;">
+        <legend class="text-sm font-bold mb-2">时间范围</legend>
+        <label class="row items-center gap-2 text-sm"><input type="radio" name="plan-range" value="term" checked> 本学期</label>
+        <label class="row items-center gap-2 text-sm"><input type="radio" name="plan-range" value="year"> 本学年</label>
+        <label class="row items-center gap-2 text-sm"><input type="radio" name="plan-range" value="all"> 全部记录</label>
+      </fieldset>
+      <button type="submit" class="btn btn-gradient btn-block">保存方案</button>
+    </form>
+  </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/prototype.js"></script>
+  <script src="../js/growth-archive.js"></script>
+</body>
+</html>

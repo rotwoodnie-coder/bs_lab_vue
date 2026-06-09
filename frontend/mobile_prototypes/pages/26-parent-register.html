@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>家长自助注册 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+  <style>
+    /* ── 面包屑条 ── */
+    .breadcrumb-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-1);
+      min-height: 36px;
+      padding: var(--space-2) 0;
+    }
+    .breadcrumb-bar:empty { display: none; }
+    .breadcrumb-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--ease);
+      border: none;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    .breadcrumb-chip:active { transform: scale(0.94); opacity: 0.8; }
+    .breadcrumb-chip .chip-icon { width: 14px; height: 14px; }
+    .breadcrumb-sep { color: var(--color-text-3); font-size: 12px; user-select: none; }
+
+    /* ── 步骤面板入场 ── */
+    .step-panel { display: none; }
+    .step-panel.active {
+      display: block;
+      animation: fadeInUp 0.35s var(--ease) both;
+    }
+    .step-panel.leaving {
+      display: block;
+      animation: fadeOutDown 0.2s var(--ease) both;
+      pointer-events: none;
+    }
+    @keyframes fadeOutDown {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(16px); }
+    }
+
+    /* ── 选择卡片 ── */
+    .option-card { padding: 13px var(--space-4); }
+    .option-card .opt-icon {
+      width: 20px; height: 20px;
+      color: var(--color-text-3);
+      transition: color var(--dur-fast) var(--ease);
+    }
+    .option-card.selected .opt-icon { color: var(--brand); }
+    .step-panel.active .stack > * + * { margin-top: var(--space-2); }
+    .option-card.selected .option-check { opacity: 1; }
+    .option-card.advancing {
+      animation: selectPulse 0.28s var(--ease);
+    }
+    @keyframes selectPulse {
+      0% { transform: scale(1); }
+      40% { transform: scale(0.97); }
+      70% { transform: scale(1.01); }
+      100% { transform: scale(1); }
+    }
+
+    /* ── 确认信息卡片 ── */
+    .confirm-summary {
+      background: var(--color-surface-2);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border-soft);
+    }
+    .confirm-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+    }
+    .confirm-row + .confirm-row { border-top: 1px solid var(--color-border-soft); }
+    .confirm-row .cr-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .confirm-row .cr-icon .cr-svg { width: 18px; height: 18px; }
+    .confirm-row .cr-label { font-size: var(--text-xs); color: var(--color-text-3); }
+    .confirm-row .cr-value { font-size: var(--text-base); font-weight: var(--weight-bold); color: var(--color-text-1); margin-top: 1px; }
+
+    /* ── 底部 sticky 操作栏 ── */
+    .bottom-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--color-surface);
+      padding-top: var(--space-3);
+      padding-bottom: max(var(--space-3), env(safe-area-inset-bottom, 12px));
+      border-top: 1px solid var(--color-border-soft);
+      margin-top: var(--space-4);
+      margin-left: calc(-1 * var(--space-5));
+      margin-right: calc(-1 * var(--space-5));
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+
+    /* ── 关系选择 ── */
+    .relation-group {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .relation-btn {
+      flex: 1;
+      padding: 10px var(--space-3);
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--color-text-2);
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--dur-fast) var(--ease);
+    }
+    .relation-btn:hover { border-color: var(--color-text-3); }
+    .relation-btn.selected {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    /* ── 验证码行 ── */
+    .code-row {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .code-row .input-wrap { flex: 1; }
+    .code-btn {
+      flex-shrink: 0;
+      padding: 12px var(--space-4);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-bold);
+      color: var(--brand);
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--ease);
+      white-space: nowrap;
+    }
+    .code-btn:hover { border-color: var(--brand); background: var(--brand-soft); }
+    .code-btn:disabled { color: var(--color-text-3); border-color: var(--color-border); background: var(--color-surface-2); cursor: not-allowed; }
+
+    /* ── 安全提示 ── */
+    .security-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--c-amber-100);
+      color: var(--c-amber-700);
+      font-size: var(--text-xs);
+      line-height: 1.5;
+    }
+    .security-notice .sn-icon { font-size: 16px; line-height: 1.3; }
+
+    /* ── 已提交状态覆盖 ── */
+    .screen.pad-submitted {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #fef3c7 0%, #f1f5f9 45%);
+      padding: var(--space-5);
+      position: relative;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+<div class="screen theme-parent pad-bind" data-layout="register-flow">
+  <div class="screen-body stack-4 px-5">
+
+    <!-- ── 顶栏 ── -->
+    <div class="text-center safe-top">
+      <div class="tile-icon tile-lg tile-grad mx-auto mb-3">
+        <i data-lucide="user-plus" class="icon icon-lg"></i>
+      </div>
+      <h1 class="text-xl font-bold">家长自助注册</h1>
+      <p class="text-xs muted mt-1" id="stepHint">填写家长信息</p>
+    </div>
+
+    <!-- ── 面包屑 ── -->
+    <div class="breadcrumb-bar" id="breadcrumb"></div>
+
+    <!-- ── 步骤指示器 ── -->
+    <div class="stepper mb-3" id="stepIndicator"><!-- JS 渲染 --></div>
+
+    <!-- ── 步骤面板 ── -->
+    <div class="flex-1" style="min-height:260px;">
+
+      <!-- 第 1 步：家长信息 -->
+      <div class="step-panel" data-step="1">
+        <div class="stack-4">
+          <div>
+            <label class="text-xs muted mb-2 block" style="font-weight:var(--weight-medium);">家长姓名</label>
+            <div class="input-group" data-input-tools="off">
+              <i data-lucide="user" class="icon"></i>
+              <input class="input" type="text" id="parentName" placeholder="请输入家长姓名" maxlength="20" autocomplete="name" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs muted mb-2 block" style="font-weight:var(--weight-medium);">手机号</label>
+            <div class="input-group" data-input-tools="off">
+              <i data-lucide="phone" class="icon"></i>
+              <input class="input" type="tel" id="parentPhone" placeholder="请输入手机号" maxlength="11" autocomplete="tel" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs muted mb-2 block" style="font-weight:var(--weight-medium);">验证码</label>
+            <div class="code-row">
+              <div class="input-group" data-input-tools="off">
+                <i data-lucide="shield" class="icon"></i>
+                <input class="input" type="text" id="verifyCode" placeholder="输入验证码" maxlength="6" inputmode="numeric" />
+              </div>
+              <button class="code-btn" id="getCodeBtn">获取验证码</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs muted mb-2 block" style="font-weight:var(--weight-medium);">与孩子的关系</label>
+            <div class="relation-group" id="relationGroup">
+              <button class="relation-btn" data-value="爸爸">爸爸</button>
+              <button class="relation-btn" data-value="妈妈">妈妈</button>
+              <button class="relation-btn" data-value="其他">其他</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第 2 步：选择学校 -->
+      <div class="step-panel" data-step="2">
+        <h2 class="text-sm font-bold mb-2">选择孩子所在学校</h2>
+        <div class="stack" id="schoolList">
+          <div class="option-card" data-value="实验小学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">实验小学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="第一小学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">第一小学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="实验中学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">实验中学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="第一中学">
+            <span class="row items-center gap-3">
+              <i data-lucide="school" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">第一中学</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第 3 步：选择年级 -->
+      <div class="step-panel" data-step="3">
+        <h2 class="text-sm font-bold mb-2">选择孩子所在年级</h2>
+        <div class="stack" id="gradeList">
+          <div class="option-card" data-value="一年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">一年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="二年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">二年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="三年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">三年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="四年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">四年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="五年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">五年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="六年级">
+            <span class="row items-center gap-3">
+              <i data-lucide="book-open" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">六年级</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第 4 步：选择班级 -->
+      <div class="step-panel" data-step="4">
+        <h2 class="text-sm font-bold mb-2">选择孩子所在班级</h2>
+        <div class="stack" id="classList">
+          <div class="option-card" data-value="1 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">1 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="2 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">2 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="3 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">3 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="4 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">4 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="5 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">5 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="option-card" data-value="6 班">
+            <span class="row items-center gap-3">
+              <i data-lucide="users" class="icon opt-icon"></i>
+              <span class="text-sm font-semibold">6 班</span>
+            </span>
+            <span class="option-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第 5 步：确认并提交 -->
+      <div class="step-panel" data-step="5">
+        <p class="text-xs muted mb-3">请确认以下信息，确认无误后提交审核</p>
+
+        <div class="confirm-summary mb-4">
+          <div class="text-xs font-semibold muted-2 mb-2">家长信息</div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="user" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">家长姓名</div>
+              <div class="cr-value" id="confirmParentName">—</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="phone" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">手机号</div>
+              <div class="cr-value" id="confirmParentPhone">—</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="heart-handshake" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">关系</div>
+              <div class="cr-value" id="confirmRelation">—</div>
+            </div>
+          </div>
+          <div class="divider my-2"></div>
+          <div class="text-xs font-semibold muted-2 mb-2">绑定学生</div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="school" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">学校</div>
+              <div class="cr-value" id="confirmSchool">—</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="book-open" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">年级</div>
+              <div class="cr-value" id="confirmGrade">—</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="cr-icon">
+              <i data-lucide="users" class="icon cr-svg"></i>
+            </div>
+            <div>
+              <div class="cr-label">班级</div>
+              <div class="cr-value" id="confirmClass">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="text-xs muted mb-2 block" for="childName" style="font-weight:var(--weight-medium);">孩子姓名</label>
+          <input type="text" id="childName" placeholder="请输入孩子姓名" maxlength="20"
+                 class="input text-sm font-medium" />
+        </div>
+
+        <div class="security-notice mb-3">
+          <span class="sn-icon">📌</span>
+          <span>注册信息提交后需等待学校审核，审核通过后您将收到短信通知。审核通过前暂无法使用家长端功能。</span>
+        </div>
+
+        <div class="card card-pad row items-start gap-3 surface-2" style="border:none;">
+          <i data-lucide="lock" class="icon text-lg shrink-0" style="color:var(--brand);"></i>
+          <p class="text-xs leading-relaxed muted">
+            提交即表示同意 <a href="#" class="text-brand">《用户协议》</a> 和 <a href="#" class="text-brand">《隐私政策》</a>。
+            一个家长账号最多可绑定 <strong>3 个孩子</strong>。
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── 底部操作栏 ── -->
+    <div class="bottom-bar">
+      <div class="flex gap-3">
+        <button id="prevBtn" class="btn btn-outline btn-block btn-lg flex-1" disabled>上一步</button>
+        <button id="nextBtn" class="btn btn-gradient btn-block btn-lg flex-1" disabled>下一步</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const state = {
+    parentName: '',
+    parentPhone: '',
+    verifyCode: '',
+    relation: '',
+    school: '',
+    grade: '',
+    class: '',
+    childName: ''
+  };
+  let currentStep = 1;
+  const TOTAL_STEPS = 5;
+  let advancing = false;
+  let codeCountdown = 0;
+  let codeTimer = null;
+
+  const stepHint   = document.getElementById('stepHint');
+  const indicator  = document.getElementById('stepIndicator');
+  const breadcrumb = document.getElementById('breadcrumb');
+  const prevBtn    = document.getElementById('prevBtn');
+  const nextBtn    = document.getElementById('nextBtn');
+  const getCodeBtn = document.getElementById('getCodeBtn');
+
+  const stepLabels    = ['填写家长信息', '选择学校', '选择年级', '选择班级', '确认提交'];
+  const stepIcons     = ['user', 'school', 'book-open', 'users'];
+  const stepStateKeys = ['parentName', 'school', 'grade', 'class'];
+
+  function isPadColumns() {
+    return window.matchMedia('(min-width: 768px) and (orientation: landscape)').matches;
+  }
+
+  /* ── 校验各步骤 ── */
+  function stepDone(stepNum) {
+    if (stepNum === 1) return !!(state.parentName.trim() && state.parentPhone.trim() && state.verifyCode.trim() && state.relation);
+    if (stepNum === 2) return !!state.school;
+    if (stepNum === 3) return !!state.grade;
+    if (stepNum === 4) return !!state.class;
+    if (stepNum === 5) return !!(state.childName.trim());
+    return false;
+  }
+
+  /* ── 渲染步骤指示器 ── */
+  function renderIndicator(active) {
+    indicator.innerHTML = '';
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'stepper-dot';
+      let status = 'pending';
+      if (i < active) status = 'done';
+      else if (i === active) status = 'active';
+      dot.classList.add(status);
+      dot.textContent = status === 'done' ? '✓' : String(i);
+      indicator.appendChild(dot);
+      if (i < TOTAL_STEPS) {
+        const line = document.createElement('span');
+        line.className = 'stepper-line';
+        line.classList.add(i < active ? 'done' : 'pending');
+        indicator.appendChild(line);
+      }
+    }
+  }
+
+  /* ── 渲染面包屑 ── */
+  function renderBreadcrumb() {
+    breadcrumb.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    const items = [
+      { key: 'parentName', icon: 'user', label: state.parentName },
+      { key: 'school', icon: 'school', label: state.school },
+      { key: 'grade', icon: 'book-open', label: state.grade },
+      { key: 'class', icon: 'users', label: state.class }
+    ];
+    let shown = 0;
+    for (let i = 0; i < items.length; i++) {
+      if (!items[i].label) break;
+      if (shown > 0) {
+        const sep = document.createElement('span');
+        sep.className = 'breadcrumb-sep';
+        sep.textContent = '›';
+        frag.appendChild(sep);
+      }
+      const chip = document.createElement('button');
+      chip.className = 'breadcrumb-chip';
+      var displayLabel = items[i].key === 'parentName' ? (items[i].label.substring(0, 4) + '..') : items[i].label;
+      chip.innerHTML = '<i data-lucide="' + items[i].icon + '" class="icon chip-icon"></i><span>' + displayLabel + '</span>';
+      chip.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (!advancing) goToStep(i + 1);
+      });
+      frag.appendChild(chip);
+      shown++;
+    }
+    breadcrumb.appendChild(frag);
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function syncConfirmFields() {
+    document.getElementById('confirmParentName').textContent = state.parentName || '—';
+    document.getElementById('confirmParentPhone').textContent = state.parentPhone || '—';
+    document.getElementById('confirmRelation').textContent  = state.relation || '—';
+    document.getElementById('confirmSchool').textContent = state.school || '—';
+    document.getElementById('confirmGrade').textContent  = state.grade  || '—';
+    document.getElementById('confirmClass').textContent  = state.class || '—';
+  }
+
+  function goToStep(step) {
+    currentStep = Math.max(1, Math.min(TOTAL_STEPS, step));
+    syncConfirmFields();
+
+    const panels = document.querySelectorAll('.step-panel');
+    panels.forEach(function (el) { el.classList.remove('active', 'leaving'); });
+
+    const panel = document.querySelector('.step-panel[data-step="' + currentStep + '"]');
+    if (panel) panel.classList.add('active');
+
+    renderIndicator(currentStep);
+    renderBreadcrumb();
+    stepHint.textContent = stepLabels[currentStep - 1];
+
+    prevBtn.disabled = currentStep === 1;
+    nextBtn.textContent = currentStep === TOTAL_STEPS ? '提交审核' : '下一步';
+    updateNextButtonState();
+  }
+
+  function updateNextButtonState() {
+    switch (currentStep) {
+      case 1: nextBtn.disabled = !stepDone(1); break;
+      case 2: nextBtn.disabled = !state.school; break;
+      case 3: nextBtn.disabled = !state.grade;  break;
+      case 4: nextBtn.disabled = !state.class; break;
+      case 5: nextBtn.disabled = !state.childName.trim(); break;
+    }
+  }
+
+  function autoAdvance() {
+    if (currentStep < 4) {
+      advancing = true;
+      nextBtn.disabled = true;
+      setTimeout(function () {
+        goToStep(currentStep + 1);
+        advancing = false;
+      }, 320);
+    } else if (currentStep === 4) {
+      advancing = true;
+      nextBtn.disabled = true;
+      setTimeout(function () {
+        goToStep(currentStep + 1);
+        advancing = false;
+      }, 320);
+    }
+  }
+
+  /* ── 选项卡片选择 ── */
+  function setupCardSelection(containerId, stateKey, stepNum) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener('click', function (e) {
+      if (advancing) return;
+      const card = e.target.closest('.option-card');
+      if (!card) return;
+      if (card.classList.contains('selected')) return;
+
+      container.querySelectorAll('.option-card').forEach(function (c) {
+        c.classList.remove('selected', 'advancing');
+      });
+      card.classList.add('selected', 'advancing');
+
+      state[stateKey] = card.dataset.value;
+      syncConfirmFields();
+      updateNextButtonState();
+      renderBreadcrumb();
+      renderIndicator(currentStep);
+
+      if (currentStep === stepNum && stepNum <= 4) {
+        autoAdvance();
+      }
+    });
+  }
+
+  setupCardSelection('schoolList', 'school', 2);
+  setupCardSelection('gradeList', 'grade',  3);
+  setupCardSelection('classList', 'class',  4);
+
+  /* ── 家长姓名输入 ── */
+  document.getElementById('parentName').addEventListener('input', function () {
+    state.parentName = this.value.trim();
+    if (currentStep === 1) updateNextButtonState();
+    renderBreadcrumb();
+  });
+  document.getElementById('parentPhone').addEventListener('input', function () {
+    state.parentPhone = this.value.trim();
+    if (currentStep === 1) updateNextButtonState();
+  });
+  document.getElementById('verifyCode').addEventListener('input', function () {
+    state.verifyCode = this.value.trim();
+    if (currentStep === 1) updateNextButtonState();
+  });
+
+  /* ── 关系选择 ── */
+  document.getElementById('relationGroup').addEventListener('click', function (e) {
+    const btn = e.target.closest('.relation-btn');
+    if (!btn) return;
+    document.querySelectorAll('.relation-btn').forEach(function (b) { b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    state.relation = btn.dataset.value;
+    syncConfirmFields();
+    if (currentStep === 1) updateNextButtonState();
+  });
+
+  /* ── 孩子姓名输入 ── */
+  document.getElementById('childName').addEventListener('input', function () {
+    state.childName = this.value.trim();
+    if (currentStep === 5) updateNextButtonState();
+  });
+
+  /* ── 获取验证码 ── */
+  getCodeBtn.addEventListener('click', function () {
+    const phone = state.parentPhone.trim();
+    if (!phone || phone.length < 11) {
+      alert('请输入正确的手机号');
+      return;
+    }
+    if (codeCountdown > 0) return;
+
+    codeCountdown = 60;
+    getCodeBtn.disabled = true;
+    getCodeBtn.textContent = codeCountdown + 's';
+    codeTimer = setInterval(function () {
+      codeCountdown--;
+      getCodeBtn.textContent = codeCountdown + 's';
+      if (codeCountdown <= 0) {
+        clearInterval(codeTimer);
+        getCodeBtn.disabled = false;
+        getCodeBtn.textContent = '重新获取';
+      }
+    }, 1000);
+    alert('验证码已发送至 ' + phone.substring(0, 3) + '****' + phone.substring(7));
+  });
+
+  /* ── 按钮事件 ── */
+  prevBtn.addEventListener('click', function () {
+    if (!advancing) goToStep(currentStep - 1);
+  });
+
+  nextBtn.addEventListener('click', function () {
+    if (this.disabled || advancing) return;
+    if (currentStep < TOTAL_STEPS) {
+      goToStep(currentStep + 1);
+    } else {
+      const params = new URLSearchParams({
+        parentName: state.parentName,
+        parentPhone: state.parentPhone,
+        relation: state.relation,
+        school: state.school,
+        grade: state.grade,
+        class: state.class,
+        name: state.childName,
+        from: 'register'
+      });
+      window.location.href = '02-bind-success.html?' + params.toString();
+    }
+  });
+
+  /* ── 初始化 ── */
+  goToStep(1);
+})();
+</script>
+</body>
+</html>

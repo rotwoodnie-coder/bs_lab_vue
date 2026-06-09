@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>布置作业 - 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container safe-top pad-shell theme-teacher" data-layout="teacher-form">
+
+  <nav class="bottom-nav">
+    <div class="nav-items">
+      <a href="17-profile-teacher.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="21-assign.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">任务</span>
+      </a>
+      <a href="24-teacher-ai.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="bot" class="icon"></i></span>
+        <span class="nav-label">助教</span>
+      </a>
+      <a href="17-profile-teacher.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="user" class="icon"></i></span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-workbench">
+    <header class="pad-workbench__topbar">
+      <h1 class="pad-workbench__title">📝 布置作业</h1>
+    </header>
+
+    <div class="pad-form__body">
+      <div class="pad-form__main stack-4">
+        <div id="expSectionPad">
+          <h2 class="text-sm font-bold mb-3">🧪 选择实验</h2>
+          <div class="stack">
+            <div class="option-card selected" onclick="selectExp(this, 0)">
+              <div class="row items-center gap-3">
+                <div class="tile-icon tile-sm tint-blue">🔬</div>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">水的表面张力实验</div>
+                  <div class="text-xs muted">适合三年级 · 约15分钟</div>
+                </div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="selectExp(this, 1)">
+              <div class="row items-center gap-3">
+                <div class="tile-icon tile-sm tint-green">🌱</div>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">植物生长观察日记</div>
+                  <div class="text-xs muted">适合三至四年级 · 长期观察</div>
+                </div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="selectExp(this, 2)">
+              <div class="row items-center gap-3">
+                <div class="tile-icon tile-sm tint-amber">⚡</div>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">简单电路实验</div>
+                  <div class="text-xs muted">适合四年级 · 约20分钟</div>
+                </div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-bold mb-3">📋 选择班级</h2>
+          <div class="stack">
+            <div class="option-card selected" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级一班</div>
+                <div class="text-xs muted">36 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card selected" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级二班</div>
+                <div class="text-xs muted">34 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级三班</div>
+                <div class="text-xs muted">35 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级四班</div>
+                <div class="text-xs muted">35 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-bold mb-3">📅 截止日期</h2>
+          <input type="date" class="input" value="2025-06-09">
+        </div>
+
+        <div>
+          <h2 class="text-sm font-bold mb-3">📝 备注说明</h2>
+          <textarea class="textarea" placeholder="请输入补充说明（可选）..." rows="3">请认真完成实验并拍照上传，下周一前提交。</textarea>
+        </div>
+      </div>
+
+      <aside class="pad-form__side stack-4">
+        <div class="card card-pad surface-2 sticky-top">
+          <h3 class="text-sm font-bold mb-3">发布摘要</h3>
+          <div class="stack-3">
+            <div>
+              <p class="text-xs muted mb-1">实验</p>
+              <span class="badge badge-info">🔬 水的表面张力</span>
+            </div>
+            <div>
+              <p class="text-xs muted mb-1">班级</p>
+              <span class="badge badge-success">2 个班级 · 70 人</span>
+            </div>
+            <div>
+              <p class="text-xs muted mb-1">截止</p>
+              <span class="badge badge-warning">6月9日</span>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block mt-4" onclick="publish()">
+            <i data-lucide="send" class="icon"></i> 发布作业
+          </button>
+          <div id="publishSuccessPad" hidden class="card card-pad text-center tint-green mt-3">
+            <div class="text-3xl mb-2">🎉</div>
+            <div class="text-sm font-bold text-success">作业发布成功！</div>
+            <div class="text-xs muted mt-1">已通知 70 名学生</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="pad-form__mobile-only pb-28">
+      <div class="topbar safe-top">
+        <h1 class="topbar-title">📝 布置作业</h1>
+      </div>
+
+      <div class="px-4 py-4 stack-4">
+        <div id="expSection">
+          <h2 class="text-sm font-bold mb-3">🧪 选择实验</h2>
+          <div class="stack">
+            <div class="option-card selected" onclick="selectExp(this, 0)">
+              <div class="row items-center gap-3">
+                <div class="tile-icon tile-sm tint-blue">🔬</div>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">水的表面张力实验</div>
+                  <div class="text-xs muted">适合三年级 · 约15分钟</div>
+                </div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="selectExp(this, 1)">
+              <div class="row items-center gap-3">
+                <div class="tile-icon tile-sm tint-green">🌱</div>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">植物生长观察日记</div>
+                  <div class="text-xs muted">适合三至四年级 · 长期观察</div>
+                </div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="selectExp(this, 2)">
+              <div class="row items-center gap-3">
+                <div class="tile-icon tile-sm tint-amber">⚡</div>
+                <div class="flex-1">
+                  <div class="text-sm font-bold">简单电路实验</div>
+                  <div class="text-xs muted">适合四年级 · 约20分钟</div>
+                </div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-bold mb-3">📋 选择班级</h2>
+          <div class="stack">
+            <div class="option-card selected" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级一班</div>
+                <div class="text-xs muted">36 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card selected" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级二班</div>
+                <div class="text-xs muted">34 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级三班</div>
+                <div class="text-xs muted">35 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+            <div class="option-card" onclick="toggleClass(this)">
+              <div class="flex-1">
+                <div class="text-sm font-bold">三年级四班</div>
+                <div class="text-xs muted">35 名学生</div>
+              </div>
+              <span class="option-check">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-bold mb-3">📅 截止日期</h2>
+          <input type="date" class="input" value="2025-06-09">
+        </div>
+
+        <div>
+          <h2 class="text-sm font-bold mb-3">📝 备注说明</h2>
+          <textarea class="textarea" placeholder="请输入补充说明（可选）..." rows="3">请认真完成实验并拍照上传，下周一前提交。</textarea>
+        </div>
+
+        <div class="card card-pad surface-2">
+          <h3 class="text-xs font-bold muted mb-2">当前选择</h3>
+          <div class="row wrap gap-2">
+            <span class="badge badge-info">🔬 水的表面张力</span>
+            <span class="badge badge-success">2 个班级</span>
+            <span class="badge badge-warning">截止 6月9日</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" onclick="publish()">
+          <i data-lucide="send" class="icon"></i> 发布作业
+        </button>
+
+        <div id="publishSuccess" hidden class="card card-pad text-center tint-green">
+          <div class="text-3xl mb-2">🎉</div>
+          <div class="text-sm font-bold text-success">作业发布成功！</div>
+          <div class="text-xs muted mt-1">已通知 70 名学生</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let selectedExp = 0;
+
+function selectExp(el, idx) {
+  document.querySelectorAll('.option-card').forEach(function(e) {
+    if (e.closest('#expSection') || e.closest('#expSectionPad')) {
+      e.classList.remove('selected');
+    }
+  });
+  el.classList.add('selected');
+  selectedExp = idx;
+  var success = document.getElementById('publishSuccess');
+  var successPad = document.getElementById('publishSuccessPad');
+  if (success) success.hidden = true;
+  if (successPad) successPad.hidden = true;
+}
+
+function toggleClass(el) {
+  el.classList.toggle('selected');
+  var success = document.getElementById('publishSuccess');
+  var successPad = document.getElementById('publishSuccessPad');
+  if (success) success.hidden = true;
+  if (successPad) successPad.hidden = true;
+}
+
+function publish() {
+  var success = document.getElementById('publishSuccess');
+  var successPad = document.getElementById('publishSuccessPad');
+  if (success) success.hidden = false;
+  if (successPad) successPad.hidden = false;
+}
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/prototype.js"></script>
+</body>
+</html>

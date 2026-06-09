@@ -1,0 +1,65 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.log
+*.gz
+*.zip
+*.tar
+hs_err_pid*
+replay_pid*
+
+# Maven
+log/
+*.log.*
+**/target/
+
+# Node
+node_modules/
+dist/
+**/node_modules/
+**/dist/
+.eslintcache
+*.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+.classpath
+.project
+.settings
+.factorypath
+.springBeans
+.sts4-cache/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Mobile
+frontend/mobile/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test
+coverage/
+.nyc_output/

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>实验详情 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell" data-layout="lab-bench">
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main lab-watch">
+    <div class="lab-watch__main">
+      <header class="lab-watch__topbar">
+        <button type="button" class="lab-watch__back" data-video-back aria-label="返回上一级">
+          <i data-lucide="chevron-left" class="icon"></i> 返回
+        </button>
+        <span class="lab-watch__topbar-title">自制简易风向标</span>
+      </header>
+
+      <div class="lab-watch__player-wrap" data-media-carousel>
+        <div class="lab-watch__media-viewport">
+          <div class="lab-watch__media-track" data-media-track>
+            <div class="lab-watch__media-slide is-active" data-media-type="video">
+              <video class="lab-watch__video" data-media-video playsinline muted loop preload="metadata"
+                poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect fill='%23f97316' width='16' height='9'/%3E%3C/svg%3E">
+                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="lab-watch__media-slide" data-media-type="image">
+              <div class="lab-watch__media-image card-media-grad-warm">
+                <i data-lucide="wind" class="icon"></i>
+                <span class="lab-watch__media-caption">步骤 1 · 准备材料</span>
+              </div>
+            </div>
+            <div class="lab-watch__media-slide" data-media-type="image">
+              <div class="lab-watch__media-image card-media-grad-ocean">
+                <i data-lucide="compass" class="icon"></i>
+                <span class="lab-watch__media-caption">步骤 2 · 组装风向标</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="lab-watch__media-nav lab-watch__media-nav--prev" data-media-prev aria-label="上一张">
+          <i data-lucide="chevron-left" class="icon"></i>
+        </button>
+        <button type="button" class="lab-watch__media-nav lab-watch__media-nav--next" data-media-next aria-label="下一张">
+          <i data-lucide="chevron-right" class="icon"></i>
+        </button>
+        <div class="lab-watch__media-dots" data-media-dots aria-hidden="true"></div>
+        <div class="lab-watch__media-counter" data-media-counter>1 / 3</div>
+      </div>
+
+      <div class="lab-watch__below">
+        <div class="lab-watch__meta">
+          <h1 class="lab-watch__title">自制简易风向标</h1>
+          <div class="row items-center gap-2 text-xs muted wrap">
+            <span>1.2 万次播放</span>
+            <span class="muted-2">·</span>
+            <span>2026-05-01</span>
+          </div>
+          <div class="lab-watch__toolbar">
+            <div class="lab-watch__uploader">
+              <span class="avatar avatar-sm avatar-grad-ocean">王</span>
+              <div class="min-w-0">
+                <div class="text-sm font-bold">王老师</div>
+                <div class="text-xs muted">科学探究 · 7 分钟</div>
+              </div>
+              <button type="button" class="btn btn-soft btn-sm shrink-0" data-series-subscribe aria-pressed="false" title="同系列实验更新时通知你">订阅系列</button>
+            </div>
+            <div class="lab-watch__actions row gap-2">
+              <a href="11-task-detail.html?type=remix" class="btn btn-sm lab-watch__action lab-watch__action--remix" data-action-remix>拍同款</a>
+              <a href="11-task-detail.html?type=homework" class="btn btn-sm lab-watch__action lab-watch__action--task" data-action-task hidden>去完成作业</a>
+              <a href="07-virtual-exp-detail.html?from=video&amp;title=自制简易风向标" class="btn btn-sm lab-watch__action lab-watch__action--sim" data-action-sim>模拟实验</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="lab-watch__social" aria-label="互动">
+          <button type="button" class="social-btn social-btn--active">
+            <i data-lucide="thumbs-up" class="icon"></i>
+            <span>128</span>
+          </button>
+          <button type="button" class="social-btn">
+            <i data-lucide="thumbs-down" class="icon"></i>
+            <span>2</span>
+          </button>
+          <button type="button" class="social-btn">
+            <i data-lucide="star" class="icon"></i>
+            <span>收藏</span>
+          </button>
+          <button type="button" class="social-btn">
+            <i data-lucide="share-2" class="icon"></i>
+            <span>分享</span>
+          </button>
+          <button type="button" class="social-btn">
+            <i data-lucide="message-circle" class="icon"></i>
+            <span>24</span>
+          </button>
+        </div>
+
+        <section class="lab-watch__comments" aria-label="评论">
+          <div class="lab-comments__head row items-center justify-between">
+            <h2 class="text-sm font-bold">评论 <span class="muted font-normal">24</span></h2>
+            <button type="button" class="text-xs text-brand font-medium">最热</button>
+          </div>
+          <form class="comment-compose" onsubmit="return false">
+            <span class="avatar avatar-sm avatar-grad-sunset shrink-0">明</span>
+            <input type="text" class="comment-compose__input" placeholder="写下你的实验心得或疑问…" aria-label="发表评论">
+            <button type="submit" class="btn btn-sm btn-gradient shrink-0">发送</button>
+          </form>
+          <ul class="comment-list">
+            <li class="comment-item">
+              <span class="avatar avatar-sm avatar-grad-ocean shrink-0">李</span>
+              <div class="comment-item__body">
+                <div class="comment-item__head">
+                  <span class="text-xs font-bold">李小明</span>
+                  <span class="text-xs muted">2 小时前</span>
+                </div>
+                <p class="comment-item__text">风向标做好啦，今天风大转得特别快！</p>
+                <div class="comment-item__actions">
+                  <button type="button" class="comment-action"><i data-lucide="thumbs-up" class="icon"></i> 12</button>
+                  <button type="button" class="comment-action">回复</button>
+                </div>
+              </div>
+            </li>
+            <li class="comment-item">
+              <span class="avatar avatar-sm avatar-grad-forest shrink-0">妈</span>
+              <div class="comment-item__body">
+                <div class="comment-item__head">
+                  <span class="text-xs font-bold">小明妈妈</span>
+                  <span class="text-xs muted">昨天</span>
+                </div>
+                <p class="comment-item__text">剪刀那步需要大人帮忙，其他孩子都能自己完成。</p>
+                <div class="comment-item__actions">
+                  <button type="button" class="comment-action"><i data-lucide="thumbs-up" class="icon"></i> 8</button>
+                  <button type="button" class="comment-action">回复</button>
+                </div>
+              </div>
+            </li>
+            <li class="comment-item">
+              <span class="avatar avatar-sm avatar-grad-warm shrink-0">王</span>
+              <div class="comment-item__body">
+                <div class="comment-item__head">
+                  <span class="text-xs font-bold">王老师</span>
+                  <span class="pill text-xs" style="padding:1px 6px;margin-left:4px">老师</span>
+                  <span class="text-xs muted">昨天</span>
+                </div>
+                <p class="comment-item__text">记得在记录表里写下风向变化哦 👍</p>
+                <div class="comment-item__actions">
+                  <button type="button" class="comment-action"><i data-lucide="thumbs-up" class="icon"></i> 26</button>
+                  <button type="button" class="comment-action">回复</button>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <aside class="lab-watch__rail" aria-label="实验资料">
+      <div class="lab-rail__head">
+        <h2 class="lab-rail__head-title">实验资料</h2>
+        <p class="lab-rail__head-sub">4 步 · 6 项材料</p>
+      </div>
+
+      <div class="lab-rail__scroll">
+        <p class="lab-rail__label">实验步骤</p>
+        <div class="lab-rail__list">
+          <button type="button" class="lab-rail__item active">
+            <span class="lab-rail__title">1. 准备材料</span>
+            <span class="lab-rail__meta">00:00 · 卡纸、吸管、大头针</span>
+          </button>
+          <button type="button" class="lab-rail__item">
+            <span class="lab-rail__title">2. 裁剪箭头</span>
+            <span class="lab-rail__meta">00:30 · 剪出箭头形状</span>
+          </button>
+          <button type="button" class="lab-rail__item">
+            <span class="lab-rail__title">3. 组装风向标</span>
+            <span class="lab-rail__meta">01:00 · 固定到吸管</span>
+          </button>
+          <button type="button" class="lab-rail__item">
+            <span class="lab-rail__title">4. 测试风向</span>
+            <span class="lab-rail__meta">01:30 · 室外观察转动</span>
+          </button>
+        </div>
+
+        <p class="lab-rail__label">材料清单</p>
+        <p class="lab-rail__plain">卡纸、吸管、大头针、橡皮泥、剪刀、胶带</p>
+
+        <p class="lab-rail__label">安全提示</p>
+        <p class="lab-rail__plain lab-rail__plain--tip">剪刀需在家长或老师陪同下使用</p>
+
+        <p class="lab-rail__label">石头老师</p>
+        <a href="08-assistant-scenes.html" class="lab-rail__item">
+          <span class="lab-rail__title">问：风向标为什么能转？</span>
+          <span class="lab-rail__meta">点击进入对话</span>
+        </a>
+
+        <p class="lab-rail__label">同系列</p>
+        <a href="06-video-detail.html" class="lab-rail__item">
+          <span class="lab-rail__title">彩虹投影</span>
+          <span class="lab-rail__meta">李老师 · 5 分钟</span>
+        </a>
+        <a href="06-video-detail.html" class="lab-rail__item">
+          <span class="lab-rail__title">种子发芽观察</span>
+          <span class="lab-rail__meta">张老师 · 8 分钟</span>
+        </a>
+      </div>
+    </aside>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/video-detail.js"></script>
+<script>
+(function () {
+  document.querySelectorAll('.lab-rail__list .lab-rail__item[type="button"]').forEach(function (item) {
+    item.addEventListener('click', function () {
+      document.querySelectorAll('.lab-rail__list .lab-rail__item').forEach(function (i) {
+        i.classList.remove('active');
+      });
+      item.classList.add('active');
+    });
+  });
+})();
+</script>
+</body>
+</html>

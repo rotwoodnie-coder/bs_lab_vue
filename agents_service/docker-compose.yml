@@ -1,0 +1,23 @@
+version: "3.8"
+
+# BS Lab Agent 服务 — Docker 基础设施
+#
+# 所有持久化统一使用 MySQL（业务 + checkpointer 复用）。
+# 无需 PostgreSQL 或 Redis。
+
+services:
+  # MySQL（可选 — 如果外部 MySQL 已就绪则无需启动此服务）
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: bs-lab-mysql
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+  #     MYSQL_DATABASE: bs_exp_vue
+  #   ports:
+  #     - "13306:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   command: --innodb_flush_log_at_trx_commit=2
+
+# volumes:
+#   mysql_data:

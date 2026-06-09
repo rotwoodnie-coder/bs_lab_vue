@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>石头老师 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell theme-primary" data-layout="assistant-chat" data-assistant-chat>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item has-nav-badge" aria-label="我的任务，有待办">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item active has-nav-badge" aria-label="石头老师，有新消息">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-chat">
+    <header class="pad-chat__topbar safe-top">
+      <h1 class="pad-chat__topbar-title">🪨 石头老师</h1>
+      <button type="button" class="icon-btn" aria-label="更多">
+        <i data-lucide="more-vertical" class="icon"></i>
+      </button>
+    </header>
+
+    <div class="pad-chat__messages stack-4" data-assistant-messages>
+      <div class="assistant-msg assistant-msg--ai row items-start gap-3">
+        <div class="avatar avatar-sm avatar-grad-warm shrink-0" aria-hidden="true">🪨</div>
+        <div class="msg-bubble msg-ai">
+          <div class="text-xs font-bold text-brand mb-1">🪨 石头老师</div>
+          张小明同学，你好！我是石头老师，我会帮你设计和优化小学科学实验方案。你可以直接提问，或点下面的话题开始聊～
+        </div>
+      </div>
+
+      <div class="assistant-prompts" data-assistant-prompts>
+        <button type="button" class="btn btn-ghost btn-sm rounded-full" data-assistant-scenario="wind">🧭 自制风向标</button>
+        <button type="button" class="btn btn-ghost btn-sm rounded-full" data-assistant-scenario="rainbow">🌈 彩虹液体分层</button>
+        <button type="button" class="btn btn-ghost btn-sm rounded-full" data-assistant-scenario="balloon">🚀 气球火箭</button>
+        <button type="button" class="btn btn-ghost btn-sm rounded-full" data-assistant-scenario="safety">⚠️ 实验安全</button>
+        <button type="button" class="btn btn-ghost btn-sm rounded-full" data-assistant-scenario="seed">🌱 种子发芽</button>
+      </div>
+    </div>
+
+    <div class="pad-chat__composer pad-chat__composer--sticky" data-assistant-composer>
+      <div class="assistant-voice-panel" data-assistant-voice-panel hidden>
+        <div class="assistant-voice-panel__waves" aria-hidden="true">
+          <span class="assistant-voice-panel__wave-bar"></span>
+          <span class="assistant-voice-panel__wave-bar"></span>
+          <span class="assistant-voice-panel__wave-bar"></span>
+          <span class="assistant-voice-panel__wave-bar"></span>
+          <span class="assistant-voice-panel__wave-bar"></span>
+        </div>
+        <p class="assistant-voice-panel__status" data-assistant-voice-status>正在听，请说话…</p>
+        <p class="assistant-voice-panel__preview" data-assistant-voice-preview aria-live="polite"></p>
+      </div>
+      <div class="row gap-2 items-center">
+        <div class="input-group flex-1">
+          <input type="text" class="input" placeholder="说说你的科学探究想法…" aria-label="输入消息" data-assistant-input autocomplete="off" inputmode="text">
+        </div>
+        <button type="button" class="btn btn-primary" aria-label="发送" data-assistant-send disabled>
+          <i data-lucide="send" class="icon icon-sm"></i>
+          发送
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/assistant-chat.js"></script>
+</body>
+</html>

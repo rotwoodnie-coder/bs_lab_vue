@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+  <style>
+    .login-role-tabs .tab {
+      border: none;
+      background: transparent;
+      font-size: var(--text-xs);
+      padding: var(--space-2) var(--space-2);
+    }
+    .login-role-tabs .tab.active {
+      background: var(--color-surface);
+    }
+  </style>
+</head>
+<script>
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const height = document.documentElement.scrollHeight;
+    window.parent.postMessage({
+      type: 'set-iframe-height',
+      height: height,
+      src: window.location.pathname
+    }, '*');
+  }, 200);
+});
+function togglePasswordVisibility() {
+  const input = document.getElementById('passwordInput');
+  const icon = document.getElementById('passwordEyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.setAttribute('data-lucide', 'eye-off');
+  } else {
+    input.type = 'password';
+    icon.setAttribute('data-lucide', 'eye');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+</script>
+<body>
+<div class="prototype-container pad-shell" data-layout="login-split">
+  <div class="pad-main pad-workbench">
+    <div class="pad-login">
+      <div class="pad-login__brand">
+        <div class="tile-icon tile-lg tile-solid mx-auto">
+          <i data-lucide="flask-conical" class="icon icon-xl"></i>
+        </div>
+        <h1 class="pad-login__product-name">宝山区小实验社区</h1>
+        <p class="text-sm mt-2" style="opacity:0.85">探索科学 · 点亮好奇心</p>
+        <p class="text-xs mt-6" style="opacity:0.6">面向 K12 的科学实验与探究学习平台</p>
+      </div>
+
+      <div class="pad-login__form">
+        <div class="pad-login__pad-only">
+          <h2 class="text-xl font-bold mb-6">欢迎登录</h2>
+          <div class="stack-6" data-input-tools="off">
+            <div>
+              <p class="text-xs muted mb-2">选择角色（原型测试）</p>
+              <div class="tabs w-full login-role-tabs" data-login-role-tabs role="tablist" aria-label="登录角色">
+                <button type="button" class="tab active" data-login-role="student" role="tab" aria-selected="true">🧑‍🎓 学生</button>
+                <button type="button" class="tab" data-login-role="parent" role="tab" aria-selected="false">👨‍👩‍👧 家长</button>
+                <button type="button" class="tab" data-login-role="teacher" role="tab" aria-selected="false">👩‍🏫 教师</button>
+              </div>
+            </div>
+            <div class="input-group">
+              <i data-lucide="user" class="icon"></i>
+              <input class="input" type="text" placeholder="手机号 / 账号" autocomplete="username" />
+            </div>
+            <div class="input-group">
+              <i data-lucide="lock" class="icon"></i>
+              <input class="input" type="password" placeholder="密码" id="passwordInputPad" autocomplete="current-password" style="padding-right:44px;" />
+              <button type="button" class="icon-btn" onclick="togglePasswordVisibilityPad()"
+                style="position:absolute;right:2px;top:50%;transform:translateY(-50%);z-index:1;">
+                <i data-lucide="eye" class="icon" id="passwordEyeIconPad"></i>
+              </button>
+            </div>
+            <button type="button" class="btn btn-gradient btn-block btn-lg" onclick="handlePrototypeLogin()">登 录</button>
+          </div>
+          <div class="text-center text-xs muted-2 mt-6" style="line-height: 1.8">
+            登录即表示同意<br>
+            <a href="#" class="text-brand">《用户协议》</a>
+            <a href="#" class="text-brand">《隐私政策》</a>
+          </div>
+          <div class="text-center text-xs muted mt-5">
+            首次使用？请联系学校获取账号
+          </div>
+          <div class="text-center text-xs muted-2 mt-3">— 或 —</div>
+          <div class="text-center text-xs mt-2">
+            <a href="26-parent-register.html" class="text-brand font-medium">家长账号自助注册申请 →</a>
+          </div>
+        </div>
+
+        <div class="pad-login__mobile-only">
+          <div class="screen-body middle stack-4 anim-fade-up px-5">
+            <div class="text-center">
+              <div class="tile-icon tile-lg tile-solid mx-auto">
+                <i data-lucide="flask-conical" class="icon icon-xl"></i>
+              </div>
+              <h1 class="pad-login__product-name">宝山区小实验社区</h1>
+              <p class="muted text-sm mt-1">探索科学 · 点亮好奇心</p>
+            </div>
+            <div style="height: var(--space-8)"></div>
+            <div class="stack-6" data-input-tools="off">
+              <div>
+                <p class="text-xs muted mb-2">选择角色（原型测试）</p>
+                <div class="tabs w-full login-role-tabs" data-login-role-tabs role="tablist" aria-label="登录角色">
+                  <button type="button" class="tab active" data-login-role="student" role="tab" aria-selected="true">🧑‍🎓 学生</button>
+                  <button type="button" class="tab" data-login-role="parent" role="tab" aria-selected="false">👨‍👩‍👧 家长</button>
+                  <button type="button" class="tab" data-login-role="teacher" role="tab" aria-selected="false">👩‍🏫 教师</button>
+                </div>
+              </div>
+              <div class="input-group">
+                <i data-lucide="user" class="icon"></i>
+                <input class="input" type="text" placeholder="手机号 / 账号" autocomplete="username" />
+              </div>
+              <div class="input-group">
+                <i data-lucide="lock" class="icon"></i>
+                <input class="input" type="password" placeholder="密码" id="passwordInput" autocomplete="current-password" style="padding-right:44px;" />
+                <button type="button" class="icon-btn" id="togglePassword" onclick="togglePasswordVisibility()"
+                  style="position:absolute;right:2px;top:50%;transform:translateY(-50%);z-index:1;">
+                  <i data-lucide="eye" class="icon" id="passwordEyeIcon"></i>
+                </button>
+              </div>
+              <button type="button" class="btn btn-gradient btn-block btn-lg" onclick="handlePrototypeLogin()">登 录</button>
+            </div>
+            <div class="text-center text-xs muted-2 mt-6" style="line-height: 1.8">
+              登录即表示同意<br>
+              <a href="#" class="text-brand">《用户协议》</a>
+              <a href="#" class="text-brand">《隐私政策》</a>
+            </div>
+            <div class="text-center text-xs muted mt-5">
+              首次使用？请联系学校获取账号
+            </div>
+            <div class="text-center text-xs muted-2 mt-3">— 或 —</div>
+            <div class="text-center text-xs mt-2">
+              <a href="26-parent-register.html" class="text-brand font-medium">家长账号自助注册申请 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var LOGIN_TARGETS = {
+    student: '03-home-primary.html',
+    parent: '05-home-parent.html',
+    teacher: '17-profile-teacher.html'
+  };
+  var selectedRole = 'student';
+
+  function setLoginRole(role) {
+    selectedRole = role;
+    document.querySelectorAll('[data-login-role-tabs] [data-login-role]').forEach(function (btn) {
+      var active = btn.getAttribute('data-login-role') === role;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+
+  document.querySelectorAll('[data-login-role-tabs]').forEach(function (group) {
+    group.querySelectorAll('[data-login-role]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setLoginRole(btn.getAttribute('data-login-role'));
+      });
+    });
+  });
+
+  window.handlePrototypeLogin = function () {
+    window.location.href = LOGIN_TARGETS[selectedRole] || LOGIN_TARGETS.student;
+  };
+})();
+
+function togglePasswordVisibilityPad() {
+  const input = document.getElementById('passwordInputPad');
+  const icon = document.getElementById('passwordEyeIconPad');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.setAttribute('data-lucide', 'eye-off');
+  } else {
+    input.type = 'password';
+    icon.setAttribute('data-lucide', 'eye');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

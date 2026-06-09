@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作品墙 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell" data-layout="explore" data-works-wall>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item active">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-explore">
+    <header class="pad-explore__topbar">
+      <a href="15-profile-student.html" class="pad-explore__back" aria-label="返回">
+        <i data-lucide="chevron-left" class="icon"></i> 返回
+      </a>
+      <h1>作品墙</h1>
+      <span class="muted text-sm shrink-0" data-works-count>共 12 件</span>
+    </header>
+
+    <div class="px-4 safe-top pad-explore__mobile-head">
+      <header class="topbar">
+        <a href="15-profile-student.html" class="icon-btn"><i data-lucide="arrow-left" class="icon"></i></a>
+        <h1 class="topbar-title text-xl">作品墙</h1>
+        <span class="muted text-sm shrink-0" data-works-count>共 12 件</span>
+      </header>
+    </div>
+
+    <div class="pad-explore__filters px-4">
+      <div class="tabs" data-works-tabs>
+        <button type="button" class="tab" data-works-tab="homework">我的实验</button>
+        <button type="button" class="tab" data-works-tab="remix">拍同款</button>
+        <button type="button" class="tab" data-works-tab="creative">创意实验</button>
+      </div>
+    </div>
+
+    <div class="pad-explore__body">
+      <div class="pad-explore__grid grid-cards anim-fade-up px-4 pb-28">
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-1" data-work-type="homework">
+          <div class="video-card__media tint-violet">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-warm">张</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">彩虹液体分层</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">张小明</span><span class="video-card__dot">·</span>三(1)班<span class="video-card__dot">·</span>宝山实验小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-2" data-work-type="remix">
+          <div class="video-card__media tint-blue">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-cool">李</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">蜡烛燃烧与空气</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">李丽</span><span class="video-card__dot">·</span>三(2)班<span class="video-card__dot">·</span>友谊路小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-3" data-work-type="homework">
+          <div class="video-card__media tint-green">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-forest">王</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">种子发芽观察日记</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">王浩</span><span class="video-card__dot">·</span>三(1)班<span class="video-card__dot">·</span>宝山实验小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-4" data-work-type="remix">
+          <div class="video-card__media tint-amber">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-amber-rose">陈</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">磁力小车竞速</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">陈果</span><span class="video-card__dot">·</span>三(2)班<span class="video-card__dot">·</span>顾村实验小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-5" data-work-type="homework">
+          <div class="video-card__media tint-rose">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-sunset">赵</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">水的表面张力实验</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">赵雪</span><span class="video-card__dot">·</span>三(1)班<span class="video-card__dot">·</span>宝山实验小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-6" data-work-type="creative">
+          <div class="video-card__media tint-violet">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-violet-indigo">孙</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">水果电池发电</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">孙明</span><span class="video-card__dot">·</span>三(2)班<span class="video-card__dot">·</span>行知实验小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-7" data-work-type="creative">
+          <div class="video-card__media tint-cyan">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-ocean">周</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">小苏打火山喷发</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">周涛</span><span class="video-card__dot">·</span>三(1)班<span class="video-card__dot">·</span>吴淞附属小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-8" data-work-type="homework">
+          <div class="video-card__media tint-green">
+            <span class="video-card__tag">作品</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-forest">吴</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">洋葱表皮细胞观察</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">吴迪</span><span class="video-card__dot">·</span>三(2)班<span class="video-card__dot">·</span>友谊路小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-1" data-work-type="creative">
+            <div class="video-card__media tint-rose">
+              <span class="video-card__tag">作品</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <div class="video-card__info">
+                <span class="video-card__avatar avatar avatar-sm avatar-grad-warm">钱</span>
+                <div class="video-card__text">
+                  <h3 class="video-card__title">热胀冷缩气球</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">钱朵朵</span><span class="video-card__dot">·</span>三(1)班<span class="video-card__dot">·</span>宝山实验小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-2" data-work-type="remix">
+            <div class="video-card__media tint-violet">
+              <span class="video-card__tag">作品</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <div class="video-card__info">
+                <span class="video-card__avatar avatar avatar-sm avatar-grad-sunset">林</span>
+                <div class="video-card__text">
+                  <h3 class="video-card__title">声音振动可视化</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">林悦</span><span class="video-card__dot">·</span>三(2)班<span class="video-card__dot">·</span>淞南第二小学</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-3" data-work-type="remix">
+            <div class="video-card__media tint-cyan">
+              <span class="video-card__tag">作品</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <div class="video-card__info">
+                <span class="video-card__avatar avatar avatar-sm avatar-grad-cool">郑</span>
+                <div class="video-card__text">
+                  <h3 class="video-card__title">简单电路连接</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">郑凯</span><span class="video-card__dot">·</span>三(1)班<span class="video-card__dot">·</span>天馨学校</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-work-detail.html" class="video-card video-card--work card-link delay-4" data-work-type="homework">
+            <div class="video-card__media tint-green">
+              <span class="video-card__tag">作品</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <div class="video-card__info">
+                <span class="video-card__avatar avatar avatar-sm avatar-grad-forest">黄</span>
+                <div class="video-card__text">
+                  <h3 class="video-card__title">酸碱指示剂变色</h3>
+                <p class="video-card__meta video-card__meta--work"><span class="video-card__author">黄小琪</span><span class="video-card__dot">·</span>三(2)班<span class="video-card__dot">·</span>罗店中心校</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/works-wall.js"></script>
+</body>
+</html>

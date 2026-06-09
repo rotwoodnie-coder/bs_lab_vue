@@ -1,0 +1,20 @@
+/* ============================================================
+   宝山区小实验社区 移动端产品原型 - 样式聚合入口
+   版本: 2.0 | 设计 token 化统一架构, 不依赖 Tailwind
+   引入: <link href="../css/prototype.css" rel="stylesheet">
+   结构:
+     tokens.css     - 设计变量 (颜色/间距/圆角/阴影/字体/主题)
+     base.css       - 重置 + 排版 + 图标基样式
+     components.css - 组件类 + token 化工具类
+     layout.css     - 响应式布局骨架 (移动/平板/桌面 重排)
+   ============================================================ */
+
+@import "tokens.css";
+@import "base.css";
+@import "components.css";
+@import "video-covers.css";
+@import "layout.css";
+@import "layout-pad.css";
+@import "layout-pad-pages.css";
+@import "home-elevated.css";
+@import "legacy.css";

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置 - 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="settings-split" data-settings-role="student" id="settingsRoot">
+
+  <div class="pad-main pad-workbench">
+
+    <header class="pad-workbench__topbar">
+      <a href="#" class="icon-btn pad-settings__back-link" id="settingsBackPad" aria-label="返回" style="display:none;">
+        <i data-lucide="arrow-left" class="icon"></i>
+      </a>
+      <h1 class="pad-workbench__title">⚙️ 设置</h1>
+    </header>
+
+    <div class="pad-workbench__mobile-head topbar">
+      <a href="#" class="icon-btn pad-settings__back-link" id="settingsBackMobile" aria-label="返回" style="display:none;" onclick="closeMobileSettingsPane(); return false;">
+        <i data-lucide="arrow-left" class="icon"></i>
+      </a>
+      <h1 class="topbar-title" id="settingsMobileTitle">⚙️ 设置</h1>
+    </div>
+
+    <div class="pad-workbench__body">
+      <nav class="pad-settings__nav" aria-label="设置分组" id="settingsNavPad">
+        <button type="button" class="card card-pad row items-center gap-3 text-left pad-settings__nav-item active" data-panel="profile">
+          <i data-lucide="user" class="icon"></i>
+          <span class="text-sm font-medium">个人资料</span>
+        </button>
+        <button type="button" class="card card-pad row items-center gap-3 text-left pad-settings__nav-item" data-panel="account">
+          <i data-lucide="lock" class="icon"></i>
+          <span class="text-sm font-medium">账号与安全</span>
+        </button>
+        <button type="button" class="card card-pad row items-center gap-3 text-left pad-settings__nav-item" data-panel="notifications">
+          <i data-lucide="bell" class="icon"></i>
+          <span class="text-sm font-medium" id="settingsNotificationsNavLabel">消息通知</span>
+        </button>
+        <button type="button" class="card card-pad row items-center gap-3 text-left pad-settings__nav-item" data-panel="privacy" data-student-hidden>
+          <i data-lucide="shield" class="icon"></i>
+          <span class="text-sm font-medium">隐私设置</span>
+        </button>
+        <button type="button" class="card card-pad row items-center gap-3 text-left pad-settings__nav-item" data-role-only="parent" data-panel="children">
+          <i data-lucide="users" class="icon"></i>
+          <span class="text-sm font-medium">孩子与家长</span>
+        </button>
+        <button type="button" class="card card-pad row items-center gap-3 text-left pad-settings__nav-item" data-role-only="teacher" data-panel="teaching">
+          <i data-lucide="graduation-cap" class="icon"></i>
+          <span class="text-sm font-medium">教学偏好</span>
+        </button>
+        <button type="button" class="card card-pad row items-center gap-3 text-left pad-settings__nav-item" data-panel="about" data-student-hidden>
+          <i data-lucide="info" class="icon"></i>
+          <span class="text-sm font-medium">关于与帮助</span>
+        </button>
+        <div class="pad-settings__nav-logout">
+          <button type="button" class="btn btn-danger btn-block" onclick="logoutSettings()">
+            <i data-lucide="log-out" class="icon"></i> 退出登录
+          </button>
+        </div>
+      </nav>
+
+      <div class="pad-settings__panel" id="settingsPanelPad">
+
+        <!-- 个人资料 -->
+        <section class="pad-settings__section is-active" data-panel="profile" id="section-profile">
+          <div class="pad-settings__mobile-pane-head pad-settings__mobile-only">
+            <button type="button" class="icon-btn" onclick="closeMobileSettingsPane()" aria-label="返回"><i data-lucide="arrow-left" class="icon"></i></button>
+            <h2 class="text-base font-bold flex-1">个人资料</h2>
+          </div>
+          <div class="settings-panel-head text-center pad-settings__mobile-only" style="display:none;"></div>
+          <div class="settings-panel-head" hidden aria-hidden="true">
+            <h2>个人资料</h2>
+            <p>与「我的」页展示信息同步，修改后即时生效</p>
+          </div>
+
+          <div class="col items-center settings-profile-form">
+            <div class="relative" onclick="openSheet()">
+              <div class="avatar avatar-xl avatar-grad-warm" id="settingsAvatar">张</div>
+              <div class="absolute row items-center justify-center" style="bottom:-4px;right:-4px;width:28px;height:28px;border-radius:var(--radius-full);background:var(--color-surface);box-shadow:var(--shadow-sm);">
+                <i data-lucide="camera" class="icon icon-sm muted"></i>
+              </div>
+            </div>
+            <div class="text-xs muted mt-2" onclick="openSheet()">点击更换头像</div>
+
+            <div class="settings-profile-meta" data-role-block="student" hidden>
+              <span class="pill text-xs">小小科学家</span>
+              <span class="pill text-xs tint-violet">🏅 5 枚勋章</span>
+            </div>
+            <div class="settings-profile-meta" data-role-block="parent" hidden>
+              <span class="pill text-xs">家长账号</span>
+              <span class="pill text-xs">绑定 2 个孩子</span>
+            </div>
+            <div class="settings-profile-meta" data-role-block="teacher" hidden>
+              <span class="pill text-xs">科学教师</span>
+              <span class="pill text-xs">三年级一班</span>
+            </div>
+
+            <div class="mt-5 w-full" data-role-block="student" hidden>
+              <label class="text-xs font-medium muted block mb-1">姓名</label>
+              <input type="text" class="input settings-field-readonly" id="studentNameDisplay" value="张小明" readonly disabled>
+            </div>
+            <div class="mt-3 w-full" data-role-block="student" hidden>
+              <label class="text-xs font-medium muted block mb-1">年级 / 班级</label>
+              <input type="text" class="input settings-field-readonly" value="三年级(1)班" readonly disabled>
+            </div>
+            <div class="mt-3 w-full" data-role-block="student" hidden>
+              <label class="text-xs font-medium muted block mb-1">学号</label>
+              <input type="text" class="input settings-field-readonly" value="20240301" readonly disabled>
+            </div>
+            <div class="mt-3 w-full" data-role-block="student" hidden>
+              <label class="text-xs font-medium muted block mb-1">学校</label>
+              <input type="text" class="input settings-field-readonly" value="宝山实验小学" readonly disabled>
+            </div>
+
+            <div class="mt-5 w-full" data-role-block="parent teacher" hidden>
+              <label class="text-xs font-medium muted block mb-1">昵称</label>
+              <div class="row items-center gap-2">
+                <input type="text" class="input flex-1" id="nicknameInput" value="张小明">
+                <i data-lucide="pencil" class="icon muted-2" style="cursor:pointer;" onclick="document.getElementById('nicknameInput').focus()"></i>
+              </div>
+            </div>
+
+            <div class="mt-3 w-full" data-role-block="parent" hidden>
+              <label class="text-xs font-medium muted block mb-1">手机号</label>
+              <div class="row items-center gap-2">
+                <input type="tel" class="input flex-1" value="13812346789" id="phoneInputPad">
+                <button type="button" class="btn btn-ghost btn-sm text-xs" onclick="alert('将发送验证码至该手机号')">换绑</button>
+              </div>
+            </div>
+            <div class="mt-3 w-full" data-role-block="parent" hidden>
+              <label class="text-xs font-medium muted block mb-1">与孩子关系</label>
+              <select class="input w-full">
+                <option selected>妈妈</option>
+                <option>爸爸</option>
+                <option>其他监护人</option>
+              </select>
+            </div>
+
+            <div class="mt-3 w-full" data-role-block="teacher" hidden>
+              <label class="text-xs font-medium muted block mb-1">任教班级</label>
+              <input type="text" class="input" value="三年级(1)班、三年级(2)班" disabled>
+            </div>
+            <div class="mt-3 w-full" data-role-block="teacher" hidden>
+              <label class="text-xs font-medium muted block mb-1">工号</label>
+              <input type="text" class="input" value="T20240108" disabled>
+            </div>
+
+            <div class="mt-3 w-full">
+              <label class="text-xs font-medium muted block mb-1">个性签名</label>
+              <textarea class="input textarea" rows="2" placeholder="写一句介绍自己吧…" id="bioInput">热爱探索的小小科学家 🧪</textarea>
+            </div>
+
+            <button type="button" class="btn btn-primary mt-5 w-full" onclick="saveProfile()"><i data-lucide="save" class="icon"></i> 保存资料</button>
+          </div>
+        </section>
+
+        <!-- 账号与安全 -->
+        <section class="pad-settings__section" data-panel="account">
+          <div class="pad-settings__mobile-pane-head pad-settings__mobile-only">
+            <button type="button" class="icon-btn" onclick="closeMobileSettingsPane()" aria-label="返回"><i data-lucide="arrow-left" class="icon"></i></button>
+            <h2 class="text-base font-bold flex-1">账号与安全</h2>
+          </div>
+          <div class="settings-panel-head">
+            <h2>账号与安全</h2>
+            <p>保护账号安全，管理登录方式</p>
+          </div>
+
+          <!-- 学生：仅密码可改，其余只读 -->
+          <div class="settings-group" data-role-block="student" hidden>
+            <div class="settings-card">
+              <div class="settings-row settings-row--action" onclick="alert('修改登录密码')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">登录密码</div>
+                  <div class="settings-row__hint">建议定期更换，不少于 8 位</div>
+                </div>
+                <span class="settings-row__value">修改</span>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">绑定手机号</div>
+                  <div class="settings-row__hint settings-phone-display">138****6789</div>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">钉钉绑定</div>
+                  <div class="settings-row__hint">用于学校统一身份认证</div>
+                </div>
+                <span class="settings-row__value text-success">已绑定</span>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">家长绑定</div>
+                  <div class="settings-row__hint">王美丽（妈妈）</div>
+                </div>
+                <span class="settings-row__value">已绑定</span>
+              </div>
+            </div>
+          </div>
+
+          <div data-role-block="parent teacher" hidden>
+          <div class="settings-group">
+            <div class="settings-group-title">登录方式</div>
+            <div class="settings-card">
+              <div class="settings-row settings-row--action" onclick="alert('修改登录密码')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">登录密码</div>
+                  <div class="settings-row__hint">建议定期更换，不少于 8 位</div>
+                </div>
+                <span class="settings-row__value">已设置</span>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+              <div class="settings-row settings-row--action" onclick="alert('绑定 / 换绑手机号')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">手机号</div>
+                  <div class="settings-row__hint settings-phone-display">138****6789</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+              <div class="settings-row settings-row--action" onclick="alert('微信已绑定')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">微信</div>
+                  <div class="settings-row__hint">用于快捷登录与消息提醒</div>
+                </div>
+                <span class="settings-row__value text-success">已绑定</span>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">设备与会话</div>
+            <div class="settings-card">
+              <div class="settings-row settings-row--action" onclick="alert('当前设备：iPad · 本机')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">当前设备</div>
+                  <div class="settings-row__hint">iPad · 上海市 · 刚刚活跃</div>
+                </div>
+                <span class="pill text-xs">本机</span>
+              </div>
+              <div class="settings-row settings-row--action" onclick="alert('其他登录设备：iPhone 14')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">其他设备</div>
+                  <div class="settings-row__hint">iPhone 14 · 2 天前</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+              <div class="settings-row settings-row--action" onclick="if(confirm('确定退出所有其他设备？'))alert('已下线其他设备')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label text-danger">下线其他设备</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-group" data-role-block="parent teacher" hidden>
+            <div class="settings-group-title">学生账号</div>
+            <div class="settings-card">
+              <div class="settings-row settings-row--action" onclick="alert('家长可协助管理，需家长端确认')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">家长监护绑定</div>
+                  <div class="settings-row__hint">已绑定：王美丽（妈妈）</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+            </div>
+          </div>
+          </div>
+        </section>
+
+        <!-- 消息通知 / 通知偏好 -->
+        <section class="pad-settings__section" data-panel="notifications">
+          <div class="pad-settings__mobile-pane-head pad-settings__mobile-only">
+            <button type="button" class="icon-btn" onclick="closeMobileSettingsPane()" aria-label="返回"><i data-lucide="arrow-left" class="icon"></i></button>
+            <h2 class="text-base font-bold flex-1" id="settingsNotificationsPaneTitle">消息通知</h2>
+          </div>
+          <div class="settings-panel-head" data-role-block="student" hidden>
+            <h2>消息通知</h2>
+            <p>作业提醒、互动消息与系统公告</p>
+          </div>
+          <div class="settings-panel-head" data-role-block="parent teacher" hidden>
+            <h2>通知偏好</h2>
+            <p>选择接收的推送与站内提醒类型</p>
+          </div>
+
+          <div data-role-block="student" hidden>
+            <div class="settings-card settings-group">
+              <div class="row items-center justify-between mb-3">
+                <span class="text-sm font-bold">最近消息</span>
+                <span class="badge badge-danger" data-notifications-preview-badge>2 条未读</span>
+              </div>
+              <div class="stack-2" data-notifications-preview></div>
+            </div>
+            <a href="27-notifications.html?from=settings" class="btn btn-outline w-full mt-2">查看全部消息</a>
+          </div>
+
+          <div data-role-block="parent teacher" hidden>
+          <div class="settings-group">
+            <div class="settings-group-title">学习相关</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">作业与任务提醒</div>
+                  <div class="settings-row__hint">新任务、截止提醒、批改结果</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">实验与作品互动</div>
+                  <div class="settings-row__hint">点赞、评论、老师推荐</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">勋章与成就</div>
+                  <div class="settings-row__hint">获得勋章、积分变动</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">消息与助手</div>
+            <div class="settings-card">
+              <div class="settings-row" data-role-block="student" hidden>
+                <div class="settings-row__main">
+                  <div class="settings-row__label">石头老师消息</div>
+                  <div class="settings-row__hint">AI 助教回复与实验建议</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row" data-role-block="parent" hidden>
+                <div class="settings-row__main">
+                  <div class="settings-row__label">育儿助手提醒</div>
+                  <div class="settings-row__hint">材料清单、陪伴建议</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row" data-role-block="parent" hidden>
+                <div class="settings-row__main">
+                  <div class="settings-row__label">孩子学情动态</div>
+                  <div class="settings-row__hint">提交作业、在线状态</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row" data-role-block="teacher" hidden>
+                <div class="settings-row__main">
+                  <div class="settings-row__label">班级提交提醒</div>
+                  <div class="settings-row__hint">学生交作业、待批改</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">系统公告</div>
+                  <div class="settings-row__hint">学校通知、版本更新</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" aria-pressed="true" onclick="toggleSetting(this)"></button>
+              </div>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">其他</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">活动与推荐</div>
+                  <div class="settings-row__hint">实验活动、精选内容</div>
+                </div>
+                <button type="button" class="settings-toggle" aria-pressed="false" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row settings-row--action" onclick="alert('请在系统设置中开启 宝山区小实验社区 通知权限')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">系统通知权限</div>
+                  <div class="settings-row__hint">前往系统设置开启</div>
+                </div>
+                <i data-lucide="external-link" class="icon muted-2"></i>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary w-full mt-2" onclick="alert('✅ 通知偏好已保存')">保存通知设置</button>
+          </div>
+        </section>
+
+        <!-- 隐私设置 -->
+        <section class="pad-settings__section" data-panel="privacy" data-student-hidden>
+          <div class="pad-settings__mobile-pane-head pad-settings__mobile-only">
+            <button type="button" class="icon-btn" onclick="closeMobileSettingsPane()" aria-label="返回"><i data-lucide="arrow-left" class="icon"></i></button>
+            <h2 class="text-base font-bold flex-1">隐私设置</h2>
+          </div>
+          <div class="settings-panel-head">
+            <h2>隐私设置</h2>
+            <p>控制谁可以看到你的学习与作品数据</p>
+          </div>
+          <div class="settings-card settings-group">
+            <div class="settings-row">
+              <div class="settings-row__main">
+                <div class="settings-row__label">允许他人查看作品</div>
+                <div class="settings-row__hint">班级同学与访客</div>
+              </div>
+              <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+            </div>
+            <div class="settings-row" data-role-block="student" hidden>
+              <div class="settings-row__main">
+                <div class="settings-row__label">允许家长查看学情</div>
+                <div class="settings-row__hint">实验进度、作业完成情况</div>
+              </div>
+              <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+            </div>
+            <div class="settings-row" data-role-block="parent" hidden>
+              <div class="settings-row__main">
+                <div class="settings-row__label">允许查看孩子作品</div>
+                <div class="settings-row__hint">与 P16 安全设置同步</div>
+              </div>
+              <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__main">
+                <div class="settings-row__label">接收评论与 @ 提醒</div>
+              </div>
+              <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__main">
+                <div class="settings-row__label">允许 AI 分析学情</div>
+                <div class="settings-row__hint">用于个性化实验建议（可关闭）</div>
+              </div>
+              <button type="button" class="settings-toggle" onclick="toggleSetting(this)"></button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">数据</div>
+            <div class="settings-card">
+              <div class="settings-row settings-row--action" onclick="alert('将生成学习数据摘要并发送至邮箱')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">导出我的数据</div>
+                  <div class="settings-row__hint">实验记录、作业、作品列表</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+              <div class="settings-row settings-row--action" onclick="if(confirm('确定清除本地缓存？'))alert('缓存已清除')">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">清除本地缓存</div>
+                  <div class="settings-row__hint">约 128 MB</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 孩子与家长（家长） -->
+        <section class="pad-settings__section" data-panel="children" data-role-block="parent" hidden>
+          <div class="pad-settings__mobile-pane-head pad-settings__mobile-only">
+            <button type="button" class="icon-btn" onclick="closeMobileSettingsPane()" aria-label="返回"><i data-lucide="arrow-left" class="icon"></i></button>
+            <h2 class="text-base font-bold flex-1">孩子与家长</h2>
+          </div>
+          <div class="settings-panel-head">
+            <h2>孩子与家长</h2>
+            <p>管理绑定孩子、默认查看对象</p>
+          </div>
+          <div class="settings-card settings-group">
+            <div class="settings-row settings-row--action">
+              <div class="avatar avatar-sm avatar-grad-warm">张</div>
+              <div class="settings-row__main">
+                <div class="settings-row__label">张小明</div>
+                <div class="settings-row__hint">三年级(1)班 · 当前选中</div>
+              </div>
+              <span class="pill text-xs">默认</span>
+            </div>
+            <div class="settings-row settings-row--action" onclick="alert('已切换为张小美')">
+              <div class="avatar avatar-sm avatar-grad-cool">美</div>
+              <div class="settings-row__main">
+                <div class="settings-row__label">张小美</div>
+                <div class="settings-row__hint">二年级(3)班</div>
+              </div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </div>
+            <a href="01-bind-child.html" class="settings-row settings-row--action block">
+              <div class="settings-row__main">
+                <div class="settings-row__label text-brand">+ 绑定新孩子</div>
+              </div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </a>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">家长权限</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">协助上传作品</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">接收老师私信</div>
+                </div>
+                <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 教学偏好（教师） -->
+        <section class="pad-settings__section" data-panel="teaching" data-role-block="teacher" hidden>
+          <div class="pad-settings__mobile-pane-head pad-settings__mobile-only">
+            <button type="button" class="icon-btn" onclick="closeMobileSettingsPane()" aria-label="返回"><i data-lucide="arrow-left" class="icon"></i></button>
+            <h2 class="text-base font-bold flex-1">教学偏好</h2>
+          </div>
+          <div class="settings-panel-head">
+            <h2>教学偏好</h2>
+            <p>批改、班级与 AI 助教默认行为</p>
+          </div>
+          <div class="settings-card settings-group">
+            <div class="settings-row settings-row--action" onclick="alert('选择默认班级')">
+              <div class="settings-row__main">
+                <div class="settings-row__label">默认班级</div>
+                <div class="settings-row__hint">打开任务页时优先展示</div>
+              </div>
+              <span class="settings-row__value">三年级(1)班</span>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__main">
+                <div class="settings-row__label">新提交即时提醒</div>
+              </div>
+              <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__main">
+                <div class="settings-row__label">AI 初评后再人工确认</div>
+              </div>
+              <button type="button" class="settings-toggle is-on" onclick="toggleSetting(this)"></button>
+            </div>
+            <div class="settings-row settings-row--action" onclick="alert('默认评语模板库')">
+              <div class="settings-row__main">
+                <div class="settings-row__label">常用评语模板</div>
+                <div class="settings-row__hint">12 条已保存</div>
+              </div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </div>
+          </div>
+        </section>
+
+        <!-- 关于与帮助 -->
+        <section class="pad-settings__section" data-panel="about" data-student-hidden>
+          <div class="pad-settings__mobile-pane-head pad-settings__mobile-only">
+            <button type="button" class="icon-btn" onclick="closeMobileSettingsPane()" aria-label="返回"><i data-lucide="arrow-left" class="icon"></i></button>
+            <h2 class="text-base font-bold flex-1">关于与帮助</h2>
+          </div>
+          <div class="settings-panel-head">
+            <h2>关于与帮助</h2>
+            <p>宝山区小实验社区</p>
+          </div>
+          <div class="col items-center mb-4">
+            <div class="text-4xl mb-2">🧪</div>
+            <div class="text-sm font-bold">宝山区小实验社区</div>
+            <div class="text-xs muted">版本 1.2.0 (build 20260530)</div>
+          </div>
+          <div class="settings-card settings-group">
+            <div class="settings-row settings-row--action" onclick="alert('用户服务协议')">
+              <div class="settings-row__label">用户协议</div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </div>
+            <div class="settings-row settings-row--action" onclick="alert('隐私政策')">
+              <div class="settings-row__label">隐私政策</div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </div>
+            <div class="settings-row settings-row--action" onclick="alert('打开意见反馈表单')">
+              <div class="settings-row__label">意见反馈</div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </div>
+            <div class="settings-row settings-row--action" onclick="alert('客服微信：宝山虚拟实验室客服')">
+              <div class="settings-row__label">联系客服</div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </div>
+            <div class="settings-row settings-row--action" onclick="alert('已为最新版本')">
+              <div class="settings-row__main">
+                <div class="settings-row__label">检查更新</div>
+              </div>
+              <span class="settings-row__value">已最新</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- 手机竖屏：与 Pad 左侧导航一致的入口列表，子页复用 pad-settings__panel -->
+    <div class="pad-settings__mobile-only">
+      <div class="pad-settings__mobile-home" id="settingsMobileHome">
+        <div class="px-4 mt-3 mb-1">
+          <button type="button" class="card card-pad row items-center gap-3 w-full pad-settings__mobile-user text-left" id="settingsMobileUserCard" aria-label="编辑个人资料">
+            <div class="avatar avatar-lg avatar-grad-warm shrink-0" id="settingsAvatarPreview">张</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-bold truncate settings-display-name">张小明</div>
+              <div class="text-xs muted truncate settings-display-sub">三年级(1)班 · 学号 20240301</div>
+            </div>
+            <i data-lucide="chevron-right" class="icon muted-2 shrink-0"></i>
+          </button>
+        </div>
+        <p class="text-xs muted px-4 mb-3">与 Pad 左侧导航相同，子页内容完全一致</p>
+
+        <div class="px-4 pad-settings__mobile-menu stack" id="settingsMobileMenu" aria-label="设置分组"></div>
+
+        <div class="px-4 mt-6 mb-4">
+          <button type="button" class="btn btn-danger btn-block" onclick="logoutSettings()">
+            <i data-lucide="log-out" class="icon"></i> 退出登录
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
+  <div class="sheet" id="bottomSheet">
+    <div class="sheet-handle"></div>
+    <div class="text-center text-sm font-bold muted pb-2">更换头像</div>
+    <div class="sheet-item row items-center gap-3" onclick="chooseAvatar('camera')">
+      <i data-lucide="camera" class="icon icon-lg"></i>
+      <span class="text-sm">拍照</span>
+    </div>
+    <div class="sheet-item row items-center gap-3" onclick="chooseAvatar('gallery')">
+      <i data-lucide="image" class="icon icon-lg"></i>
+      <span class="text-sm">从相册选择</span>
+    </div>
+    <hr class="divider mx-4">
+    <div class="sheet-item row items-center justify-center" onclick="closeSheet()">
+      <span class="text-sm font-medium text-danger">取消</span>
+    </div>
+  </div>
+
+  <!-- 学生底栏 -->
+  <nav class="bottom-nav" data-settings-nav="student">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item"><span class="nav-icon"><i data-lucide="house" class="icon"></i></span><span class="nav-label">首页</span></a>
+      <a href="07-virtual-exp-list.html" class="nav-item"><span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span><span class="nav-label">模拟实验</span></a>
+      <a href="10-tasks.html" class="nav-item"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">我的任务</span></a>
+      <a href="08-assistant-scenes.html" class="nav-item"><span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span><span class="nav-label">石头老师</span></a>
+      <a href="15-profile-student.html" class="nav-item active">
+        <span class="nav-icon nav-icon--avatar"><span class="avatar avatar-sm avatar-grad-warm nav-avatar">张</span></span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- 家长底栏 -->
+  <nav class="bottom-nav" data-settings-nav="parent" hidden>
+    <div class="nav-items">
+      <a href="05-home-parent.html" class="nav-item"><span class="nav-icon"><i data-lucide="house" class="icon"></i></span><span class="nav-label">首页</span></a>
+      <a href="10-tasks.html" class="nav-item"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">我的任务</span></a>
+      <a href="#" class="nav-item"><span class="nav-icon"><i data-lucide="heart-handshake" class="icon"></i></span><span class="nav-label">育儿助手</span></a>
+      <a href="16-profile-parent.html" class="nav-item active"><span class="nav-icon"><i data-lucide="users" class="icon"></i></span><span class="nav-label">我的</span></a>
+    </div>
+  </nav>
+
+  <!-- 教师底栏 -->
+  <nav class="bottom-nav" data-settings-nav="teacher" hidden>
+    <div class="nav-items">
+      <a href="17-profile-teacher.html" class="nav-item"><span class="nav-icon"><i data-lucide="house" class="icon"></i></span><span class="nav-label">首页</span></a>
+      <a href="21-assign.html" class="nav-item"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">任务</span></a>
+      <a href="24-teacher-ai.html" class="nav-item"><span class="nav-icon"><i data-lucide="bot" class="icon"></i></span><span class="nav-label">助教</span></a>
+      <a href="17-profile-teacher.html" class="nav-item active"><span class="nav-icon"><i data-lucide="user" class="icon"></i></span><span class="nav-label">我的</span></a>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+var SETTINGS_PANEL_LABELS = {
+  profile: '个人资料',
+  account: '账号与安全',
+  notifications: '消息通知',
+  privacy: '隐私设置',
+  children: '孩子与家长',
+  teaching: '教学偏好',
+  about: '关于与帮助'
+};
+
+function getNotificationsPanelLabel(role) {
+  return role === 'student' ? '消息通知' : '通知偏好';
+}
+
+var SETTINGS_ROLE_DATA = {
+  student: {
+    name: '张小明',
+    avatar: '张',
+    avatarClass: 'avatar-grad-warm',
+    sub: '三年级(1)班 · 学号 20240301',
+    bio: '热爱探索的小小科学家 🧪',
+    phone: '138****6789',
+    back: '15-profile-student.html',
+    theme: 'theme-primary'
+  },
+  parent: {
+    name: '王美丽',
+    avatar: '王',
+    avatarClass: 'avatar-grad-cool',
+    sub: '家长 · 绑定 2 个孩子 · 138****6789',
+    bio: '陪伴孩子一起探索科学 🌱',
+    phone: '138****6789',
+    back: '16-profile-parent.html',
+    theme: 'theme-parent'
+  },
+  teacher: {
+    name: '李老师',
+    avatar: '李',
+    avatarClass: 'avatar-grad-cool',
+    sub: '科学教师 · 三年级(1)(2)班',
+    bio: '用心陪伴每一次实验成长',
+    phone: '139****1234',
+    back: '17-profile-teacher.html',
+    theme: 'theme-teacher'
+  }
+};
+
+function getSettingsRole() {
+  var params = new URLSearchParams(window.location.search);
+  var role = (params.get('role') || 'student').toLowerCase();
+  if (!SETTINGS_ROLE_DATA[role]) role = 'student';
+  return role;
+}
+
+function applySettingsRole(role) {
+  var root = document.getElementById('settingsRoot');
+  var data = SETTINGS_ROLE_DATA[role];
+  root.setAttribute('data-settings-role', role);
+  root.classList.remove('theme-primary', 'theme-parent', 'theme-teacher');
+  root.classList.add(data.theme);
+
+  document.querySelectorAll('[data-settings-nav]').forEach(function (nav) {
+    nav.hidden = nav.getAttribute('data-settings-nav') !== role;
+  });
+
+  document.querySelectorAll('[data-role-block]').forEach(function (el) {
+    var block = el.getAttribute('data-role-block') || '';
+    var roles = block.split(/\s+/);
+    el.hidden = roles.indexOf(role) === -1;
+  });
+
+  document.querySelectorAll('[data-student-hidden]').forEach(function (el) {
+    el.hidden = role === 'student';
+  });
+
+  document.querySelectorAll('[data-role-only]').forEach(function (el) {
+    var only = el.getAttribute('data-role-only');
+    el.hidden = only !== role;
+  });
+
+  var nick = document.getElementById('nicknameInput');
+  var bio = document.getElementById('bioInput');
+  if (nick) nick.value = data.name;
+  if (bio) bio.value = data.bio;
+
+  ['settingsAvatar', 'settingsAvatarPreview'].forEach(function (id) {
+    var av = document.getElementById(id);
+    if (!av) return;
+    av.textContent = data.avatar;
+    var size = id === 'settingsAvatarPreview' ? 'avatar avatar-lg ' : 'avatar avatar-xl ';
+    av.className = size + data.avatarClass;
+  });
+
+  document.querySelectorAll('.settings-display-name').forEach(function (el) {
+    el.textContent = data.name;
+  });
+  document.querySelectorAll('.settings-display-sub').forEach(function (el) {
+    el.textContent = data.sub;
+  });
+  document.querySelectorAll('.settings-phone-display').forEach(function (el) {
+    el.textContent = data.phone;
+  });
+
+  var notifPanelName = getNotificationsPanelLabel(role);
+  var notifLabel = document.getElementById('settingsNotificationsNavLabel');
+  var notifTitle = document.getElementById('settingsNotificationsPaneTitle');
+  if (notifLabel) notifLabel.textContent = notifPanelName;
+  if (notifTitle) notifTitle.textContent = notifPanelName;
+
+  var backPad = document.getElementById('settingsBackPad');
+  if (backPad) backPad.href = data.back;
+}
+
+function isSettingsMobileLayout() {
+  return window.matchMedia('(max-width: 767px), (orientation: portrait)').matches;
+}
+
+function showMobileSettingsHome() {
+  var root = document.getElementById('settingsRoot');
+  root.classList.remove('pad-settings--mobile-pane-open');
+  document.querySelectorAll('.pad-settings__section').forEach(function (sec) {
+    sec.classList.remove('is-active');
+  });
+  document.querySelectorAll('.pad-settings__nav-item').forEach(function (btn) {
+    btn.classList.remove('active');
+  });
+  var titleEl = document.getElementById('settingsMobileTitle');
+  if (titleEl) titleEl.textContent = '⚙️ 设置';
+  var back = document.getElementById('settingsBackMobile');
+  if (back) back.style.display = 'none';
+}
+
+function switchSettingsPanel(panelId, options) {
+  options = options || {};
+  var root = document.getElementById('settingsRoot');
+  var onMobile = isSettingsMobileLayout();
+
+  document.querySelectorAll('.pad-settings__nav-item').forEach(function (btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-panel') === panelId);
+  });
+  document.querySelectorAll('.pad-settings__section').forEach(function (sec) {
+    if (sec.hidden) return;
+    sec.classList.toggle('is-active', sec.getAttribute('data-panel') === panelId);
+  });
+
+  var label = SETTINGS_PANEL_LABELS[panelId] || '设置';
+  if (panelId === 'notifications') {
+    label = getNotificationsPanelLabel(getSettingsRole());
+  }
+  var titleEl = document.getElementById('settingsMobileTitle');
+  if (titleEl) titleEl.textContent = onMobile && !options.mobileHome ? label : '⚙️ 设置';
+
+  if (onMobile && !options.mobileHome) {
+    root.classList.add('pad-settings--mobile-pane-open');
+    var back = document.getElementById('settingsBackMobile');
+    if (back) back.style.display = 'inline-flex';
+  } else if (!onMobile) {
+    root.classList.remove('pad-settings--mobile-pane-open');
+  }
+
+  if (options.openMobilePane && onMobile) {
+    root.classList.add('pad-settings--mobile-pane-open');
+    var backBtn = document.getElementById('settingsBackMobile');
+    if (backBtn) backBtn.style.display = 'inline-flex';
+    if (titleEl) titleEl.textContent = label;
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+
+function closeMobileSettingsPane() {
+  showMobileSettingsHome();
+}
+
+function buildMobileSettingsMenu() {
+  var menu = document.getElementById('settingsMobileMenu');
+  var nav = document.getElementById('settingsNavPad');
+  if (!menu || !nav || menu.dataset.built === '1') return;
+
+  nav.querySelectorAll('.pad-settings__nav-item[data-panel]').forEach(function (btn) {
+    if (btn.hidden) return;
+    var panel = btn.getAttribute('data-panel');
+    var label = btn.querySelector('.text-sm');
+    var icon = btn.querySelector('[data-lucide]');
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'card card-pad row items-center justify-between w-full text-left pad-settings__mobile-menu-item';
+    item.setAttribute('data-panel', panel);
+    if (btn.getAttribute('data-role-only')) {
+      item.setAttribute('data-role-only', btn.getAttribute('data-role-only'));
+    }
+    item.innerHTML =
+      '<div class="row items-center gap-3">' +
+      (icon ? icon.outerHTML : '') +
+      '<span class="text-sm font-medium">' + (label ? label.textContent : SETTINGS_PANEL_LABELS[panel]) + '</span>' +
+      '</div><i data-lucide="chevron-right" class="icon muted-2"></i>';
+    menu.appendChild(item);
+  });
+
+  menu.dataset.built = '1';
+
+  menu.querySelectorAll('.pad-settings__mobile-menu-item').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      switchSettingsPanel(btn.getAttribute('data-panel'), { openMobilePane: true });
+    });
+  });
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+
+function toggleSetting(btn) {
+  var on = btn.classList.toggle('is-on');
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+
+function openSheet() {
+  document.getElementById('bottomSheet').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeSheet() {
+  document.getElementById('bottomSheet').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function chooseAvatar(source) {
+  closeSheet();
+  var labels = { camera: '拍照', gallery: '从相册选择' };
+  setTimeout(function () { alert('已选择「' + labels[source] + '」方式更换头像'); }, 400);
+}
+
+function saveProfile() {
+  var role = getSettingsRole();
+  var nick = document.getElementById('nicknameInput');
+  var bio = document.getElementById('bioInput');
+  var msg = '✅ 资料已保存！';
+  if (role === 'student') {
+    if (bio) msg += '\n个性签名：' + bio.value;
+  } else {
+    var value = nick ? nick.value : '';
+    msg += '\n昵称：' + value;
+    if (bio) msg += '\n签名：' + bio.value;
+    document.querySelectorAll('.settings-display-name').forEach(function (el) {
+      el.textContent = value;
+    });
+  }
+  alert(msg);
+}
+
+function logoutSettings() {
+  if (confirm('确定要退出登录吗？')) {
+    window.location.href = '00-login.html';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var role = getSettingsRole();
+  applySettingsRole(role);
+  buildMobileSettingsMenu();
+
+  var initialPanel = new URLSearchParams(window.location.search).get('panel');
+  var onMobile = isSettingsMobileLayout();
+
+  if (onMobile) {
+    showMobileSettingsHome();
+    if (initialPanel && SETTINGS_PANEL_LABELS[initialPanel]) {
+      switchSettingsPanel(initialPanel, { openMobilePane: true });
+    }
+  } else {
+    if (initialPanel && SETTINGS_PANEL_LABELS[initialPanel]) {
+      switchSettingsPanel(initialPanel);
+    }
+  }
+
+  var initialSheet = new URLSearchParams(window.location.search).get('sheet');
+  if (initialSheet === 'avatar') {
+    setTimeout(openSheet, 400);
+  }
+
+  document.querySelectorAll('.pad-settings__nav-item[data-panel]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      switchSettingsPanel(btn.getAttribute('data-panel'));
+    });
+  });
+
+  var userCard = document.getElementById('settingsMobileUserCard');
+  if (userCard) {
+    userCard.addEventListener('click', function () {
+      switchSettingsPanel('profile', { openMobilePane: true });
+    });
+  }
+
+  window.addEventListener('resize', function () {
+    if (!isSettingsMobileLayout()) {
+      document.getElementById('settingsRoot').classList.remove('pad-settings--mobile-pane-open');
+      if (!document.querySelector('.pad-settings__section.is-active')) {
+        switchSettingsPanel('profile');
+      }
+    }
+  });
+});
+</script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/prototype.js"></script>
+</body>
+</html>

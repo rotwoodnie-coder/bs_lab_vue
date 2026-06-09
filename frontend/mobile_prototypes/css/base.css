@@ -1,0 +1,141 @@
+/* ============================================================
+   宝山区小实验社区 移动端原型 - 基础重置与排版
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap");
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text-1);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+/* index.html iframe 平铺预览：避免 100dvh 撑出空白，并保持从顶部渲染 */
+html.in-iframe body {
+  min-height: auto;
+  background: var(--color-surface);
+}
+
+/* index 平铺：搜索 / 语音页固定为 390×844 手机框，避免 dvh 按外层视口撑破 */
+html.in-iframe .pad-shell[data-layout="search-home"],
+html.in-iframe .pad-shell[data-layout="voice-search"] {
+  height: 844px;
+  min-height: 844px;
+  max-height: 844px;
+  overflow: hidden;
+}
+
+html.in-iframe .pad-shell[data-layout="search-home"] .search-page {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+html.in-iframe .pad-shell[data-layout="voice-search"] .voice-search-page {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+html.in-iframe .pad-shell[data-layout="search-home"] .search-page__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font: inherit; }
+ul, ol { list-style: none; }
+img { max-width: 100%; display: block; }
+h1, h2, h3, h4 { line-height: var(--leading-tight); font-weight: var(--weight-bold); }
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ── Lucide 线性图标基样式 ── */
+.icon,
+[data-lucide] {
+  display: inline-block;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex-shrink: 0;
+  vertical-align: -0.18em;
+  stroke-width: var(--icon-stroke);
+  color: currentColor;
+}
+svg.icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  display: inline-block;
+}
+
+/* 实心麦克风图标（全局统一，替代 Lucide 线性 mic） */
+.mic-icon-filled {
+  display: block;
+  width: 22px;
+  height: 22px;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.mic-icon-filled.mic-icon-filled--lg {
+  width: 36px;
+  height: 36px;
+}
+
+svg.mic-icon-filled.icon {
+  width: 22px;
+  height: 22px;
+}
+
+svg.mic-icon-filled.mic-icon-filled--lg {
+  width: 36px;
+  height: 36px;
+}
+
+/* 尺寸修饰 */
+.icon-sm { --icon-size: 1em; }
+.icon-lg { --icon-size: 1.5em; }
+.icon-xl { --icon-size: 2em; }
+
+/* 选中/激活态: 闭合图标(收藏/点赞/书签等)填充为实心 */
+.icon.filled, [data-lucide].filled { fill: currentColor; }
+
+/* 激活图标: stroke-width 加粗 + 色彩强调 */
+.icon.active, [data-lucide].active { stroke-width: var(--icon-stroke-active); }
+
+/* 导航图标: 默认 stroke, 激活加粗 */
+.nav-item .icon, .nav-item [data-lucide] { stroke-width: var(--icon-stroke); }
+.nav-item.active .icon, .nav-item.active [data-lucide] { stroke-width: var(--icon-stroke-active); }
+
+/* ── 统一 Emoji 图标渲染 (Twemoji) - 仅用于情感化/装饰图标 ── */
+img.emoji {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0 0.05em;
+  vertical-align: -0.125em;
+  object-fit: contain;
+}

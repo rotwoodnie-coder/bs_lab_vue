@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人中心 · 家长 — 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+  <div class="prototype-container safe-top theme-parent pad-shell" data-layout="profile-hub">
+
+    <nav class="bottom-nav" aria-label="主导航">
+      <div class="nav-items">
+        <a href="05-home-parent.html" class="nav-item">
+          <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+          <span class="nav-label">首页</span>
+        </a>
+        <a href="10-tasks.html" class="nav-item">
+          <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+          <span class="nav-label">任务</span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon"><i data-lucide="heart-handshake" class="icon"></i></span>
+          <span class="nav-label">育儿助手</span>
+        </a>
+        <a href="16-profile-parent.html" class="nav-item active">
+          <span class="nav-icon"><i data-lucide="users" class="icon"></i></span>
+          <span class="nav-label">我的</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="pad-main pad-workbench">
+      <header class="pad-workbench__topbar">
+        <h1 class="pad-workbench__title">个人中心</h1>
+        <div class="pad-workbench__topbar-actions">
+          <a href="25-settings.html?role=parent" class="icon-btn" aria-label="设置">
+            <i data-lucide="settings" class="icon"></i>
+          </a>
+        </div>
+      </header>
+
+      <div class="pad-workbench__body">
+        <div class="pad-profile__banner banner banner-sky-indigo stack-2">
+          <div class="flex items-center gap-4">
+            <div class="avatar avatar-xl avatar-grad-warm" style="color:var(--brand-on);font-size:36px;">
+              王
+            </div>
+            <div class="flex-1">
+              <h2 class="text-lg font-bold text-on-brand">王美丽</h2>
+              <p class="banner-sub">家长 · 绑定 2 个孩子</p>
+              <p class="banner-sub" style="margin-top:8px;">
+                <i data-lucide="smartphone" class="icon" style="width:12px;height:12px;vertical-align:middle;"></i>
+                138****6789
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pad-profile__stats">
+          <div class="card rounded-xl card-pad text-center anim-fade-up delay-1">
+            <div class="text-xl mb-1">👶</div>
+            <div class="stat-num text-brand">2</div>
+            <div class="text-xs muted mt-1">绑定孩子</div>
+          </div>
+          <div class="card rounded-xl card-pad text-center anim-fade-up delay-2">
+            <div class="text-xl mb-1">📚</div>
+            <div class="stat-num text-warning">3</div>
+            <div class="text-xs muted mt-1">待完成</div>
+          </div>
+          <div class="card rounded-xl card-pad text-center anim-fade-up delay-3">
+            <div class="text-xl mb-1">✅</div>
+            <div class="stat-num text-success">12</div>
+            <div class="text-xs muted mt-1">已完成</div>
+          </div>
+          <div class="card rounded-xl card-pad text-center anim-fade-up delay-4">
+            <div class="text-xl mb-1">🎨</div>
+            <div class="stat-num text-accent">8</div>
+            <div class="text-xs muted mt-1">作品数</div>
+          </div>
+        </div>
+
+        <div class="pad-profile__shortcuts">
+          <a href="14-upload.html" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
+            <div class="text-2xl mb-1">📤</div>
+            <span class="text-xs font-bold">协助上传</span>
+          </a>
+          <a href="10-tasks.html" class="card rounded-xl card-pad text-center anim-fade-up delay-2">
+            <div class="text-2xl mb-1">📚</div>
+            <span class="text-xs font-bold">任务</span>
+          </a>
+          <a href="#" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
+            <div class="text-2xl mb-1">💝</div>
+            <span class="text-xs font-bold">育儿助手</span>
+          </a>
+          <a href="18-growth-archive.html" class="card rounded-xl card-pad text-center anim-fade-up delay-4">
+            <div class="text-2xl mb-1">🌱</div>
+            <span class="text-xs font-bold">成长档案</span>
+          </a>
+          <a href="01-bind-child.html" class="card rounded-xl card-pad text-center anim-fade-up delay-5">
+            <div class="text-2xl mb-1">➕</div>
+            <span class="text-xs font-bold">绑定孩子</span>
+          </a>
+          <a href="25-settings.html?role=parent" class="card rounded-xl card-pad text-center anim-fade-up delay-6">
+            <div class="text-2xl mb-1">⚙️</div>
+            <span class="text-xs font-bold">设置</span>
+          </a>
+        </div>
+
+        <div class="pad-profile__content">
+          <div class="card rounded-xl card-pad">
+            <h3 class="text-sm font-bold mb-3">👶 我的孩子</h3>
+            <div class="flex gap-3 mb-4">
+              <div class="flex-1 row items-center gap-3 surface-2 rounded-xl p-3">
+                <div class="avatar avatar-sm avatar-grad-warm" style="width:48px;height:48px;font-size:20px;flex-shrink:0;">张</div>
+                <div>
+                  <div class="text-sm font-semibold">张小明</div>
+                  <span class="pill text-xs" style="padding:2px 8px;margin-top:4px;display:inline-block;">当前</span>
+                </div>
+              </div>
+              <div class="flex-1 row items-center gap-3 surface-2 rounded-xl p-3 muted-2">
+                <div class="avatar avatar-sm avatar-grad-cool" style="width:48px;height:48px;font-size:20px;flex-shrink:0;">美</div>
+                <div>
+                  <div class="text-sm font-semibold">张小美</div>
+                </div>
+              </div>
+              <a href="01-bind-child.html" class="row items-center justify-center gap-2 rounded-xl p-3 shrink-0" style="border:2px dashed var(--color-border);min-width:72px;">
+                <span class="text-lg">+</span>
+                <span class="text-sm muted">添加</span>
+              </a>
+            </div>
+            <div class="surface-2 rounded-xl p-3">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h4 class="text-sm font-bold">张小明 · 三年级(1)班</h4>
+                  <p class="text-xs muted">学号 20240301 · <span class="notif-dot notif-dot-success"></span> 在线</p>
+                </div>
+              </div>
+              <div class="grid-3 gap-3">
+                <div class="rounded-xl py-2 px-2 text-center" style="background:var(--color-surface);">
+                  <p class="text-xs muted">待完成</p>
+                  <p class="text-lg font-bold text-warning">3</p>
+                </div>
+                <div class="rounded-xl py-2 px-2 text-center" style="background:var(--color-surface);">
+                  <p class="text-xs muted">已完成</p>
+                  <p class="text-lg font-bold text-success">12</p>
+                </div>
+                <div class="rounded-xl py-2 px-2 text-center" style="background:var(--color-surface);">
+                  <p class="text-xs muted">作品数</p>
+                  <p class="text-lg font-bold text-accent">8</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card rounded-xl card-pad">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="tile-icon tile-sm tint-amber">🧪</div>
+              <h4 class="text-sm font-bold">材料助手</h4>
+            </div>
+            <div class="surface-2 rounded-xl p-3">
+              <p class="text-xs font-semibold text-warning mb-2">当前实验：彩虹液体分层</p>
+              <ul class="stack-1">
+                <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>蜂蜜 — 50ml</li>
+                <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>洗洁精 — 50ml</li>
+                <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>食用油 — 50ml</li>
+                <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>酒精 — 30ml</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card rounded-xl card-pad">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="tile-icon tile-sm tint-emerald">🔒</div>
+              <h4 class="text-sm font-bold">安全设置</h4>
+            </div>
+            <div class="stack-2">
+              <div class="row items-center justify-between">
+                <span class="text-sm">允许查看作品</span>
+                <div class="rounded-full surface-2" style="width:40px;height:20px;background:var(--color-success);position:relative;">
+                  <div class="rounded-full bg-white shadow-sm" style="width:16px;height:16px;position:absolute;top:2px;right:2px;"></div>
+                </div>
+              </div>
+              <div class="row items-center justify-between">
+                <span class="text-sm">接收通知提醒</span>
+                <div class="rounded-full surface-2" style="width:40px;height:20px;background:var(--color-success);position:relative;">
+                  <div class="rounded-full bg-white shadow-sm" style="width:16px;height:16px;position:absolute;top:2px;right:2px;"></div>
+                </div>
+              </div>
+              <div class="row items-center justify-between">
+                <span class="text-sm">允许AI分析学情</span>
+                <div class="rounded-full" style="width:40px;height:20px;background:var(--color-border);position:relative;">
+                  <div class="rounded-full bg-white shadow-sm" style="width:16px;height:16px;position:absolute;top:2px;left:2px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card rounded-xl card-pad">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="tile-icon tile-sm tint-blue">🔔</div>
+              <h4 class="text-sm font-bold">通知中心</h4>
+              <span class="badge badge-danger ml-auto">3条未读</span>
+            </div>
+            <div class="stack-2">
+              <div class="row gap-2">
+                <span class="notif-dot notif-dot-danger mt-1"></span>
+                <div>
+                  <p class="text-sm font-medium">张小明提交了本周实验作业</p>
+                  <p class="text-xs muted">2小时前</p>
+                </div>
+              </div>
+              <div class="row gap-2">
+                <span class="notif-dot notif-dot-danger mt-1"></span>
+                <div>
+                  <p class="text-sm font-medium">张小美的作品「火山喷发」被老师推荐展示</p>
+                  <p class="text-xs muted">昨天 15:30</p>
+                </div>
+              </div>
+              <div class="row gap-2">
+                <span class="notif-dot notif-dot-danger mt-1"></span>
+                <div>
+                  <p class="text-sm font-medium">下周二(6/6)有家长开放日实验展示活动</p>
+                  <p class="text-xs muted">3天前</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pad-profile__mobile-only pb-6">
+          <div class="banner banner-sky-indigo stack-2 mx-4 mt-3 rounded-xl overflow-hidden">
+            <div class="flex items-center gap-4">
+              <div class="avatar avatar-xl avatar-grad-warm" style="color:var(--brand-on);font-size:36px;">王</div>
+              <div>
+                <h2 class="text-xl font-bold text-on-brand">王美丽</h2>
+                <p class="banner-sub">家长 · 绑定 2 个孩子</p>
+                <p class="text-xs" style="color:rgba(255,255,255,0.6);margin-top:2px;">
+                  <i data-lucide="smartphone" class="icon" style="width:12px;height:12px;vertical-align:middle;"></i>
+                  138****6789
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2 gap-3 px-4 mt-3">
+            <div class="card rounded-xl card-pad text-center">
+              <div class="text-xl mb-1">👶</div>
+              <div class="stat-num text-brand">2</div>
+              <div class="text-xs muted mt-1">绑定孩子</div>
+            </div>
+            <div class="card rounded-xl card-pad text-center">
+              <div class="text-xl mb-1">📚</div>
+              <div class="stat-num text-warning">3</div>
+              <div class="text-xs muted mt-1">待完成</div>
+            </div>
+            <div class="card rounded-xl card-pad text-center">
+              <div class="text-xl mb-1">✅</div>
+              <div class="stat-num text-success">12</div>
+              <div class="text-xs muted mt-1">已完成</div>
+            </div>
+            <div class="card rounded-xl card-pad text-center">
+              <div class="text-xl mb-1">🎨</div>
+              <div class="stat-num text-accent">8</div>
+              <div class="text-xs muted mt-1">作品数</div>
+            </div>
+          </div>
+
+          <div class="px-4 mt-4">
+            <h3 class="text-sm font-bold mb-3">👶 我的孩子</h3>
+            <div class="flex gap-3">
+              <div class="flex-1 row items-center gap-3 surface-2 rounded-xl p-3">
+                <div class="avatar avatar-sm avatar-grad-warm" style="width:48px;height:48px;font-size:20px;flex-shrink:0;">张</div>
+                <div>
+                  <div class="text-sm font-semibold">张小明</div>
+                  <span class="pill text-xs" style="padding:2px 8px;margin-top:4px;display:inline-block;">当前</span>
+                </div>
+              </div>
+              <div class="flex-1 row items-center gap-3 surface-2 rounded-xl p-3 muted-2">
+                <div class="avatar avatar-sm avatar-grad-cool" style="width:48px;height:48px;font-size:20px;flex-shrink:0;">美</div>
+                <div><div class="text-sm font-semibold">张小美</div></div>
+              </div>
+              <a href="01-bind-child.html" class="flex-1 row items-center justify-center gap-2 rounded-xl p-3" style="border:2px dashed var(--color-border);">
+                <span class="text-lg">+</span>
+                <span class="text-sm muted">添加</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="px-4 mt-4">
+            <div class="card card-pad">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h4 class="text-base font-bold">张小明</h4>
+                  <p class="text-xs muted">三年级(1)班 · 学号 20240301</p>
+                </div>
+                <div class="flex items-center gap-1 text-sm">
+                  <span class="notif-dot notif-dot-success"></span>
+                  <span class="text-xs muted">在线</span>
+                </div>
+              </div>
+              <div class="grid-3 gap-3">
+                <div class="surface-2 rounded-xl py-3 px-3 text-center">
+                  <p class="text-xs muted">待完成</p>
+                  <p class="text-xl font-bold text-warning">3</p>
+                </div>
+                <div class="surface-2 rounded-xl py-3 px-3 text-center">
+                  <p class="text-xs muted">已完成</p>
+                  <p class="text-xl font-bold text-success">12</p>
+                </div>
+                <div class="surface-2 rounded-xl py-3 px-3 text-center">
+                  <p class="text-xs muted">作品数</p>
+                  <p class="text-xl font-bold text-accent">8</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-4 mt-3">
+            <a href="14-upload.html" class="btn btn-gradient btn-block btn-lg shadow-md">📤 协助上传成果</a>
+          </div>
+
+          <div class="px-4 mt-5 stack-4">
+            <div class="card card-pad">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="tile-icon tile-sm tint-amber">🧪</div>
+                <h4 class="text-sm font-bold">材料助手</h4>
+              </div>
+              <div class="surface-2 rounded-xl p-3">
+                <p class="text-xs font-semibold text-warning mb-2">当前实验：彩虹液体分层</p>
+                <ul class="stack-1">
+                  <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>蜂蜜 — 50ml</li>
+                  <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>洗洁精 — 50ml</li>
+                  <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>食用油 — 50ml</li>
+                  <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>酒精 — 30ml</li>
+                  <li class="row gap-2 items-center text-xs muted"><span class="notif-dot notif-dot-warning"></span>透明试管 × 1、滴管 × 3</li>
+                </ul>
+              </div>
+            </div>
+            <div class="card card-pad">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="tile-icon tile-sm tint-emerald">🔒</div>
+                <h4 class="text-sm font-bold">安全设置</h4>
+              </div>
+              <div class="stack-2">
+                <div class="row items-center justify-between">
+                  <span class="text-sm">允许查看作品</span>
+                  <div class="rounded-full surface-2" style="width:40px;height:20px;background:var(--color-success);position:relative;">
+                    <div class="rounded-full bg-white shadow-sm" style="width:16px;height:16px;position:absolute;top:2px;right:2px;"></div>
+                  </div>
+                </div>
+                <div class="row items-center justify-between">
+                  <span class="text-sm">接收通知提醒</span>
+                  <div class="rounded-full surface-2" style="width:40px;height:20px;background:var(--color-success);position:relative;">
+                    <div class="rounded-full bg-white shadow-sm" style="width:16px;height:16px;position:absolute;top:2px;right:2px;"></div>
+                  </div>
+                </div>
+                <div class="row items-center justify-between">
+                  <span class="text-sm">允许AI分析学情</span>
+                  <div class="rounded-full" style="width:40px;height:20px;background:var(--color-border);position:relative;">
+                    <div class="rounded-full bg-white shadow-sm" style="width:16px;height:16px;position:absolute;top:2px;left:2px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card card-pad">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="tile-icon tile-sm tint-blue">🔔</div>
+                <h4 class="text-sm font-bold">通知中心</h4>
+                <span class="badge badge-danger ml-auto">3条未读</span>
+              </div>
+              <div class="stack-2">
+                <div class="row gap-2">
+                  <span class="notif-dot notif-dot-danger mt-1"></span>
+                  <div>
+                    <p class="text-sm font-medium">张小明提交了本周实验作业</p>
+                    <p class="text-xs muted">2小时前</p>
+                  </div>
+                </div>
+                <div class="row gap-2">
+                  <span class="notif-dot notif-dot-danger mt-1"></span>
+                  <div>
+                    <p class="text-sm font-medium">张小美的作品「火山喷发」被老师推荐展示</p>
+                    <p class="text-xs muted">昨天 15:30</p>
+                  </div>
+                </div>
+                <div class="row gap-2">
+                  <span class="notif-dot notif-dot-danger mt-1"></span>
+                  <div>
+                    <p class="text-sm font-medium">下周二(6/6)有家长开放日实验展示活动</p>
+                    <p class="text-xs muted">3天前</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-4 mt-5 stack-2">
+            <a href="25-settings.html?role=parent" class="card card-pad block row items-center justify-between">
+              <div class="row items-center gap-2">
+                <span class="text-lg">⚙️</span>
+                <span class="text-sm font-semibold">设置</span>
+              </div>
+              <i data-lucide="chevron-right" class="icon muted-2"></i>
+            </a>
+            <button class="card card-pad w-full text-left" onclick="if(confirm('确认退出登录？')){location.href='00-login.html'}">
+              <div class="row items-center justify-between">
+                <div class="row items-center gap-2">
+                  <span class="text-lg">🚪</span>
+                  <span class="text-sm font-semibold text-danger">退出登录</span>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/prototype.js"></script>
+</body>
+</html>

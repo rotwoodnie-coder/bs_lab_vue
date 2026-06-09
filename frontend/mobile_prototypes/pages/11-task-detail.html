@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务详情 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <style>
+.fab-btn {
+  position: fixed;
+  bottom: calc(64px + 16px);
+  right: 16px;
+  z-index: 99;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-on);
+  box-shadow: 0 4px 16px rgba(37,99,235,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab-btn:active { transform: scale(0.92); }
+.fab-overlay {
+  position: fixed; inset: 0; z-index: 98;
+  background: rgba(0,0,0,0.3);
+}
+.fab-menu {
+  position: fixed;
+  bottom: calc(64px + 80px);
+  right: 16px;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fab-menu-item:active { background: var(--color-surface-2); }
+.fab-menu-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-task-detail>
+
+  <div class="topbar page-topbar safe-top">
+    <a href="10-tasks.html" class="icon-btn page-back" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </a>
+    <h1 class="topbar-title" data-task-detail-title>任务详情</h1>
+  </div>
+
+  <div class="px-4 stack-4 pb-28">
+
+    <div class="card card-pad task-card--homework" data-task-homework-only>
+      <span class="task-type-badge task-type-badge--homework task-detail-label--homework">📚 作业任务</span>
+      <h1 class="text-lg font-bold mt-2">彩虹液体分层实验</h1>
+      <p class="text-xs muted mt-2">观看实验视频，完成步骤操作并上传成果照片或短视频。</p>
+      <div class="grid-2 gap-3 mt-4">
+        <div class="rounded-xl surface-2 p-3">
+          <div class="text-xs muted-2">状态</div>
+          <div class="text-sm font-bold mt-1">待完成</div>
+        </div>
+        <div class="rounded-xl surface-2 p-3">
+          <div class="text-xs muted-2">截止时间</div>
+          <div class="text-sm font-bold mt-1">今天 20:00</div>
+        </div>
+      </div>
+      <div class="rounded-xl p-3 mt-3 text-xs font-medium tint-orange surface-2">
+        指导老师：李老师 · 老师布置的作业
+      </div>
+    </div>
+
+    <div class="card card-pad task-card--remix" data-task-remix-only hidden>
+      <span class="task-type-badge task-type-badge--remix task-detail-label--remix">📷 拍同款任务</span>
+      <h1 class="text-lg font-bold mt-2">拍同款 · 自制简易风向标</h1>
+      <p class="text-xs muted mt-2">参考下方实验视频，拍摄并上传你的同款实验作品。</p>
+      <div class="grid-2 gap-3 mt-4">
+        <div class="rounded-xl surface-2 p-3">
+          <div class="text-xs muted-2">状态</div>
+          <div class="text-sm font-bold mt-1">进行中</div>
+        </div>
+        <div class="rounded-xl surface-2 p-3">
+          <div class="text-xs muted-2">任务类型</div>
+          <div class="text-sm font-bold mt-1">自愿完成</div>
+        </div>
+      </div>
+      <div class="rounded-xl p-3 mt-3 text-xs font-medium tint-amber surface-2">
+        来自视频「拍同款」· 非老师布置作业
+      </div>
+    </div>
+
+    <div class="card card-pad" data-task-homework-only>
+      <div class="row justify-between items-center">
+        <div>
+          <div class="text-xs font-bold muted-2">关联视频</div>
+          <div class="text-base font-bold mt-1">安全实验：彩虹液体分层</div>
+        </div>
+        <span class="badge badge-slate">2 分钟</span>
+      </div>
+      <a href="06-video-detail.html?from=task" class="mt-3 btn btn-primary btn-block">去观看视频</a>
+    </div>
+
+    <div class="card card-pad" data-task-remix-only hidden>
+      <div class="row justify-between items-center">
+        <div>
+          <div class="text-xs font-bold muted-2">参考视频</div>
+          <div class="text-base font-bold mt-1">自制简易风向标</div>
+        </div>
+        <span class="badge badge-slate">7 分钟</span>
+      </div>
+      <p class="text-xs muted mt-2">王老师 · 科学探究 · 1.2 万次播放</p>
+      <a href="06-video-detail.html" class="mt-3 btn btn-outline btn-block">回看参考视频</a>
+    </div>
+
+    <div class="card card-pad">
+      <div class="text-xs font-bold muted-2">提交要求</div>
+      <ul class="mt-3 stack-2" data-task-homework-only>
+        <li class="rounded-xl surface-2 px-4 py-3 text-xs muted">• 至少上传 1 张步骤照片</li>
+        <li class="rounded-xl surface-2 px-4 py-3 text-xs muted">• 可附 1 段 30 秒以内视频</li>
+        <li class="rounded-xl surface-2 px-4 py-3 text-xs muted">• 需写明实验名称和观察结果</li>
+      </ul>
+      <ul class="mt-3 stack-2" data-task-remix-only hidden>
+        <li class="rounded-xl surface-2 px-4 py-3 text-xs muted">• 拍摄与参考视频同主题的实验过程</li>
+        <li class="rounded-xl surface-2 px-4 py-3 text-xs muted">• 至少 1 张照片或 1 段短视频</li>
+        <li class="rounded-xl surface-2 px-4 py-3 text-xs muted">• 上传后归入作品墙「拍同款」</li>
+      </ul>
+    </div>
+
+    <div class="card card-pad">
+      <div class="text-xs font-bold muted-2">完成步骤</div>
+      <ol class="mt-3 stack-2" data-task-homework-only>
+        <li class="rounded-xl border px-4 py-3 text-xs muted row items-center gap-2">
+          <span class="stepper-dot active">1</span>
+          观看关联视频
+        </li>
+        <li class="rounded-xl border px-4 py-3 text-xs muted row items-center gap-2">
+          <span class="stepper-dot active">2</span>
+          准备材料并完成实验
+        </li>
+        <li class="rounded-xl border px-4 py-3 text-xs muted row items-center gap-2">
+          <span class="stepper-dot active">3</span>
+          整理成果后提交
+        </li>
+      </ol>
+      <ol class="mt-3 stack-2" data-task-remix-only hidden>
+        <li class="rounded-xl border px-4 py-3 text-xs muted row items-center gap-2">
+          <span class="stepper-dot active">1</span>
+          回看参考视频，了解步骤
+        </li>
+        <li class="rounded-xl border px-4 py-3 text-xs muted row items-center gap-2">
+          <span class="stepper-dot active">2</span>
+          动手完成同款实验并拍摄
+        </li>
+        <li class="rounded-xl border px-4 py-3 text-xs muted row items-center gap-2">
+          <span class="stepper-dot active">3</span>
+          上传作品完成拍同款
+        </li>
+      </ol>
+    </div>
+
+    <a href="14-upload.html" class="btn btn-gradient btn-block btn-lg" data-task-homework-only>
+      进入成果上传
+    </a>
+    <a href="14-upload.html?type=remix" class="btn btn-gradient btn-block btn-lg" data-task-remix-only hidden>
+      开始拍同款上传
+    </a>
+
+    <a href="20-quiz.html" class="card card-pad card-link quiz-nudge row items-center gap-3 mt-4" data-task-homework-only>
+      <div class="tile-icon tile-sm tint-violet shrink-0">🧠</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-bold">顺手完成每日答题</div>
+        <p class="text-xs muted mt-1">今日还剩 5 题 · 巩固本课知识点</p>
+      </div>
+      <i data-lucide="chevron-right" class="icon muted-2 shrink-0"></i>
+    </a>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <button class="fab-btn" onclick="openFabMenu()">
+    <i data-lucide="plus" class="icon icon-lg" style="color:var(--brand-on)"></i>
+  </button>
+  <div class="fab-overlay" id="fabOverlay" onclick="closeFabMenu()" style="display:none;"></div>
+  <div class="fab-menu" id="fabMenu" style="display:none;">
+    <div class="fab-menu-item" onclick="location.href='14-upload.html'">
+      <span class="fab-menu-icon">📸</span>
+      <span>拍照上传</span>
+    </div>
+    <div class="fab-menu-item" onclick="location.href='14-upload.html'">
+      <span class="fab-menu-icon">🎬</span>
+      <span>视频上传</span>
+    </div>
+    <div class="fab-menu-item" onclick="location.href='14-upload.html'">
+      <span class="fab-menu-icon">📝</span>
+      <span>文字记录</span>
+    </div>
+  </div>
+
+  <script>
+  function openFabMenu() {
+    document.getElementById('fabOverlay').style.display = 'block';
+    document.getElementById('fabMenu').style.display = 'block';
+  }
+  function closeFabMenu() {
+    document.getElementById('fabOverlay').style.display = 'none';
+    document.getElementById('fabMenu').style.display = 'none';
+  }
+  </script>
+</div>
+  <script src="../js/prototype.js"></script>
+  <script src="../js/task-detail.js"></script>
+</body>
+</html>

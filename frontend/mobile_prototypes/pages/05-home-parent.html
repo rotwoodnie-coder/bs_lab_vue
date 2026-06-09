@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>家长首页 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container theme-parent pad-shell" data-layout="parent-home">
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="05-home-parent.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">任务</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon"><i data-lucide="heart-handshake" class="icon"></i></span>
+        <span class="nav-label">育儿助手</span>
+      </a>
+      <a href="16-profile-parent.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="user" class="icon"></i></span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-workbench">
+    <header class="pad-workbench__topbar">
+      <h1 class="pad-workbench__title">家长首页</h1>
+    </header>
+
+    <div class="pad-workbench__body">
+      <aside class="pad-parent__sidebar">
+        <div class="card card-pad">
+          <div class="text-xs font-semibold muted mb-3">当前孩子</div>
+          <div class="scroll-x">
+            <div class="col items-center gap-1 shrink-0">
+              <div class="avatar avatar-sm avatar-grad-warm">小</div>
+              <span class="text-xs font-semibold">小明</span>
+              <span class="text-xs muted-2">当前</span>
+            </div>
+            <div class="col items-center gap-1 shrink-0 muted-2">
+              <div class="avatar avatar-sm avatar-grad-cool">红</div>
+              <span class="text-xs font-semibold">小红</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="pad-parent__main">
+        <div class="card card-pad">
+          <div class="row items-center justify-between mb-3">
+            <span class="text-sm font-bold">小明 · 今日进度</span>
+            <a href="10-tasks.html" class="text-xs text-brand font-medium">查看全部</a>
+          </div>
+          <div class="grid-2 gap-3">
+            <div class="stat surface-2 rounded-lg p-3">
+              <div class="stat-num">2</div>
+              <div class="stat-label">待完成</div>
+            </div>
+            <div class="stat surface-2 rounded-lg p-3">
+              <div class="stat-num text-success">5</div>
+              <div class="stat-label">已完成</div>
+            </div>
+          </div>
+          <div class="progress mt-3">
+            <div class="progress-fill progress-fill-success" style="width:71%"></div>
+          </div>
+          <div class="text-xs muted-2 mt-2 text-right">完成率 71%</div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row items-center gap-2 mb-3">
+            <span class="text-sm font-bold">🔧 材料助手</span>
+          </div>
+          <div class="text-xs muted mb-3">当前实验所需材料</div>
+          <div class="rounded-lg px-4 py-3 text-sm tint-amber" style="background:var(--tint);color:var(--tint-ink)">
+            自制风向标所需：卡纸、吸管、大头针、橡皮泥、剪刀、胶带
+          </div>
+          <a href="14-upload.html" class="btn btn-primary btn-block mt-3">协助上传</a>
+        </div>
+
+        <div class="card card-pad">
+          <div class="text-sm font-bold mb-3">最近动态</div>
+          <div class="stack-2">
+            <div class="row gap-3 items-start">
+              <span class="notif-dot notif-dot-brand mt-1"></span>
+              <div class="flex-1">
+                <div class="text-sm">小明完成了"彩虹液体分层"实验</div>
+                <div class="text-xs muted-2 mt-1">10分钟前</div>
+              </div>
+            </div>
+            <div class="row gap-3 items-start">
+              <span class="notif-dot notif-dot-success mt-1"></span>
+              <div class="flex-1">
+                <div class="text-sm">小红提交了"纸风车"作品，等待批阅</div>
+                <div class="text-xs muted-2 mt-1">2小时前</div>
+              </div>
+            </div>
+            <div class="row gap-3 items-start">
+              <span class="notif-dot notif-dot-warning mt-1"></span>
+              <div class="flex-1">
+                <div class="text-sm">学校新增周末实验任务：自制温度计</div>
+                <div class="text-xs muted-2 mt-1">昨天</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pad-parent__mobile-stack px-4 pt-4 safe-top stack-4 pb-28">
+      <div class="card card-pad">
+        <div class="text-xs font-semibold muted mb-3">当前孩子</div>
+        <div class="scroll-x">
+          <div class="col items-center gap-1 shrink-0">
+            <div class="avatar avatar-sm avatar-grad-warm">小</div>
+            <span class="text-xs font-semibold">小明</span>
+            <span class="text-xs muted-2">当前</span>
+          </div>
+          <div class="col items-center gap-1 shrink-0 muted-2">
+            <div class="avatar avatar-sm avatar-grad-cool">红</div>
+            <span class="text-xs font-semibold">小红</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <div class="row items-center justify-between mb-3">
+          <span class="text-sm font-bold">小明 · 今日进度</span>
+          <a href="10-tasks.html" class="text-xs text-brand font-medium">查看全部</a>
+        </div>
+        <div class="grid-2 gap-3">
+          <div class="stat surface-2 rounded-lg p-3">
+            <div class="stat-num">2</div>
+            <div class="stat-label">待完成</div>
+          </div>
+          <div class="stat surface-2 rounded-lg p-3">
+            <div class="stat-num text-success">5</div>
+            <div class="stat-label">已完成</div>
+          </div>
+        </div>
+        <div class="progress mt-3">
+          <div class="progress-fill progress-fill-success" style="width:71%"></div>
+        </div>
+        <div class="text-xs muted-2 mt-2 text-right">完成率 71%</div>
+      </div>
+
+      <div class="card card-pad">
+        <div class="row items-center gap-2 mb-3">
+          <span class="text-sm font-bold">🔧 材料助手</span>
+        </div>
+        <div class="text-xs muted mb-3">当前实验所需材料</div>
+        <div class="rounded-lg px-4 py-3 text-sm tint-amber" style="background:var(--tint);color:var(--tint-ink)">
+          自制风向标所需：卡纸、吸管、大头针、橡皮泥、剪刀、胶带
+        </div>
+        <a href="14-upload.html" class="btn btn-primary btn-block mt-3">协助上传</a>
+      </div>
+
+      <div class="card card-pad">
+        <div class="text-sm font-bold mb-3">最近动态</div>
+        <div class="stack-2">
+          <div class="row gap-3 items-start">
+            <span class="notif-dot notif-dot-brand mt-1"></span>
+            <div class="flex-1">
+              <div class="text-sm">小明完成了"彩虹液体分层"实验</div>
+              <div class="text-xs muted-2 mt-1">10分钟前</div>
+            </div>
+          </div>
+          <div class="row gap-3 items-start">
+            <span class="notif-dot notif-dot-success mt-1"></span>
+            <div class="flex-1">
+              <div class="text-sm">小红提交了"纸风车"作品，等待批阅</div>
+              <div class="text-xs muted-2 mt-1">2小时前</div>
+            </div>
+          </div>
+          <div class="row gap-3 items-start">
+            <span class="notif-dot notif-dot-warning mt-1"></span>
+            <div class="flex-1">
+              <div class="text-sm">学校新增周末实验任务：自制温度计</div>
+              <div class="text-xs muted-2 mt-1">昨天</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

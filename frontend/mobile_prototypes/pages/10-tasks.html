@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的任务 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+  <style>
+.fab-btn {
+  position: fixed;
+  bottom: calc(64px + 16px);
+  right: 16px;
+  z-index: 99;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-on);
+  box-shadow: 0 4px 16px rgba(37,99,235,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab-btn:active { transform: scale(0.92); }
+.fab-btn.is-open { transform: rotate(45deg); }
+.fab-btn.is-open:active { transform: rotate(45deg) scale(0.92); }
+.fab-overlay[hidden] { display: none !important; }
+.fab-menu[hidden] { display: none !important; }
+.fab-overlay:not([hidden]) {
+  position: fixed; inset: 0; z-index: 98;
+  background: rgba(0,0,0,0.3);
+}
+.fab-menu:not([hidden]) {
+  position: fixed;
+  bottom: calc(64px + 80px);
+  right: 16px;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  transition: background 0.15s;
+}
+.fab-menu-item:active { background: var(--color-surface-2); }
+.fab-menu-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+<div class="prototype-container pad-shell" data-layout="list-workbench" data-tasks-list>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item active has-nav-badge" aria-label="我的任务，有待办">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张同学">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-workbench">
+    <header class="pad-workbench__topbar">
+      <h1 class="pad-workbench__title">我的任务</h1>
+      <div class="pad-workbench__topbar-actions">
+        <a href="03-search.html" class="icon-btn" aria-label="搜索">
+          <i data-lucide="search" class="icon"></i>
+        </a>
+      </div>
+    </header>
+
+    <div class="pad-workbench__filters">
+      <div class="tabs" data-tasks-tabs>
+        <button type="button" class="tab active" data-task-tab="all">全部</button>
+        <button type="button" class="tab" data-task-tab="quiz">答题</button>
+        <button type="button" class="tab" data-task-tab="homework">作业</button>
+        <button type="button" class="tab" data-task-tab="remix">拍同款</button>
+      </div>
+      <div class="tabs mt-2" data-tasks-status-tabs>
+        <button type="button" class="tab active" data-task-status-tab="pending">待完成</button>
+        <button type="button" class="tab" data-task-status-tab="done">已完成</button>
+      </div>
+    </div>
+
+    <div class="pad-workbench__body">
+      <div class="pad-workbench__main">
+        <div class="pad-workbench__mobile-head px-4 safe-top stack-4">
+          <h1 class="text-xl font-bold">我的任务</h1>
+          <div class="tabs" data-tasks-tabs>
+            <button type="button" class="tab active" data-task-tab="all">全部</button>
+            <button type="button" class="tab" data-task-tab="quiz">答题</button>
+            <button type="button" class="tab" data-task-tab="homework">作业</button>
+            <button type="button" class="tab" data-task-tab="remix">拍同款</button>
+          </div>
+          <div class="tabs" data-tasks-status-tabs>
+            <button type="button" class="tab active" data-task-status-tab="pending">待完成</button>
+            <button type="button" class="tab" data-task-status-tab="done">已完成</button>
+          </div>
+        </div>
+
+        <div class="pad-list__grid stack-3 px-4 pb-28">
+          <p class="tasks-empty" data-tasks-empty hidden>暂无符合条件的任务</p>
+          <!-- 每日答题：仅占一条，待答 / 已答二选一 + 答题记录 -->
+          <div class="task-quiz-block" data-task-type="quiz" data-task-quiz-block data-task-status="done">
+            <a href="20-quiz-completed.html" class="task-quiz-compact card card-pad card-link" data-quiz-done>
+              <div class="row items-center gap-3">
+                <div class="task-quiz-compact__icon" aria-hidden="true">🧠</div>
+                <div class="flex-1 min-w-0">
+                  <div class="row items-center justify-between gap-2">
+                    <span class="text-sm font-bold">每日答题</span>
+                    <span class="task-quiz-compact__score text-success">4/5 · +8 分</span>
+                  </div>
+                  <p class="text-xs muted mt-1">今日已完成 · 点击查看结果</p>
+                </div>
+                <span class="badge badge-success shrink-0">已完成</span>
+              </div>
+            </a>
+            <a href="20-quiz.html" class="task-quiz-compact card card-pad card-link task-quiz-compact--pending" data-quiz-pending hidden>
+              <div class="row items-center gap-3">
+                <div class="task-quiz-compact__icon" aria-hidden="true">🧠</div>
+                <div class="flex-1 min-w-0">
+                  <div class="row items-center justify-between gap-2">
+                    <span class="text-sm font-bold">每日答题</span>
+                    <span class="badge badge-warning shrink-0">待完成</span>
+                  </div>
+                  <p class="text-xs muted mt-1">5 题 · 今日还可正式提交 1 次</p>
+                </div>
+                <span class="task-quiz-compact__cta text-xs text-brand font-bold shrink-0">去答题</span>
+              </div>
+            </a>
+            <div class="task-quiz-block__foot">
+              <a href="20-quiz-history.html" class="text-xs text-brand font-medium">答题记录</a>
+            </div>
+          </div>
+
+          <a href="11-task-detail.html?type=homework" class="card card-link card-pad task-card--homework" data-task-type="homework" data-task-status="pending">
+            <div class="row justify-between items-start gap-3">
+              <div class="min-w-0">
+                <span class="task-type-badge task-type-badge--homework">📚 作业</span>
+                <div class="text-base font-bold mt-2">彩虹液体分层实验</div>
+              </div>
+              <span class="badge badge-warning shrink-0">待完成</span>
+            </div>
+            <p class="text-xs muted mt-2">李老师布置 · 观看视频后完成实验，并提交照片或视频成果。</p>
+            <div class="row justify-between items-center mt-3 text-xs muted-2">
+              <span>📎 上传成果</span>
+              <span>截止：明天 20:00</span>
+            </div>
+          </a>
+
+          <a href="11-task-detail.html?type=remix" class="card card-link card-pad task-card--remix" data-task-type="remix" data-task-status="pending">
+            <div class="row justify-between items-start gap-3">
+              <div class="min-w-0">
+                <span class="task-type-badge task-type-badge--remix">📷 拍同款</span>
+                <div class="text-base font-bold mt-2">拍同款 · 自制简易风向标</div>
+              </div>
+              <span class="badge badge-warning shrink-0">进行中</span>
+            </div>
+            <p class="text-xs muted mt-2">参考王老师的实验视频，拍摄你的同款作品并上传。</p>
+            <div class="row justify-between items-center mt-3 text-xs muted-2">
+              <span>🎬 来自视频详情</span>
+              <span>自愿完成</span>
+            </div>
+          </a>
+
+          <a href="11-task-detail.html?type=homework" class="card card-link card-pad task-card--homework" data-task-type="homework" data-task-status="pending">
+            <div class="row justify-between items-start gap-3">
+              <div class="min-w-0">
+                <span class="task-type-badge task-type-badge--homework">📚 作业</span>
+                <div class="text-base font-bold mt-2">气球火箭挑战赛</div>
+              </div>
+              <span class="badge badge-warning shrink-0">待完成</span>
+            </div>
+            <p class="text-xs muted mt-2">李老师布置 · 完成气球火箭实验，记录飞行距离并上传。</p>
+            <div class="row justify-between items-center mt-3 text-xs muted-2">
+              <span>📊 记录数据</span>
+              <span>截止：5月10日 18:00</span>
+            </div>
+          </a>
+
+          <a href="11-task-detail.html?type=homework" class="card card-pad task-card--homework" data-task-type="homework" data-task-status="done">
+            <div class="row justify-between items-start gap-3">
+              <div class="min-w-0">
+                <span class="task-type-badge task-type-badge--homework">📚 作业</span>
+                <div class="text-base font-bold mt-2 muted">会转的纸风车</div>
+              </div>
+              <span class="badge badge-success shrink-0">已完成</span>
+            </div>
+            <p class="text-xs muted mt-2">李老师布置 · 已上传实验成品图，等待老师点评。</p>
+            <div class="row justify-between items-center mt-3 text-xs muted-2">
+              <span>✅ 已提交</span>
+              <span>完成于 4月28日</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" class="fab-btn" data-tasks-fab aria-label="上传成果" aria-expanded="false">
+    <i data-lucide="plus" class="icon icon-lg" style="color:var(--brand-on)"></i>
+  </button>
+  <div class="fab-overlay" data-tasks-fab-overlay hidden></div>
+  <div class="fab-menu" data-tasks-fab-menu hidden>
+    <button type="button" class="fab-menu-item" data-tasks-fab-action data-href="14-upload.html">
+      <span class="fab-menu-icon">📸</span>
+      <span>拍照上传</span>
+    </button>
+    <button type="button" class="fab-menu-item" data-tasks-fab-action data-href="14-upload.html">
+      <span class="fab-menu-icon">🎬</span>
+      <span>视频上传</span>
+    </button>
+    <button type="button" class="fab-menu-item" data-tasks-fab-action data-href="14-upload.html">
+      <span class="fab-menu-icon">📝</span>
+      <span>文字记录</span>
+    </button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/tasks-list.js"></script>
+</body>
+</html>

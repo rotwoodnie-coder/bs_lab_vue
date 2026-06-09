@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>答题记录 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+
+  <div class="topbar page-topbar safe-top">
+    <a href="10-tasks.html" class="icon-btn page-back" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </a>
+    <h1 class="topbar-title">📋 答题记录</h1>
+    <a href="20-quiz.html?mode=practice" class="text-xs text-brand font-medium shrink-0">去练习</a>
+  </div>
+
+  <div class="px-4 mt-3">
+    <div class="card card-pad quiz-nudge">
+      <div class="grid-3 gap-2 text-center">
+        <div><div class="text-lg font-bold text-brand">18</div><div class="text-xs muted">累计正式答题</div></div>
+        <div><div class="text-lg font-bold text-success">4</div><div class="text-xs muted">连对天数</div></div>
+        <div><div class="text-lg font-bold text-warning">126</div><div class="text-xs muted">累计积分</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-4 mt-2">
+    <div class="tabs">
+      <button type="button" class="tab active">全部</button>
+      <button type="button" class="tab">正式答题</button>
+      <button type="button" class="tab">练习记录</button>
+    </div>
+  </div>
+
+  <div class="px-4 mt-3 stack-3 pb-28">
+    <section>
+      <h2 class="text-xs font-bold muted-2 mb-2 px-1">今天</h2>
+      <div class="stack-2">
+        <a href="20-quiz-result-partial.html" class="card card-pad card-link quiz-history-item--official">
+          <div class="row items-center justify-between gap-2">
+            <div>
+              <span class="badge badge-info text-xs">正式 · 计分</span>
+              <div class="text-sm font-bold mt-1">每日答题 · 2026-06-03</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-base font-bold text-warning">4/5</div>
+              <div class="text-xs text-warning">+8 分</div>
+            </div>
+          </div>
+          <p class="text-xs muted mt-2">18:42 提交 · 错题 1 题 · 连对天数重置</p>
+        </a>
+
+        <a href="20-quiz-practice-result.html" class="card card-pad card-link quiz-history-item--practice">
+          <div class="row items-center justify-between gap-2">
+            <div>
+              <span class="badge badge-slate text-xs">练习 · 不计分</span>
+              <div class="text-sm font-bold mt-1">练习 · 2026-06-03 19:05</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-base font-bold">4/5</div>
+              <div class="text-xs muted">+0 分</div>
+            </div>
+          </div>
+        </a>
+
+        <a href="20-quiz-practice-result.html" class="card card-pad card-link quiz-history-item--practice">
+          <div class="row items-center justify-between gap-2">
+            <div>
+              <span class="badge badge-slate text-xs">练习 · 不计分</span>
+              <div class="text-sm font-bold mt-1">练习 · 2026-06-03 19:18</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-base font-bold text-success">5/5</div>
+              <div class="text-xs muted">+0 分</div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xs font-bold muted-2 mb-2 px-1">昨天</h2>
+      <a href="20-quiz-result-perfect.html" class="card card-pad card-link quiz-history-item--official">
+        <div class="row items-center justify-between gap-2">
+          <div>
+            <span class="badge badge-info text-xs">正式 · 计分</span>
+            <div class="text-sm font-bold mt-1">每日答题 · 2026-06-02</div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-base font-bold text-success">5/5</div>
+            <div class="text-xs text-success">+20 分</div>
+          </div>
+        </div>
+        <p class="text-xs muted mt-2">17:30 提交 · 全对 · 连对 +1</p>
+      </a>
+    </section>
+
+    <section>
+      <h2 class="text-xs font-bold muted-2 mb-2 px-1">更早</h2>
+      <a href="20-quiz-result-low.html" class="card card-pad card-link quiz-history-item--official">
+        <div class="row items-center justify-between gap-2">
+          <div>
+            <span class="badge badge-info text-xs">正式 · 计分</span>
+            <div class="text-sm font-bold mt-1">每日答题 · 2026-06-01</div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-base font-bold text-danger">2/5</div>
+            <div class="text-xs muted">+4 分</div>
+          </div>
+        </div>
+      </a>
+    </section>
+
+    <p class="text-xs muted text-center px-2">正式答题每日 1 次计分；练习记录不限次数，可在结果页或此处回顾。</p>
+  </div>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="20-quiz-completed.html" class="nav-item"><span class="nav-icon"><i data-lucide="scroll-text" class="icon"></i></span><span class="nav-label">每日答题</span></a>
+      <a href="10-tasks.html" class="nav-item active"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">我的任务</span></a>
+      <a href="15-profile-student.html" class="nav-item"><span class="nav-icon nav-icon--avatar"><span class="avatar avatar-sm avatar-grad-warm nav-avatar">张</span></span><span class="nav-label">我的</span></a>
+    </div>
+  </nav>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

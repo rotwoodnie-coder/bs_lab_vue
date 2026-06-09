@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>搜索模拟实验 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell theme-primary" data-layout="search-home">
+
+  <div class="pad-main search-page" data-search-page data-search-scope="exp">
+    <header class="search-page__bar">
+      <a href="07-virtual-exp-list.html" class="search-page__back" data-search-back aria-label="返回模拟实验">
+        <i data-lucide="arrow-left" class="icon"></i>
+      </a>
+      <div class="search-page__field">
+        <form class="search-page__form" data-search-form action="07-virtual-exp-search.html" method="get">
+          <div class="input-group" data-input-tools="off">
+            <i data-lucide="search" class="icon"></i>
+            <input type="text" name="q" inputmode="search" autocomplete="off" placeholder="搜索模拟实验…" class="input" aria-label="搜索" data-search-input>
+          </div>
+        </form>
+      </div>
+      <a href="03-voice-search.html?return=07-virtual-exp-search.html" class="search-page__mic" aria-label="语音搜索" data-search-mic>
+        <i data-lucide="mic" class="icon"></i>
+      </a>
+    </header>
+
+    <div class="search-page__body">
+      <div data-search-empty>
+        <section class="search-page__section">
+          <h2 class="search-page__section-title">最近搜索</h2>
+          <ul class="search-page__recent" data-search-recent></ul>
+        </section>
+        <section class="search-page__section" data-search-suggest-wrap>
+          <h2 class="search-page__section-title">猜你想搜</h2>
+          <ul class="search-page__suggest" data-search-suggest></ul>
+        </section>
+      </div>
+
+      <section class="search-page__section" data-search-results hidden>
+        <p class="search-page__results-meta" data-search-results-meta></p>
+        <div class="search-page__results-grid" data-search-results-grid></div>
+      </section>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/search.js"></script>
+</body>
+</html>

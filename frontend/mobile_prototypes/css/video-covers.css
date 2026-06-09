@@ -1,0 +1,121 @@
+/* ============================================================
+   视频卡片默认封面图（替代纯渐变/灰底占位）
+   作用域：.video-card__media / .home-carousel__media / 详情主预览
+   ============================================================ */
+
+.video-card__media[class*="card-media-grad"],
+.home-carousel__media[class*="card-media-grad"],
+.card-media.media-wide[class*="card-media-grad"] {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.video-card__media.card-media-grad-warm,
+.home-carousel__media.card-media-grad-warm,
+.card-media.media-wide.card-media-grad-warm {
+  background-image: url("../assets/covers/cover-warm.svg");
+}
+
+.video-card__media.card-media-grad-sunset,
+.home-carousel__media.card-media-grad-sunset,
+.card-media.media-wide.card-media-grad-sunset {
+  background-image: url("../assets/covers/cover-sunset.svg");
+}
+
+.video-card__media.card-media-grad-forest,
+.home-carousel__media.card-media-grad-forest,
+.card-media.media-wide.card-media-grad-forest {
+  background-image: url("../assets/covers/cover-forest.svg");
+}
+
+.video-card__media.card-media-grad-ocean,
+.home-carousel__media.card-media-grad-ocean,
+.card-media.media-wide.card-media-grad-ocean {
+  background-image: url("../assets/covers/cover-ocean.svg");
+}
+
+.video-card__media.card-media-grad-amber-rose,
+.home-carousel__media.card-media-grad-amber-rose,
+.card-media.media-wide.card-media-grad-amber-rose {
+  background-image: url("../assets/covers/cover-amber-rose.svg");
+}
+
+.video-card__media.card-media-grad-cool,
+.home-carousel__media.card-media-grad-cool,
+.card-media.media-wide.card-media-grad-cool {
+  background-image: url("../assets/covers/cover-cool.svg");
+}
+
+.video-card__media.card-media-grad-violet-indigo,
+.home-carousel__media.card-media-grad-violet-indigo,
+.card-media.media-wide.card-media-grad-violet-indigo {
+  background-image: url("../assets/covers/cover-violet-indigo.svg");
+}
+
+.video-card__media.card-media-grad-cyan-blue,
+.home-carousel__media.card-media-grad-cyan-blue,
+.card-media.media-wide.card-media-grad-cyan-blue {
+  background-image: url("../assets/covers/cover-cyan-blue.svg");
+}
+
+/* 作品墙 tint 类封面映射 */
+.video-card__media.tint-violet {
+  background-image: url("../assets/covers/cover-violet-indigo.svg");
+  background-size: cover;
+  background-position: center;
+}
+
+.video-card__media.tint-blue {
+  background-image: url("../assets/covers/cover-ocean.svg");
+  background-size: cover;
+  background-position: center;
+}
+
+.video-card__media.tint-green {
+  background-image: url("../assets/covers/cover-forest.svg");
+  background-size: cover;
+  background-position: center;
+}
+
+.video-card__media.tint-amber {
+  background-image: url("../assets/covers/cover-warm.svg");
+  background-size: cover;
+  background-position: center;
+}
+
+.video-card__media.tint-rose {
+  background-image: url("../assets/covers/cover-sunset.svg");
+  background-size: cover;
+  background-position: center;
+}
+
+.video-card__media.tint-cyan {
+  background-image: url("../assets/covers/cover-cyan-blue.svg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* 隐藏渐变占位大图标，保留播放按钮与标签 */
+.video-card__media[class*="card-media-grad"] .video-card__scene-icon,
+.home-carousel__media[class*="card-media-grad"] > .icon {
+  display: none;
+}
+
+.video-card__media[class*="card-media-grad"],
+.video-card__media.tint-violet,
+.video-card__media.tint-blue,
+.video-card__media.tint-green,
+.video-card__media.tint-amber,
+.video-card__media.tint-rose,
+.video-card__media.tint-cyan {
+  color: transparent;
+}
+
+.card-media.media-wide[class*="card-media-grad"] {
+  color: transparent;
+}
+
+.card-media.media-wide[class*="card-media-grad"] .icon {
+  color: var(--brand-on);
+}

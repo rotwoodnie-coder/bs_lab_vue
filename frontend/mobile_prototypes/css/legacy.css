@@ -1,0 +1,91 @@
+/* ============================================================
+   宝山区小实验社区 移动端原型 - 兼容层 (legacy compat)
+   作用: 在尚未重构为语义化 .screen/.nav 体系的旧页面上,
+         用新 token 复原旧 class (.prototype-container/.bottom-nav 等),
+         确保底部导航“横排 + 锁定底部”，高度随内容自适应。
+   重构完成的页面不使用这些 class, 不受影响; 全部重构后可删除本文件。
+   ============================================================ */
+
+/* ── 旧版页面容器: 居中手机屏, 高度随内容 ── */
+.prototype-container {
+  position: relative;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+/* 平板：容器放宽 */
+@media (min-width: 768px) {
+  .prototype-container { max-width: 760px; }
+}
+@media (min-width: 1024px) {
+  .prototype-container { max-width: 900px; }
+}
+/* 旧页自身已带 .pb-28 / inline padding-bottom 为底栏留白, 不再叠加, 避免空白过高 */
+
+.safe-top { padding-top: max(var(--space-2), env(safe-area-inset-top, 0px)); }
+.safe-bottom { padding-bottom: max(var(--space-2), env(safe-area-inset-bottom, 0px)); }
+
+/* ── 旧版底部导航: 固定底部 + 横排 ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--container-max);
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-border-soft);
+  padding: var(--space-2) var(--space-3);
+  padding-bottom: max(var(--space-2), env(safe-area-inset-bottom, 0px));
+}
+.bottom-nav .nav-items {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: var(--space-1);
+  width: 100%;
+}
+.bottom-nav .nav-item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--color-text-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+.bottom-nav .nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+}
+.bottom-nav .nav-icon img.emoji { width: 1.4em; height: 1.4em; }
+.bottom-nav .nav-label { font-size: var(--text-xs); line-height: 1.1; }
+.bottom-nav .nav-item.active { color: var(--brand); }
+.bottom-nav .nav-item.active .nav-icon { filter: none; }
+
+/* ── 大屏: 底栏放宽 ── */
+@media (min-width: 768px) {
+  .bottom-nav { max-width: 760px; }
+}
+@media (min-width: 1024px) {
+  .bottom-nav { max-width: 900px; }
+}
+
+/* ── 底部导航预留 padding ── */
+.pb-28 { padding-bottom: 112px; }
+
+/* ── 扩展间距栈 (token 对齐) ── */
+.stack-6 > * + * { margin-top: var(--space-6); }

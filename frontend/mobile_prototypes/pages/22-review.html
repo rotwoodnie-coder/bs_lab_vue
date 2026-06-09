@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>审核批阅 - 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+
+  <!-- 顶部标题栏 -->
+  <div class="topbar">
+    <div class="flex-1">
+      <h1 class="topbar-title">✅ 审核批阅</h1>
+    </div>
+    <div class="row items-center gap-1">
+      <span class="text-lg"><i data-lucide="clipboard-list" class="icon"></i></span>
+      <span class="text-sm font-bold text-brand">3</span>
+      <span class="text-xs muted">待批</span>
+    </div>
+  </div>
+
+  <!-- 作品卡片列表 -->
+  <div class="px-4 py-4 stack-4" id="workList">
+
+    <!-- 作品1：待批阅 -->
+    <div class="work-card card" id="work1">
+      <div class="card-body stack-3">
+        <div class="row items-center gap-3">
+          <div class="avatar avatar-grad-warm">小</div>
+          <div class="flex-1">
+            <div class="text-base font-bold">小小 · 水的表面张力</div>
+            <div class="text-xs muted">提交于 今天 09:15</div>
+          </div>
+          <span class="badge badge-warning text-xs">待批阅</span>
+        </div>
+
+        <!-- 评级 -->
+        <div>
+          <div class="text-xs font-medium muted mb-2">评级</div>
+          <div class="row gap-2">
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'excellent')">优秀</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'good')">良好</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'pass')">合格</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'fail')">不合格</span>
+          </div>
+        </div>
+
+        <!-- 评语 -->
+        <div>
+          <div class="text-xs font-medium muted mb-2">评语</div>
+          <textarea class="textarea" rows="2" placeholder="输入评语...">观察非常仔细！实验步骤记录完整，继续保持！</textarea>
+        </div>
+
+        <!-- 提交 -->
+        <button class="btn btn-primary btn-block text-sm" onclick="submitReview('work1')"><i data-lucide="send" class="icon"></i> 提交批阅</button>
+      </div>
+    </div>
+
+    <!-- 作品2：待批阅 -->
+    <div class="work-card card" id="work2">
+      <div class="card-body stack-3">
+        <div class="row items-center gap-3">
+          <div class="avatar avatar-grad-violet-indigo">李</div>
+          <div class="flex-1">
+            <div class="text-base font-bold">李思思 · 自制简易温度计</div>
+            <div class="text-xs muted">提交于 昨天 16:42</div>
+          </div>
+          <span class="badge badge-warning text-xs">待批阅</span>
+        </div>
+
+        <div>
+          <div class="text-xs font-medium muted mb-2">评级</div>
+          <div class="row gap-2">
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'excellent')">优秀</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'good')">良好</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'pass')">合格</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'fail')">不合格</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-xs font-medium muted mb-2">评语</div>
+          <textarea class="textarea" rows="2" placeholder="输入评语...">温度计的刻度标注准确，实验现象描述清晰。</textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block text-sm" onclick="submitReview('work2')"><i data-lucide="send" class="icon"></i> 提交批阅</button>
+      </div>
+    </div>
+
+    <!-- 作品3：待批阅 -->
+    <div class="work-card card" id="work3">
+      <div class="card-body stack-3">
+        <div class="row items-center gap-3">
+          <div class="avatar avatar-grad-forest">王</div>
+          <div class="flex-1">
+            <div class="text-base font-bold">王浩宇 · 神奇虹吸现象</div>
+            <div class="text-xs muted">提交于 前天 11:30</div>
+          </div>
+          <span class="badge badge-warning text-xs">待批阅</span>
+        </div>
+
+        <div>
+          <div class="text-xs font-medium muted mb-2">评级</div>
+          <div class="row gap-2">
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'excellent')">优秀</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'good')">良好</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'pass')">合格</span>
+            <span class="rating-btn btn btn-sm btn-outline" onclick="setRating(this, 'fail')">不合格</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-xs font-medium muted mb-2">评语</div>
+          <textarea class="textarea" rows="2" placeholder="输入评语..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block text-sm" onclick="submitReview('work3')"><i data-lucide="send" class="icon"></i> 提交批阅</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 底部导航（教师） -->
+  <nav class="bottom-nav">
+    <div class="nav-items">
+      <a href="17-profile-teacher.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="21-assign.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">任务</span>
+      </a>
+      <a href="24-teacher-ai.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="bot" class="icon"></i></span>
+        <span class="nav-label">助教</span>
+      </a>
+      <a href="17-profile-teacher.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="user" class="icon"></i></span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+let pendingCount = 3;
+
+function setRating(el, level) {
+  const parent = el.parentElement;
+  parent.querySelectorAll('.rating-btn').forEach(b => {
+    b.className = b.className.replace(/selected-\w+/g, '').trim();
+  });
+  el.classList.add('selected-' + level);
+}
+
+function submitReview(workId) {
+  const card = document.getElementById(workId);
+  if (card.classList.contains('reviewed')) return;
+  const cardBody = card.querySelector('.card-body');
+  const ratingSelected = cardBody.querySelector('.rating-btn[class*="selected-"]');
+
+  if (!ratingSelected) {
+    alert('请先选择评级');
+    return;
+  }
+
+  card.classList.add('reviewed');
+  const badge = cardBody.querySelector('.badge');
+  badge.className = 'badge badge-success text-xs';
+  badge.textContent = '已批阅';
+
+  const btn = cardBody.querySelector('button');
+  btn.textContent = '✅ 已批阅';
+  btn.disabled = true;
+
+  pendingCount--;
+  const pendingEl = document.querySelector('.text-brand.font-bold');
+  if (pendingEl) pendingEl.textContent = pendingCount;
+}
+</script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/prototype.js"></script>
+</body>
+</html>

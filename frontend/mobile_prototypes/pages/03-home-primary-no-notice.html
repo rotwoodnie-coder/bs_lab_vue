@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>首页 · 无通知 · 宝山区小实验社区 · 学生</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell theme-primary" data-layout="explore-home" data-home-notices="none" data-home-feed>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary-no-notice.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item has-nav-badge" aria-label="我的任务，有待办">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item has-nav-badge" aria-label="石头老师，有新消息">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-home pad-home--expand-search pad-home--elevated">
+    <!-- 层次化 Header：品牌 + 筛选 -->
+    <div class="pad-home__header-shell">
+      <div class="pad-home__header">
+        <header class="pad-home__topbar">
+          <a href="03-home-primary-no-notice.html" class="pad-home__brand" aria-label="宝山科学实验平台">
+            <span class="pad-home__topbar-icon pad-home__brand-mark" aria-hidden="true">
+              <i data-lucide="flask-conical" class="icon"></i>
+            </span>
+            <span class="pad-home__brand-text">宝山实验</span>
+          </a>
+          <div class="pad-home__topbar-actions">
+            <a href="27-notifications.html?from=home-no-notice" class="pad-home__bell" aria-label="消息通知" data-notifications-bell>
+              <i data-lucide="bell" class="icon"></i>
+              <span class="pad-home__bell-badge" data-notifications-badge hidden>2</span>
+            </a>
+            <a href="03-search.html" class="pad-home__topbar-search-btn" aria-label="搜索">
+              <i data-lucide="search" class="icon"></i>
+            </a>
+          </div>
+        </header>
+      </div>
+
+      <div class="pad-home__filters scroll-x">
+        <button type="button" class="chip active" data-home-subject-tab="all">全部</button>
+        <button type="button" class="chip" data-home-subject-tab="科学">科学</button>
+        <button type="button" class="chip" data-home-subject-tab="物理">物理</button>
+        <button type="button" class="chip" data-home-subject-tab="化学">化学</button>
+        <button type="button" class="chip" data-home-subject-tab="生物">生物</button>
+      </div>
+      <div class="scroll-x pad-home__mobile-chips">
+        <button type="button" class="chip active" data-home-subject-tab="all">全部</button>
+        <button type="button" class="chip" data-home-subject-tab="科学">科学</button>
+        <button type="button" class="chip" data-home-subject-tab="物理">物理</button>
+        <button type="button" class="chip" data-home-subject-tab="化学">化学</button>
+        <button type="button" class="chip" data-home-subject-tab="生物">生物</button>
+      </div>
+    </div>
+
+    <div class="pad-home__body">
+      <div class="pad-home__main pt-3 pb-28">
+
+        <div class="waterfall-grid home-feed">
+          <a href="06-video-detail.html" class="waterfall-card video-card video-card--feed card-link anim-fade-up delay-1" data-home-subject="科学">
+            <div class="video-card__media card-media-grad-warm video-card__media--scene">
+              <span class="video-card__scene-icon"><i data-lucide="wind" class="icon"></i></span>
+              <span class="video-card__tag video-card__tag--video"><i data-lucide="play-circle" class="icon"></i>视频</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <h3 class="video-card__title">自制风向标</h3>
+              <div class="video-card__meta-block">
+                <p class="video-card__meta-line">三年级（第一学期）<span class="video-card__dot">·</span>科学<span class="video-card__dot">·</span>1.2万次播放</p>
+                <p class="video-card__meta-line video-card__meta-line--creator"><span class="video-card__author">王老师</span><span class="video-card__dot">·</span>一级教师<span class="video-card__dot">·</span>宝山实验小学</p>
+              </div>
+            </div>
+          </a>
+
+          <a href="06-video-detail.html" class="waterfall-card video-card video-card--feed card-link anim-fade-up delay-2" data-home-subject="物理">
+            <div class="video-card__media card-media-grad-amber-rose video-card__media--scene">
+              <span class="video-card__scene-icon"><i data-lucide="zap" class="icon"></i></span>
+              <span class="video-card__tag video-card__tag--video"><i data-lucide="play-circle" class="icon"></i>视频</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <h3 class="video-card__title">简易串联灯</h3>
+              <div class="video-card__meta-block">
+                <p class="video-card__meta-line">五年级（第一学期）<span class="video-card__dot">·</span>物理<span class="video-card__dot">·</span>4300次播放</p>
+                <p class="video-card__meta-line video-card__meta-line--creator"><span class="video-card__author">王老师</span><span class="video-card__dot">·</span>一级教师<span class="video-card__dot">·</span>吴淞附属小学</p>
+              </div>
+            </div>
+          </a>
+
+          <a href="06-video-detail.html" class="waterfall-card video-card video-card--feed card-link anim-fade-up delay-3" data-home-subject="化学">
+            <div class="video-card__media card-media-grad-cool video-card__media--scene">
+              <span class="video-card__scene-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+              <span class="video-card__tag video-card__tag--exp"><i data-lucide="flask-conical" class="icon"></i>实验</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <h3 class="video-card__title">酸碱中和反应</h3>
+              <div class="video-card__meta-block">
+                <p class="video-card__meta-line">八年级（上学期）<span class="video-card__dot">·</span>化学<span class="video-card__dot">·</span>9200次播放</p>
+                <p class="video-card__meta-line video-card__meta-line--creator"><span class="video-card__author">周老师</span><span class="video-card__dot">·</span>骨干教师<span class="video-card__dot">·</span>行知中学</p>
+              </div>
+            </div>
+          </a>
+
+          <a href="06-video-detail.html" class="waterfall-card video-card video-card--feed card-link anim-fade-up delay-4" data-home-subject="生物">
+            <div class="video-card__media card-media-grad-forest video-card__media--scene">
+              <span class="video-card__scene-icon"><i data-lucide="sprout" class="icon"></i></span>
+              <span class="video-card__tag video-card__tag--video"><i data-lucide="play-circle" class="icon"></i>视频</span>
+              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+            </div>
+            <div class="video-card__body">
+              <h3 class="video-card__title">种子发芽观察</h3>
+              <div class="video-card__meta-block">
+                <p class="video-card__meta-line">二年级（上学期）<span class="video-card__dot">·</span>生物<span class="video-card__dot">·</span>5600次播放</p>
+                <p class="video-card__meta-line video-card__meta-line--creator"><span class="video-card__author">张老师</span><span class="video-card__dot">·</span>二级教师<span class="video-card__dot">·</span>顾村实验小学</p>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/notifications.js"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/home-feed.js"></script>
+</body>
+</html>

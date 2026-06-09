@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>练习结果 · 每日答题 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+
+  <div class="topbar page-topbar safe-top">
+    <a href="20-quiz-completed.html" class="icon-btn page-back" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </a>
+    <h1 class="topbar-title">练习结果</h1>
+    <span class="badge badge-slate shrink-0">不计分</span>
+  </div>
+
+  <div class="px-4 mt-3">
+    <p class="quiz-mode-practice-banner">本次为<strong>练习模式</strong>，不计积分、不影响连对天数，已保存至答题记录。</p>
+  </div>
+
+  <div class="px-4 mt-3">
+    <div class="quiz-result-hero quiz-result-hero--partial">
+      <div class="text-4xl mb-2">📝</div>
+      <div class="quiz-result-hero__score text-brand">4 / 5</div>
+      <p class="text-base font-bold mt-2">练习完成</p>
+      <p class="text-sm muted mt-1">今日正式得分仍为 <strong>4 / 5</strong> · +8 积分（不变）</p>
+    </div>
+  </div>
+
+  <div class="px-4 mt-4 stack-3 pb-28">
+    <div class="card card-pad">
+      <h2 class="text-sm font-bold mb-2">本次练习</h2>
+      <div class="grid-2 gap-2 text-center">
+        <div class="surface-2 rounded-xl p-3"><div class="text-lg font-bold text-success">4</div><div class="text-xs muted">答对</div></div>
+        <div class="surface-2 rounded-xl p-3"><div class="text-lg font-bold text-danger">1</div><div class="text-xs muted">答错</div></div>
+      </div>
+      <p class="text-xs muted mt-3 text-center">+0 积分 · 连对天数不变</p>
+    </div>
+
+    <div class="card card-pad">
+      <div class="stack-2">
+        <a href="20-quiz-review-wrong.html" class="btn btn-outline btn-block">查看本次错题解析</a>
+        <a href="20-quiz.html?mode=practice" class="btn btn-primary btn-block">再练一次（不计分）</a>
+        <a href="20-quiz-history.html" class="btn btn-gradient btn-block">查看答题记录</a>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="10-tasks.html" class="nav-item active"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">我的任务</span></a>
+      <a href="15-profile-student.html" class="nav-item"><span class="nav-icon nav-icon--avatar"><span class="avatar avatar-sm avatar-grad-warm nav-avatar">张</span></span><span class="nav-label">我的</span></a>
+    </div>
+  </nav>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="home icon">
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="#EFF6FF"/>
+  <path d="M16 30.5 32 18l16 12.5V48a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2z" fill="#2563EB"/>
+  <path d="M26 50V38h12v12" fill="#DBEAFE"/>
+  <path d="M22 32h20" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+</svg>

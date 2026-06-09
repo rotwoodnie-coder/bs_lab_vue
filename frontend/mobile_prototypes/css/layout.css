@@ -1,0 +1,153 @@
+/* ============================================================
+   宝山区小实验社区 移动端原型 - 响应式布局骨架 (真正重排, 非拉宽)
+   断点: 移动(<768) / 平板(>=768) / 桌面(>=1024)
+   ============================================================ */
+
+/* ── 设备帧 / 页面容器 ── */
+.screen {
+  position: relative;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+.screen-body {
+  padding: var(--space-4);
+}
+.screen.has-nav .screen-body {
+  padding-bottom: calc(64px + var(--space-5));
+}
+.safe-top { padding-top: max(var(--space-2), env(safe-area-inset-top, 0px)); }
+
+/* 垂直居中型页面 (登录/结果页) */
+.screen-body.middle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100dvh;
+}
+
+/* ── 底部导航 (移动端) ── */
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--container-max);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: var(--space-1);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-border-soft);
+  padding: var(--space-2) var(--space-3);
+  padding-bottom: max(var(--space-2), env(safe-area-inset-bottom, 0px));
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--color-text-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.nav-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  transition: background var(--dur-fast) var(--ease);
+}
+.nav-ic .icon { --icon-size: 1.5em; }
+.nav-item.active { color: var(--brand); }
+.nav-item.active .nav-ic { background: var(--brand-soft); }
+
+/* ── 内容网格 (响应式重排) ── */
+.grid-cards {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, 1fr);
+}
+.grid-list {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+
+/* ── 平板 (>=768): 多列重排, 容器适度加宽 ── */
+@media (min-width: 768px) {
+  .screen.has-nav { max-width: 760px; }
+  .screen.has-nav .nav { max-width: 760px; }
+
+  /* 无导航的详情/表单页: 内容居中限宽, 而非拉满 */
+  .screen:not(.has-nav) { max-width: var(--content-max); }
+  .screen:not(.has-nav) .screen-body { max-width: 680px; margin: 0 auto; width: 100%; }
+
+  .grid-cards { grid-template-columns: repeat(3, 1fr); }
+  .grid-list { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── 桌面 (>=1024): 居中应用列, 底部导航始终锁定底部的水平栏, 内容多列重排 ── */
+@media (min-width: 1024px) {
+  .screen.has-nav { max-width: 900px; }
+  .screen.has-nav .nav { max-width: 900px; }
+
+  .grid-cards { grid-template-columns: repeat(4, 1fr); }
+  .grid-list { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* 自定义列数修饰 */
+.grid-list.list-1-2 { grid-template-columns: 1fr; }
+@media (min-width: 768px) { .grid-list.list-1-2 { grid-template-columns: repeat(2, 1fr); } }
+
+/* ── Watch 页：主内容 + 侧栏推荐 (YouTube 式) ── */
+.watch-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+.watch-main { min-width: 0; }
+.watch-rail { min-width: 0; }
+
+.related-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.related-list__heading {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+  padding: 0 var(--space-2);
+}
+
+@media (min-width: 1024px),
+       (min-width: 768px) and (orientation: landscape) {
+  .watch-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+  .watch-rail {
+    position: sticky;
+    top: var(--space-4);
+    max-height: calc(100dvh - 88px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}

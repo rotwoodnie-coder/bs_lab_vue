@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模拟实验 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+  <style>
+    /* ── P07 使用和首页相同的瀑布流 + 搜索/筛选布局 ── */
+    .pad-explore__waterfall {
+      column-count: 1;
+      column-gap: var(--space-3);
+    }
+    .pad-explore__waterfall > * {
+      break-inside: avoid;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: var(--space-3);
+    }
+    .pad-explore__waterfall > .waterfall-card.is-exp-hidden,
+    .pad-explore__waterfall > .waterfall-card[hidden] {
+      display: none !important;
+    }
+    .exp-empty {
+      column-span: all;
+      width: 100%;
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--color-text-3);
+      font-size: var(--text-sm);
+    }
+
+    @media (max-width: 767px) and (orientation: landscape) {
+      .pad-explore__waterfall { column-count: 1; }
+      .pad-explore__waterfall .waterfall-card {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .pad-explore__waterfall .waterfall-card .video-card__media { border-radius: 0; }
+      .pad-explore__waterfall .waterfall-card .video-card__body { padding: var(--space-3) var(--space-4); }
+    }
+    @media (min-width: 768px) and (orientation: portrait) {
+      .pad-explore__waterfall { column-count: 2; column-gap: var(--space-4); }
+      .pad-explore__waterfall > * { margin-bottom: var(--space-4); }
+    }
+    @media (min-width: 768px) and (orientation: landscape) {
+      .pad-explore__waterfall { column-count: 3; column-gap: var(--space-4); }
+      .pad-explore__waterfall > * { margin-bottom: var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+<div class="prototype-container pad-shell" data-layout="explore-home" data-exp-list>
+
+  <!-- ── 5 项底部导航 ── -->
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="07-virtual-exp-list.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span>
+        <span class="nav-label">模拟实验</span>
+      </a>
+      <a href="10-tasks.html" class="nav-item has-nav-badge" aria-label="我的任务，有待办">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-badge" aria-hidden="true"></span>
+        <span class="nav-label">我的任务</span>
+      </a>
+      <a href="08-assistant-scenes.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span>
+        <span class="nav-label">石头老师</span>
+      </a>
+      <a href="15-profile-student.html" class="nav-item">
+        <span class="nav-icon nav-icon--avatar">
+          <span class="avatar avatar-sm avatar-grad-warm nav-avatar" title="张小明">张</span>
+        </span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-home pad-home--expand-search">
+    <div class="pad-home__header-shell">
+      <div class="pad-home__header">
+        <header class="pad-home__topbar">
+          <h1 class="pad-home__topbar-title">模拟实验</h1>
+          <div class="pad-home__topbar-actions">
+            <a href="07-virtual-exp-search.html" class="pad-home__topbar-search-btn" aria-label="搜索">
+              <i data-lucide="search" class="icon"></i>
+            </a>
+          </div>
+        </header>
+      </div>
+
+      <div class="pad-home__filters scroll-x">
+        <button type="button" class="chip active" data-exp-subject-tab="all">全部</button>
+        <button type="button" class="chip" data-exp-subject-tab="科学">⚡ 科学</button>
+        <button type="button" class="chip" data-exp-subject-tab="物理">🔬 物理</button>
+        <button type="button" class="chip" data-exp-subject-tab="化学">🧪 化学</button>
+        <button type="button" class="chip" data-exp-subject-tab="生物">🌿 生物</button>
+        <button type="button" class="chip" data-exp-subject-tab="地理">🌍 地理</button>
+      </div>
+      <div class="scroll-x pad-home__mobile-chips">
+        <button type="button" class="chip active" data-exp-subject-tab="all">全部</button>
+        <button type="button" class="chip" data-exp-subject-tab="科学">⚡ 科学</button>
+        <button type="button" class="chip" data-exp-subject-tab="物理">🔬 物理</button>
+        <button type="button" class="chip" data-exp-subject-tab="化学">🧪 化学</button>
+        <button type="button" class="chip" data-exp-subject-tab="生物">🌿 生物</button>
+        <button type="button" class="chip" data-exp-subject-tab="地理">🌍 地理</button>
+      </div>
+    </div>
+
+    <div class="pad-home__body">
+      <div class="pad-home__main pt-3 pb-28">
+        <div class="pad-explore__waterfall px-4">
+        <p class="exp-empty" data-exp-empty hidden>暂无符合条件的模拟实验</p>
+        <a href="07-virtual-exp-detail.html?title=串联电路" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-1" data-exp-subject="物理" data-exp-search="串联电路 物理 拖拽 灯泡 电池 模拟">
+          <div class="video-card__media card-media-grad-ocean">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-cool">电</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">串联电路</h3>
+                <p class="video-card__meta">物理 · 拖拽连接灯泡和电池</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=火山喷发" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-2" data-exp-subject="化学" data-exp-search="火山喷发 化学 小苏打 醋 模拟">
+          <div class="video-card__media card-media-grad-warm">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-warm">化</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">火山喷发</h3>
+                <p class="video-card__meta">化学 · 调节小苏打和醋的比例</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=种子发芽" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-3" data-exp-subject="生物" data-exp-search="种子发芽 生物 水分 光照 模拟">
+          <div class="video-card__media card-media-grad-forest">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-forest">生</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">种子发芽</h3>
+                <p class="video-card__meta">生物 · 调节水分和光照</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=光的折射" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-4" data-exp-subject="物理" data-exp-search="光的折射 物理 入射角 模拟">
+          <div class="video-card__media card-media-grad-sunset">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-sunset">光</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">光的折射</h3>
+                <p class="video-card__meta">物理 · 调整入射角度</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=电磁铁" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-1" data-exp-subject="物理" data-exp-search="电磁铁 物理 线圈 匝数 模拟">
+          <div class="video-card__media card-media-grad-amber-rose">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-amber-rose">磁</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">电磁铁</h3>
+                <p class="video-card__meta">物理 · 线圈匝数实验</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=水的三态" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-2" data-exp-subject="化学" data-exp-search="水的三态 化学 温度 状态变化 模拟">
+          <div class="video-card__media card-media-grad-cool">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-ocean">水</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">水的三态</h3>
+                <p class="video-card__meta">化学 · 温度与状态变化</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=简易风向标" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-3" data-exp-subject="科学" data-exp-search="简易风向标 科学 风向 观察 模拟">
+          <div class="video-card__media card-media-grad-warm">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-sunset">风</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">简易风向标</h3>
+                <p class="video-card__meta">科学 · 观察风向变化</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=光合作用" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-4" data-exp-subject="生物" data-exp-search="光合作用 生物 光照强度 模拟">
+          <div class="video-card__media card-media-grad-forest">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-forest">叶</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">光合作用</h3>
+                <p class="video-card__meta">生物 · 光照强度对比</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=酸碱中和" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-1" data-exp-subject="化学" data-exp-search="酸碱中和 化学 滴定 模拟">
+          <div class="video-card__media card-media-grad-violet-indigo">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-violet-indigo">酸</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">酸碱中和</h3>
+                <p class="video-card__meta">化学 · 滴定模拟实验</p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-virtual-exp-detail.html?title=天体运行" class="waterfall-card video-card video-card--sim card-link anim-fade-up delay-2" data-exp-subject="地理" data-exp-search="天体运行 地理 太阳系 模拟">
+          <div class="video-card__media card-media-grad-ocean">
+            <span class="video-card__tag">模拟</span>
+            <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+          </div>
+          <div class="video-card__body">
+            <div class="video-card__info">
+              <span class="video-card__avatar avatar avatar-sm avatar-grad-ocean">天</span>
+              <div class="video-card__text">
+                <h3 class="video-card__title">天体运行</h3>
+                <p class="video-card__meta">地理 · 太阳系模拟</p>
+              </div>
+            </div>
+          </div>
+        </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/virtual-exp-list.js"></script>
+</body>
+</html>

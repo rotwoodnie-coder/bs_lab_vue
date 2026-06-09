@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>每日答题 · 答题中 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-quiz-flow>
+
+  <div class="topbar page-topbar safe-top">
+    <a href="10-tasks.html" class="icon-btn page-back" aria-label="返回">
+      <i data-lucide="arrow-left" class="icon"></i>
+    </a>
+    <h1 class="topbar-title" data-quiz-page-title>🧠 每日答题</h1>
+    <a href="20-quiz-history.html" class="icon-btn" aria-label="答题记录">
+      <i data-lucide="scroll-text" class="icon"></i>
+    </a>
+  </div>
+
+  <div class="px-4 mt-2" data-quiz-practice-banner hidden>
+    <p class="quiz-mode-practice-banner">🔄 <strong>练习模式</strong> · 不计积分 · 不影响连对天数 · 可反复练习</p>
+  </div>
+
+  <div class="px-4 mt-3">
+    <div class="card card-pad quiz-nudge">
+      <div class="row items-center justify-between gap-2 mb-2">
+        <span class="text-sm font-bold" data-quiz-progress-label>今日进度</span>
+        <span class="badge badge-info" data-quiz-progress-text>0 / 5 题已选</span>
+      </div>
+      <div class="progress">
+        <div class="progress-fill" data-quiz-progress-fill style="width:0%"></div>
+      </div>
+      <div class="quiz-progress-dots mt-3" data-quiz-dots aria-label="题目进度"></div>
+      <p class="text-xs muted mt-2">🔥 已连续答对 <strong>3</strong> 天 · 今日全对额外 +10 积分</p>
+    </div>
+  </div>
+
+  <div class="px-4 mt-2">
+    <p class="quiz-tip-banner" data-quiz-tip>答题过程中不显示对错，请完成全部题目后再提交。</p>
+  </div>
+
+  <div class="px-4 mt-3">
+    <div class="card">
+      <div class="card-header row items-center gap-2 flex-wrap">
+        <span class="badge badge-info">选择题</span>
+        <span class="text-xs muted">第 <span id="quizCurrent">1</span> 题 / 共 5 题</span>
+        <span class="badge badge-slate ml-auto" data-quiz-meta>物理 · 三年级</span>
+      </div>
+      <div class="card-body">
+        <p class="text-base font-bold leading-tight" data-quiz-title>加载题目…</p>
+        <div class="stack mt-4" data-quiz-options></div>
+        <div class="row gap-2 mt-4">
+          <button type="button" class="btn btn-outline flex-1" data-quiz-prev-btn>上一题</button>
+          <button type="button" class="btn btn-primary flex-1" data-quiz-primary-btn disabled>下一题</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-4 mt-4 mb-4 card card-pad row items-center justify-around">
+    <div class="stat">
+      <div class="stat-num text-brand">—</div>
+      <div class="stat-label">提交后计分</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num text-success">3</div>
+      <div class="stat-label">连对天数</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num text-warning">+10</div>
+      <div class="stat-label">全对可获</div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <div class="nav-items">
+      <a href="03-home-primary.html" class="nav-item"><span class="nav-icon"><i data-lucide="house" class="icon"></i></span><span class="nav-label">首页</span></a>
+      <a href="07-virtual-exp-list.html" class="nav-item"><span class="nav-icon"><i data-lucide="flask-conical" class="icon"></i></span><span class="nav-label">模拟实验</span></a>
+      <a href="10-tasks.html" class="nav-item"><span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span><span class="nav-label">我的任务</span></a>
+      <a href="08-assistant-scenes.html" class="nav-item"><span class="nav-icon"><i data-lucide="message-circle" class="icon"></i></span><span class="nav-label">石头老师</span></a>
+      <a href="15-profile-student.html" class="nav-item"><span class="nav-icon nav-icon--avatar"><span class="avatar avatar-sm avatar-grad-warm nav-avatar">张</span></span><span class="nav-label">我的</span></a>
+    </div>
+  </nav>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+<script src="../js/quiz-flow.js"></script>
+</body>
+</html>

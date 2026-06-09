@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>班级提交看板 - 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container safe-top pad-shell theme-teacher" data-layout="teacher-home">
+
+  <nav class="bottom-nav">
+    <div class="nav-items">
+      <a href="17-profile-teacher.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="21-assign.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">任务</span>
+      </a>
+      <a href="24-teacher-ai.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="bot" class="icon"></i></span>
+        <span class="nav-label">助教</span>
+      </a>
+      <a href="17-profile-teacher.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="user" class="icon"></i></span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-workbench">
+    <header class="pad-workbench__topbar">
+      <h1 class="pad-workbench__title">📊 班级提交看板</h1>
+    </header>
+
+    <div class="pad-workbench__body" style="flex-direction:column;">
+    <div class="pad-workbench__filters px-4 py-3">
+      <div class="row gap-3">
+        <select class="input flex-1" onchange="updateBoard()">
+          <option>三年级一班</option>
+          <option>三年级二班</option>
+          <option>三年级三班</option>
+          <option>三年级四班</option>
+        </select>
+        <select class="input flex-1" onchange="updateBoard()">
+          <option>水的表面张力实验</option>
+          <option>植物生长观察日记</option>
+          <option>简单电路实验</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="pad-teacher__feed stack-4 px-4 pb-4">
+      <div class="card card-pad col items-center py-6 surface-2">
+        <div class="ring-chart" id="ringChart">
+          <div class="ring-chart-inner">
+            <div class="text-2xl font-bold text-brand">75%</div>
+            <div class="text-xs muted">完成率</div>
+          </div>
+        </div>
+        <div class="grid grid-3 gap-3 w-full mt-5">
+          <div class="card card-pad text-center">
+            <div class="text-xl font-bold text-brand">36</div>
+            <div class="text-xs muted">总人数</div>
+          </div>
+          <div class="card card-pad text-center">
+            <div class="text-xl font-bold text-success">27</div>
+            <div class="text-xs muted">已提交</div>
+          </div>
+          <div class="card card-pad text-center">
+            <div class="text-xl font-bold text-danger">9</div>
+            <div class="text-xs muted">未提交</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="row items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-danger">⏳ 未提交（9人）</h2>
+        </div>
+        <div class="pad-home__grid gap-3">
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-warm">赵</div>
+              <span class="text-sm">赵子涵</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给赵子涵')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-violet-indigo">钱</div>
+              <span class="text-sm">钱小雅</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给钱小雅')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-forest">孙</div>
+              <span class="text-sm">孙一文</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给孙一文')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-amber-rose">李</div>
+              <span class="text-sm">李明哲</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给李明哲')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-cool">周</div>
+              <span class="text-sm">周雨桐</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给周雨桐')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-amber-rose">吴</div>
+              <span class="text-sm">吴子轩</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给吴子轩')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="row items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-success">✅ 已提交（27人）</h2>
+        </div>
+        <div class="pad-home__grid gap-3">
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-warm">张</div>
+              <span class="text-sm">张小明</span>
+            </div>
+            <a href="22-review.html" class="btn btn-sm btn-outline text-brand"><i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅</a>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-violet-indigo">陈</div>
+              <span class="text-sm">陈思涵</span>
+            </div>
+            <a href="22-review.html" class="btn btn-sm btn-outline text-brand"><i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅</a>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-forest">林</div>
+              <span class="text-sm">林小宇</span>
+            </div>
+            <a href="22-review.html" class="btn btn-sm btn-outline text-brand"><i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅</a>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-ocean">冯</div>
+              <span class="text-sm">冯嘉琪</span>
+            </div>
+            <a href="22-review.html" class="btn btn-sm btn-outline text-brand"><i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="pad-teacher__mobile-only pb-28">
+      <div class="topbar safe-top">
+        <h1 class="topbar-title">📊 班级提交看板</h1>
+      </div>
+
+      <div class="px-4 py-4 stack-3">
+        <div class="row gap-3">
+          <select class="input flex-1" onchange="updateBoard()">
+            <option>三年级一班</option>
+            <option>三年级二班</option>
+            <option>三年级三班</option>
+            <option>三年级四班</option>
+          </select>
+          <select class="input flex-1" onchange="updateBoard()">
+            <option>水的表面张力实验</option>
+            <option>植物生长观察日记</option>
+            <option>简单电路实验</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="px-4 col items-center py-4 surface-2">
+        <div class="ring-chart" id="ringChartMobile">
+          <div class="ring-chart-inner">
+            <div class="text-2xl font-bold text-brand">75%</div>
+            <div class="text-xs muted">完成率</div>
+          </div>
+        </div>
+        <div class="grid grid-3 gap-3 w-full mt-5">
+          <div class="card card-pad text-center">
+            <div class="text-xl font-bold text-brand board-total">36</div>
+            <div class="text-xs muted">总人数</div>
+          </div>
+          <div class="card card-pad text-center">
+            <div class="text-xl font-bold text-success board-submitted">27</div>
+            <div class="text-xs muted">已提交</div>
+          </div>
+          <div class="card card-pad text-center">
+            <div class="text-xl font-bold text-danger board-unsubmitted">9</div>
+            <div class="text-xs muted">未提交</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 mt-4">
+        <div class="row items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-danger board-unsubmitted-label">⏳ 未提交（9人）</h2>
+        </div>
+        <div class="stack">
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-warm">赵</div>
+              <span class="text-sm">赵子涵</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给赵子涵')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-violet-indigo">钱</div>
+              <span class="text-sm">钱小雅</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给钱小雅')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-forest">孙</div>
+              <span class="text-sm">孙一文</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给孙一文')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-amber-rose">李</div>
+              <span class="text-sm">李明哲</span>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给李明哲')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+          </div>
+          <details class="text-xs muted">
+            <summary class="cursor-pointer px-3 py-2 text-center">展开其余 5 人</summary>
+            <div class="stack mt-2">
+              <div class="card card-pad row items-center justify-between">
+                <div class="row items-center gap-2">
+                  <div class="avatar avatar-sm avatar-grad-cool">周</div>
+                  <span class="text-sm">周雨桐</span>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给周雨桐')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+              </div>
+              <div class="card card-pad row items-center justify-between">
+                <div class="row items-center gap-2">
+                  <div class="avatar avatar-sm avatar-grad-amber-rose">吴</div>
+                  <span class="text-sm">吴子轩</span>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="alert('已发送提醒给吴子轩')"><i data-lucide="megaphone" class="icon icon-sm"></i> 提醒</button>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="px-4 mt-4 mb-6">
+        <div class="row items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-success board-submitted-label">✅ 已提交（27人）</h2>
+        </div>
+        <div class="stack">
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-warm">张</div>
+              <span class="text-sm">张小明</span>
+            </div>
+            <a href="22-review.html" class="btn btn-sm btn-outline text-brand"><i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅</a>
+          </div>
+          <div class="card card-pad row items-center justify-between">
+            <div class="row items-center gap-2">
+              <div class="avatar avatar-sm avatar-grad-violet-indigo">陈</div>
+              <span class="text-sm">陈思涵</span>
+            </div>
+            <a href="22-review.html" class="btn btn-sm btn-outline text-brand"><i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅</a>
+          </div>
+          <details class="text-xs muted">
+            <summary class="cursor-pointer px-3 py-2 text-center">展开其余 25 人</summary>
+            <div class="text-sm text-center py-2 muted">还有 25 名学生已提交</div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function updateBoard() {
+  var rates = [75, 62, 88, 71];
+  var total = [36, 34, 35, 35];
+  var selects = document.querySelectorAll('.pad-teacher__mobile-only select, .pad-workbench__filters select');
+  var classIdx = selects[0] ? selects[0].selectedIndex : 0;
+  var rate = rates[classIdx] || 75;
+  var t = total[classIdx] || 36;
+  var submitted = Math.round(t * rate / 100);
+  var unsubmitted = t - submitted;
+
+  ['ringChart', 'ringChartMobile'].forEach(function(id) {
+    var ring = document.getElementById(id);
+    if (!ring) return;
+    ring.style.background = 'conic-gradient(var(--brand) 0% ' + rate + '%, var(--color-border) ' + rate + '% 100%)';
+    var pct = ring.querySelector('.text-2xl');
+    if (pct) pct.textContent = rate + '%';
+  });
+
+  var padCards = document.querySelectorAll('.pad-teacher__feed .grid-3 .text-xl');
+  if (padCards.length >= 3) {
+    padCards[0].textContent = t;
+    padCards[1].textContent = submitted;
+    padCards[2].textContent = unsubmitted;
+  }
+
+  document.querySelectorAll('.board-total').forEach(function(el) { el.textContent = t; });
+  document.querySelectorAll('.board-submitted').forEach(function(el) { el.textContent = submitted; });
+  document.querySelectorAll('.board-unsubmitted').forEach(function(el) { el.textContent = unsubmitted; });
+  document.querySelectorAll('.board-unsubmitted-label').forEach(function(el) { el.textContent = '⏳ 未提交（' + unsubmitted + '人）'; });
+  document.querySelectorAll('.board-submitted-label').forEach(function(el) { el.textContent = '✅ 已提交（' + submitted + '人）'; });
+
+  var padUnsubmitted = document.querySelector('.pad-teacher__feed .text-danger.font-bold');
+  var padSubmitted = document.querySelector('.pad-teacher__feed .text-success.font-bold');
+  if (padUnsubmitted) padUnsubmitted.textContent = '⏳ 未提交（' + unsubmitted + '人）';
+  if (padSubmitted) padSubmitted.textContent = '✅ 已提交（' + submitted + '人）';
+}
+
+document.addEventListener('DOMContentLoaded', updateBoard);
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="../js/prototype.js"></script>
+</body>
+</html>

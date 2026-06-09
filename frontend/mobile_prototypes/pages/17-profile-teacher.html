@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>教师首页 · 宝山区小实验社区</title>
+  <link rel="stylesheet" href="../css/prototype.css">
+</head>
+<body>
+<div class="prototype-container pad-shell theme-teacher" data-layout="teacher-home">
+
+  <nav class="bottom-nav">
+    <div class="nav-items">
+      <a href="17-profile-teacher.html" class="nav-item active">
+        <span class="nav-icon"><i data-lucide="house" class="icon"></i></span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="21-assign.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="clipboard-list" class="icon"></i></span>
+        <span class="nav-label">任务</span>
+      </a>
+      <a href="24-teacher-ai.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="bot" class="icon"></i></span>
+        <span class="nav-label">助教</span>
+      </a>
+      <a href="17-profile-teacher.html" class="nav-item">
+        <span class="nav-icon"><i data-lucide="user" class="icon"></i></span>
+        <span class="nav-label">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pad-main pad-workbench">
+
+    <header class="pad-workbench__topbar">
+      <button type="button" class="row items-center gap-2 btn-ghost" style="padding:0;">
+        <span class="pad-workbench__title">📚 三年级一班</span>
+        <i data-lucide="chevron-down" class="icon icon-sm"></i>
+      </button>
+      <div class="pad-workbench__topbar-actions">
+        <a href="25-settings.html?role=teacher" class="icon-btn" aria-label="设置">
+          <i data-lucide="bell" class="icon"></i>
+        </a>
+      </div>
+    </header>
+
+    <div class="pad-workbench__mobile-head px-4 pt-4 safe-top">
+      <div class="row items-center justify-between">
+        <div class="row items-center gap-2">
+          <span class="text-base font-bold">📚 当前班级: 三年级一班</span>
+          <i data-lucide="chevron-down" class="icon icon-sm"></i>
+        </div>
+        <a href="25-settings.html?role=teacher&amp;panel=notifications" class="icon-btn" aria-label="通知设置"><i data-lucide="bell" class="icon"></i></a>
+      </div>
+    </div>
+
+    <div class="pad-teacher__overview">
+      <div class="card card-pad tint-brand text-center" style="background:var(--tint);">
+        <div class="text-2xl font-bold">12</div>
+        <div class="text-xs muted mt-1">待批阅</div>
+      </div>
+      <div class="card card-pad tint-brand text-center" style="background:var(--tint);">
+        <div class="text-2xl font-bold text-success">75%</div>
+        <div class="text-xs muted mt-1">提交率</div>
+      </div>
+      <div class="card card-pad tint-brand text-center" style="background:var(--tint);">
+        <div class="text-2xl font-bold text-warning">9</div>
+        <div class="text-xs muted mt-1">未提交</div>
+      </div>
+    </div>
+
+    <div class="pad-teacher__body">
+
+      <aside class="pad-teacher__actions">
+        <h2 class="text-sm font-bold mb-2">⚡ 快捷操作</h2>
+        <a href="21-assign.html" class="card card-link card-pad row items-center gap-3 anim-fade-up delay-1">
+          <div class="tile-icon tile-sm tile-grad shrink-0"><i data-lucide="pen-square" class="icon"></i></div>
+          <span class="text-sm font-medium">布置作业</span>
+        </a>
+        <a href="22-review.html" class="card card-link card-pad row items-center gap-3 anim-fade-up delay-2">
+          <div class="tile-icon tile-sm tile-grad shrink-0"><i data-lucide="check-circle" class="icon"></i></div>
+          <span class="text-sm font-medium">批阅</span>
+        </a>
+        <a href="23-progress-board.html" class="card card-link card-pad row items-center gap-3 anim-fade-up delay-3">
+          <div class="tile-icon tile-sm tile-grad shrink-0"><i data-lucide="bar-chart-3" class="icon"></i></div>
+          <span class="text-sm font-medium">看板</span>
+        </a>
+        <a href="22-review.html" class="btn btn-primary btn-block btn-sm mt-2">📢 一键提醒</a>
+      </aside>
+
+      <div class="pad-teacher__feed stack-4">
+
+        <div>
+          <div class="row items-center justify-between mb-3">
+            <h2 class="text-sm font-bold">🔬 实验库推荐</h2>
+            <a href="07-virtual-exp-list.html" class="text-xs text-brand font-medium">查看更多</a>
+          </div>
+          <div class="pad-home__grid gap-3">
+            <a href="06-video-detail.html" class="card card-link card-pad anim-fade-up delay-1">
+              <div class="tile-icon tile-sm tint-blue shrink-0 mb-2">💧</div>
+              <div class="text-sm font-bold">水的表面张力</div>
+              <div class="text-xs muted mt-1">适合三年级 · 基础物理</div>
+              <span class="badge badge-info mt-2">推荐</span>
+            </a>
+            <a href="06-video-detail.html" class="card card-link card-pad anim-fade-up delay-2">
+              <div class="tile-icon tile-sm tint-emerald shrink-0 mb-2">⚡</div>
+              <div class="text-sm font-bold">简单电路</div>
+              <div class="text-xs muted mt-1">适合四年级 · 电路入门</div>
+              <span class="badge badge-info mt-2">推荐</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h2 class="text-sm font-bold mb-3">📈 本周提交趋势</h2>
+          <div class="stack-2">
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周一</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill" style="width:82%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">36</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周二</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill" style="width:68%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">30</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周三</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill progress-fill-warning" style="width:48%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">21</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周四</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill progress-fill-warning" style="width:32%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">14</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">今日</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill" style="width:16%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">7</span>
+            </div>
+          </div>
+          <div class="row items-center justify-between mt-3 pt-3" style="border-top:1px solid var(--color-border-soft);">
+            <span class="text-xs muted">本周累计提交 108 份</span>
+            <span class="badge badge-success">较上周 +12%</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pad-teacher__mobile-only">
+
+      <div class="px-4 mt-3">
+        <div class="card card-pad tint-brand" style="background:var(--tint);">
+          <div class="row gap-4 items-center">
+            <div class="flex-1 text-center">
+              <div class="text-2xl font-bold">12</div>
+              <div class="text-xs muted mt-1">待批阅</div>
+            </div>
+            <div class="flex-1 text-center">
+              <div class="text-2xl font-bold text-success">75%</div>
+              <div class="text-xs muted mt-1">提交率</div>
+            </div>
+            <div class="flex-1 text-center">
+              <div class="text-2xl font-bold text-warning">9</div>
+              <div class="text-xs muted mt-1">未提交</div>
+            </div>
+          </div>
+          <a href="22-review.html" class="btn btn-primary btn-block btn-sm mt-3">📢 一键提醒</a>
+        </div>
+      </div>
+
+      <div class="px-4 mt-4 stack pb-28">
+
+        <div>
+          <h2 class="text-sm font-bold mb-3">⚡ 快捷操作</h2>
+          <div class="row gap-3">
+            <a href="21-assign.html" class="card card-link card-pad flex-1 text-center anim-fade-up delay-1">
+              <div class="tile-icon tile-sm tile-grad mx-auto mb-2"><i data-lucide="pen-square" class="icon"></i></div>
+              <span class="text-xs font-medium">布置作业</span>
+            </a>
+            <a href="22-review.html" class="card card-link card-pad flex-1 text-center anim-fade-up delay-2">
+              <div class="tile-icon tile-sm tile-grad mx-auto mb-2"><i data-lucide="check-circle" class="icon"></i></div>
+              <span class="text-xs font-medium">批阅</span>
+            </a>
+            <a href="23-progress-board.html" class="card card-link card-pad flex-1 text-center anim-fade-up delay-3">
+              <div class="tile-icon tile-sm tile-grad mx-auto mb-2"><i data-lucide="bar-chart-3" class="icon"></i></div>
+              <span class="text-xs font-medium">看板</span>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <div class="row items-center justify-between mb-3">
+            <h2 class="text-sm font-bold">🔬 实验库推荐</h2>
+            <a href="07-virtual-exp-list.html" class="text-xs text-brand font-medium">查看更多</a>
+          </div>
+          <div class="stack-2">
+            <a href="06-video-detail.html" class="card card-link card-pad row items-center gap-3 anim-fade-up delay-1">
+              <div class="tile-icon tile-sm tint-blue shrink-0">💧</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-bold">水的表面张力</div>
+                <div class="text-xs muted mt-1">适合三年级 · 基础物理</div>
+              </div>
+              <span class="badge badge-info">推荐</span>
+            </a>
+            <a href="06-video-detail.html" class="card card-link card-pad row items-center gap-3 anim-fade-up delay-2">
+              <div class="tile-icon tile-sm tint-emerald shrink-0">⚡</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-bold">简单电路</div>
+                <div class="text-xs muted mt-1">适合四年级 · 电路入门</div>
+              </div>
+              <span class="badge badge-info">推荐</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h2 class="text-sm font-bold mb-3">📈 本周提交趋势</h2>
+          <div class="stack-2">
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周一</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill" style="width:82%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">36</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周二</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill" style="width:68%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">30</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周三</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill progress-fill-warning" style="width:48%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">21</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">周四</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill progress-fill-warning" style="width:32%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">14</span>
+            </div>
+            <div class="row items-center gap-3">
+              <span class="text-xs font-medium" style="width:52px;">今日</span>
+              <div class="flex-1">
+                <div class="progress">
+                  <div class="progress-fill" style="width:16%"></div>
+                </div>
+              </div>
+              <span class="text-xs muted-2" style="width:28px;">7</span>
+            </div>
+          </div>
+          <div class="row items-center justify-between mt-3 pt-3" style="border-top:1px solid var(--color-border-soft);">
+            <span class="text-xs muted">本周累计提交 108 份</span>
+            <span class="badge badge-success">较上周 +12%</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="../js/prototype.js"></script>
+</body>
+</html>

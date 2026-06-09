@@ -1,0 +1,486 @@
+<template>
+  <div class="page-card">
+    <el-card class="user-card">
+      <template #header>
+        <div class="user-page-header create-header">
+          <div class="user-page-title-wrap">
+            <span class="user-page-title">{{ pageTitle }}</span>
+          </div>
+          <div class="create-header-actions">
+            <el-button @click="goBack">返回列表</el-button>
+          </div>
+        </div>
+      </template>
+
+      <div class="step-wrap">
+        <el-steps :active="activeStep" align-center finish-status="success">
+          <el-step @click="goStep(0)">
+            <template #title>
+              <span class="step-title-wrap">
+                <span>基础信息</span>
+                <span class="step-title-percent">{{ stepCompletion[0] }}%</span>
+              </span>
+            </template>
+          </el-step>
+          <el-step @click="goStep(1)">
+            <template #title>
+              <span class="step-title-wrap">
+                <span>实验视频</span>
+                <span class="step-title-percent">{{ stepCompletion[1] }}%</span>
+              </span>
+            </template>
+          </el-step>
+          <el-step @click="goStep(2)">
+            <template #title>
+              <span class="step-title-wrap">
+                <span>实验材料</span>
+                <span class="step-title-percent">{{ stepCompletion[2] }}%</span>
+              </span>
+            </template>
+          </el-step>
+          <el-step @click="goStep(3)">
+            <template #title>
+              <span class="step-title-wrap">
+                <span>实验步骤</span>
+                <span class="step-title-percent">{{ stepCompletion[3] }}%</span>
+              </span>
+            </template>
+          </el-step>
+          <el-step @click="goStep(4)">
+            <template #title>
+              <span class="step-title-wrap">
+                <span>实验结果</span>
+                <span class="step-title-percent">{{ stepCompletion[4] }}%</span>
+              </span>
+            </template>
+          </el-step>
+          <el-step @click="goStep(5)">
+            <template #title>
+              <span class="step-title-wrap">
+                <span>教学与安全</span>
+                <span class="step-title-percent">{{ stepCompletion[5] }}%</span>
+              </span>
+            </template>
+          </el-step>
+          <el-step @click="goStep(6)">
+            <template #title>
+              <span class="step-title-wrap">
+                <span>参考与故事</span>
+                <span class="step-title-percent">{{ stepCompletion[6] }}%</span>
+              </span>
+            </template>
+          </el-step>
+        </el-steps>
+      </div>
+
+      <div class="step-content">
+        <template v-if="activeStep === 0">
+          <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="user-form">
+            <el-row :gutter="16">
+              <el-col :span="12"><el-form-item label="实验名称" prop="expName"><el-input v-model="form.expName" placeholder="请输入实验名称" :maxlength="30" /></el-form-item></el-col>
+              <el-col :span="12"><el-form-item label="必做/选做" prop="chooseType"><el-select v-model="form.chooseType" placeholder="请选择" clearable style="width: 100%"><el-option label="必做" value="must" /><el-option label="选做" value="choose" /></el-select></el-form-item></el-col>
+              <el-col :span="12"><el-form-item label="学科" prop="subjectId"><el-select v-model="form.subjectId" placeholder="请选择学科" clearable filterable style="width: 100%"><el-option v-for="item in subjectOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+              <el-col :span="12"><el-form-item label="学段" prop="schoolLevelId"><el-select v-model="form.schoolLevelId" placeholder="请选择学段" clearable filterable style="width: 100%"><el-option v-for="item in schoolLevelOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+              <el-col :span="24"><el-form-item label="适用年级" prop="gradeIds"><el-checkbox-group v-model="form.gradeIds" class="grade-checkbox-group"><el-checkbox v-for="item in gradeOptions" :key="item.value" :value="item.value">{{ item.label }}</el-checkbox></el-checkbox-group></el-form-item></el-col>
+              <el-col :span="12"><el-form-item label="难度" prop="difficultyId"><el-select v-model="form.difficultyId" placeholder="请选择难度" clearable filterable style="width: 100%"><el-option v-for="item in difficultyOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+              <el-col :span="24"><el-form-item label="实验原理" prop="expPrinciple"><el-input v-model="form.expPrinciple" type="textarea" :rows="4" placeholder="请输入实验原理" /></el-form-item></el-col>
+            </el-row>
+          </el-form>
+        </template>
+        <template v-else-if="activeStep === 1">
+          <Step2Videos :exp-id="expId" />
+        </template>
+        <template v-else-if="activeStep === 2">
+          <Step3Materials :exp-id="expId" />
+        </template>
+        <template v-else-if="activeStep === 3">
+          <Step4ExperimentSteps :exp-id="expId" />
+        </template>
+        <template v-else-if="activeStep === 4">
+          <Step5ExperimentResults :exp-id="expId" />
+        </template>
+        <template v-else-if="activeStep === 5">
+          <Step6TeachingSafety :exp-id="expId" />
+        </template>
+        <Step7ReferenceScientist v-else-if="activeStep === 6" :exp-id="expId" />
+        <template v-else>
+          <div class="step-placeholder">当前步骤：{{ stepTitles[activeStep] }}</div>
+        </template>
+      </div>
+
+      <div class="step-actions">
+        <el-button :disabled="activeStep === 0" @click="prevStep">上一步</el-button>
+        <el-button v-if="activeStep < stepTitles.length - 1" type="primary" :loading="stepSaving" @click="nextStep">下一步</el-button>
+        <slot v-else>
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存草稿</el-button>
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmitToAudit">提交审核</el-button>
+        </slot>
+      </div>
+    </el-card>
+
+    <el-dialog v-model="logDialogVisible" title="实验日志" width="900px">
+      <el-table :data="logTableData" v-loading="logLoading" border stripe max-height="520">
+        <el-table-column prop="logTime" label="日志时间" width="180">
+          <template #default="scope">{{ formatLogTime(scope.row.logTime) }}</template>
+        </el-table-column>
+        <el-table-column prop="logTypeName" label="日志类型" width="140" />
+        <el-table-column prop="logUserName" label="操作人" width="140" />
+        <el-table-column prop="logContent" label="日志内容" min-width="260" show-overflow-tooltip />
+      </el-table>
+      <template #footer>
+        <el-button @click="logDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+  </div>
+</template>
+
+<script setup>
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { fetchDataDictItems } from '../../api/index'
+import { createExpStandard, fetchExpStandard, updateExpStandard, fetchExpVideos, fetchExpMaterials, fetchExpSteps, fetchExpResults, fetchExpReferences, fetchExpScientists, fetchExpLogs } from '../../api/exp'
+import Step2Videos from './steps/ExpStandardStep2Videos.vue'
+import Step3Materials from './steps/ExpStandardStep3Materials.vue'
+import Step4ExperimentSteps from './steps/ExpStandardStep4ExperimentSteps.vue'
+import Step5ExperimentResults from './steps/ExpStandardStep5ExperimentResults.vue'
+import Step6TeachingSafety from './steps/ExpStandardStep6TeachingSafety.vue'
+import Step7ReferenceScientist from './steps/ExpStandardStep7ReferenceScientist.vue'
+
+const route = useRoute()
+const router = useRouter()
+const pageTitle = computed(() => String(route.query.expId || '').trim() ? '编辑实验' : '新增实验')
+const activeStep = ref(0)
+const submitLoading = ref(false)
+const formRef = ref()
+const expId = ref('')
+const stepSaving = ref(false)
+const logDialogVisible = ref(false)
+const logLoading = ref(false)
+const logTableData = ref([])
+const subjectOptions = ref([])
+const schoolLevelOptions = ref([])
+const gradeOptions = ref([])
+const difficultyOptions = ref([])
+const stepTitles = ['基础信息', '实验视频', '实验材料', '实验步骤', '实验结果', '安全与提示', '教学与参考']
+const stepStats = reactive({ videos: 0, materials: 0, steps: 0, results: 0, safety: 0, references: 0 })
+const stepCompletion = computed(() => [
+  completeStep0.value,
+  stepStats.videos,
+  stepStats.materials,
+  stepStats.steps,
+  stepStats.results,
+  stepStats.safety,
+  stepStats.references,
+])
+const completeStep0 = computed(() => {
+  const fields = [
+    form.expName,
+    form.chooseType,
+    form.subjectId,
+    form.schoolLevelId,
+    Array.isArray(form.gradeIds) ? form.gradeIds.length : 0,
+    form.difficultyId,
+    form.expPrinciple,
+  ]
+  const filled = fields.filter((v) => Array.isArray(v) ? v.length > 0 : String(v || '').trim()).length
+  return Math.round((filled / fields.length) * 100)
+})
+
+const form = reactive({ expName: '', chooseType: '', subjectId: '', schoolLevelId: '', gradeIds: [], difficultyId: '', expPrinciple: '', expCaution: '', expDanger: '', classHour: null, status: 'c', expType: 'standard' })
+
+const rules = computed(() => ({
+  expName: [{ required: true, message: '请输入实验名称', trigger: 'blur' }],
+  chooseType: [{ required: true, message: '请选择必做/选做', trigger: 'change' }],
+  subjectId: [{ required: true, message: '请选择学科', trigger: 'change' }],
+  schoolLevelId: [{ required: true, message: '请选择学段', trigger: 'change' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
+}))
+
+const normalizeOptions = (rows, valueKey, labelKey) => (rows || []).filter(item => item?.[valueKey] != null && item?.[labelKey] != null).map(item => ({ value: String(item[valueKey]), label: item[labelKey] }))
+
+const pct = (n) => Math.max(0, Math.min(100, Math.round(n || 0)))
+const hasText = (v) => String(v || '').trim().length > 0
+
+const formatLogTime = (value) => {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
+const openLogDialog = async () => {
+  const id = String(expId.value || route.query.expId || '').trim()
+  if (!id) {
+    ElMessage.warning('请先保存实验后再查看日志')
+    return
+  }
+  logDialogVisible.value = true
+  logLoading.value = true
+  try {
+    const res = await fetchExpLogs(id)
+    const rows = Array.isArray(res.data?.data) ? res.data.data : (res.data?.data?.records || res.data?.data?.list || [])
+    logTableData.value = [...rows].sort((a, b) => new Date(b.logTime || 0) - new Date(a.logTime || 0))
+  } catch (error) {
+    logTableData.value = []
+    ElMessage.error(error?.response?.data?.message || error?.message || '加载日志失败')
+  } finally {
+    logLoading.value = false
+  }
+}
+
+const loadStepStats = async () => {
+  const id = String(expId.value || route.query.expId || '').trim()
+  if (!id) {
+    stepStats.videos = 0
+    stepStats.materials = 0
+    stepStats.steps = 0
+    stepStats.results = 0
+    stepStats.safety = 0
+    stepStats.references = 0
+    return
+  }
+  const [videosRes, materialsRes, stepsRes, resultsRes, referencesRes, scientistsRes, standardRes] = await Promise.allSettled([
+    fetchExpVideos(id),
+    fetchExpMaterials(id),
+    fetchExpSteps(id),
+    fetchExpResults(id),
+    fetchExpReferences(id),
+    fetchExpScientists(id),
+    fetchExpStandard(id),
+  ])
+  const toCount = (res) => {
+    const data = res?.status === 'fulfilled' ? res.value?.data?.data : null
+    if (Array.isArray(data)) return data.length
+    if (data && Array.isArray(data.records)) return data.records.length
+    if (data && Array.isArray(data.list)) return data.list.length
+    return 0
+  }
+  stepStats.videos = pct(toCount(videosRes) * 100)
+  stepStats.materials = pct(toCount(materialsRes) * 100)
+  stepStats.steps = pct(toCount(stepsRes) * 100)
+  stepStats.results = pct(toCount(resultsRes) * 100)
+  stepStats.references = pct(((toCount(referencesRes) + toCount(scientistsRes))) * 50)
+  const std = standardRes?.status === 'fulfilled' ? standardRes.value?.data?.data : null
+  const safetyCount = [std?.expCaution, std?.expDanger, std?.classHour, std?.subjectId, std?.gradeId, std?.semesterId, std?.coursebookId, std?.unitId, std?.chapterId, std?.sectionId].filter(hasText).length
+  stepStats.safety = pct((safetyCount / 10) * 100)
+}
+
+const loadDicts = async () => {
+  const [subjectRes, levelRes, gradeRes, difficultyRes] = await Promise.all([
+    fetchDataDictItems('data_school_subject'),
+    fetchDataDictItems('data_school_level'),
+    fetchDataDictItems('data_school_grade'),
+    fetchDataDictItems('data_difficulty_type')
+  ])
+  if (subjectRes.data.code === 200) subjectOptions.value = normalizeOptions(subjectRes.data.data || [], 'subject_id', 'subject_name')
+  if (levelRes.data.code === 200) schoolLevelOptions.value = normalizeOptions(levelRes.data.data || [], 'level_id', 'level_name')
+  if (gradeRes.data.code === 200) gradeOptions.value = normalizeOptions(gradeRes.data.data || [], 'grade_id', 'grade_name')
+  if (difficultyRes.data.code === 200) difficultyOptions.value = normalizeOptions(difficultyRes.data.data || [], 'difficulty_id', 'difficulty_name')
+}
+
+const prevStep = async () => {
+  if (activeStep.value > 0) {
+    activeStep.value -= 1
+  }
+}
+
+const goStep = async (index) => {
+  if (index < 0 || index >= stepTitles.length) return
+  if (index === activeStep.value) return
+  if (index > 0 && !expId.value && activeStep.value === 0) {
+    ElMessage.warning('请先保存基础信息')
+    return
+  }
+  if (activeStep.value === 0 && index > 0) {
+    stepSaving.value = true
+    try {
+      await saveStep0()
+      ElMessage.success('基础信息已保存')
+    } catch (error) {
+      ElMessage.error(error?.response?.data?.message || error?.message || '保存失败')
+      return
+    } finally {
+      stepSaving.value = false
+    }
+  }
+  activeStep.value = index
+}
+
+const resolveCreatedId = (data) => {
+  if (!data) return ''
+  if (typeof data === 'string') return data
+  if (typeof data === 'number') return String(data)
+  if (typeof data === 'object') {
+    return data.expId || data.exp_id || data.id || data.value || data.result || ''
+  }
+  return ''
+}
+
+const saveStep0 = async () => {
+  await formRef.value?.validate()
+  const payload = { ...form, status: 'c', expType: 'standard', gradeIds: Array.isArray(form.gradeIds) ? form.gradeIds : [] }
+  if (expId.value && String(expId.value).trim()) {
+    const currentId = String(expId.value).trim()
+    await updateExpStandard(currentId, payload)
+    return currentId
+  }
+  const res = await createExpStandard(payload)
+  const createdId = resolveCreatedId(res.data.data)
+  if (!createdId || typeof createdId !== 'string') {
+    throw new Error('未返回有效实验ID')
+  }
+  expId.value = createdId.trim()
+  return expId.value
+}
+
+const nextStep = async () => {
+  if (activeStep.value === 0) {
+    stepSaving.value = true
+    try {
+      await saveStep0()
+      ElMessage.success('基础信息已保存')
+    } catch (error) {
+      ElMessage.error(error?.response?.data?.message || error?.message || '保存失败')
+      return
+    } finally {
+      stepSaving.value = false
+    }
+  }
+  if (activeStep.value < stepTitles.length - 1) {
+    activeStep.value += 1
+  }
+}
+
+const handleSubmit = async () => {
+  submitLoading.value = true
+  try {
+    //await flushPendingSaves()
+    //await saveStep0()
+    //await updateExpStandard(expId.value, { status: 't' })
+    ElMessage.success('提交草稿成功')
+    router.push('/admin/exp/exp-standard')
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '提交草稿失败')
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+const handleSubmitToAudit = async () => {
+  try {
+    await ElMessageBox.confirm('提交审核后内容将进入审核流程，确认继续吗？', '提交审核确认', {
+      type: 'warning',
+      confirmButtonText: '确认提交',
+      cancelButtonText: '取消',
+    })
+  } catch {
+    return
+  }
+  submitLoading.value = true
+  try {
+    //await saveStep0()
+    await updateExpStandard(expId.value, { status: 't' })
+    ElMessage.success('提交审核成功')
+    router.push('/admin/exp/exp-standard')
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '提交审核失败')
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+const goBack = () => {
+  router.push('/admin/exp/exp-standard')
+}
+
+const loadDraft = async () => {
+  const draftId = String(route.query.expId || '').trim()
+  if (!draftId) return
+  const res = await fetchExpStandard(draftId)
+  if (res.data.code === 200 && res.data.data) {
+    const draft = res.data.data
+    expId.value = draft.expId || draftId
+    form.expName = draft.expName || ''
+    form.chooseType = draft.chooseType || ''
+    form.subjectId = draft.subjectId || ''
+    form.schoolLevelId = draft.schoolLevelId || ''
+    form.gradeIds = Array.isArray(draft.gradeIds)
+      ? draft.gradeIds.map(item => String(item))
+      : String(draft.gradeIds || '')
+        .split(/[,;\s]+/)
+        .map(item => item.trim())
+        .filter(Boolean)
+    form.difficultyId = draft.difficultyId || ''
+    form.expPrinciple = draft.expPrinciple || ''
+    form.expCaution = draft.expCaution || ''
+    form.expDanger = draft.expDanger || ''
+    form.classHour = draft.classHour ?? null
+    form.status = draft.status || 'c'
+    form.gradeId = draft.gradeId || ''
+    form.coursebookId = draft.coursebookId || ''
+    form.unitId = draft.unitId || ''
+    form.chapterId = draft.chapterId || ''
+    form.sectionId = draft.sectionId || ''
+  }
+  await loadStepStats()
+}
+
+
+const loadByExpId = async (id) => {
+  const targetId = String(id || '').trim()
+  if (!targetId) return
+  expId.value = targetId
+  await loadDicts()
+  const res = await fetchExpStandard(targetId)
+  if (res.data.code === 200 && res.data.data) {
+    const draft = res.data.data
+    form.expName = draft.expName || ''
+    form.chooseType = draft.chooseType || ''
+    form.subjectId = draft.subjectId || ''
+    form.schoolLevelId = draft.schoolLevelId || ''
+    form.gradeIds = Array.isArray(draft.gradeIds)
+      ? draft.gradeIds.map(item => String(item))
+      : String(draft.gradeIds || '')
+        .split(/[,;\s]+/)
+        .map(item => item.trim())
+        .filter(Boolean)
+    form.difficultyId = draft.difficultyId || ''
+    form.expPrinciple = draft.expPrinciple || ''
+    form.expCaution = draft.expCaution || ''
+    form.expDanger = draft.expDanger || ''
+    form.classHour = draft.classHour ?? null
+    form.status = draft.status || 'c'
+    form.gradeId = draft.gradeId || ''
+    form.coursebookId = draft.coursebookId || ''
+    form.unitId = draft.unitId || ''
+    form.chapterId = draft.chapterId || ''
+    form.sectionId = draft.sectionId || ''
+  }
+  await loadStepStats()
+}
+
+watch(
+  () => route.query.expId,
+  async (id) => {
+    if (id) {
+      await loadByExpId(id)
+    }
+  },
+  { immediate: true }
+)
+
+
+onMounted(async () => {
+  if (!route.query.expId) {
+    await loadDicts()
+    await loadDraft()
+  }
+})
+
+onBeforeUnmount(() => {})
+</script>
+
+<style scoped src="./css/ExpStandardCreateView.css"></style>
