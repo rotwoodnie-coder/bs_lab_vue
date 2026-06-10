@@ -187,6 +187,16 @@ const routes = [
         path: 'exp/exp-simulator',
         name: 'exp-simulator-management',
         component: () => import('../views/exp/ExpSimulatorView.vue')
+      },
+      {
+        path: 'homework/exp-homework',
+        name: 'exp-homework-management',
+        component: () => import('../views/homework/ExpHomeworkView.vue')
+      },
+      {
+        path: 'homework/exp-homework-student',
+        name: 'exp-homework-student-management',
+        component: () => import('../views/homework/ExpHomeworkStudentView.vue')
       }
     ]
   }

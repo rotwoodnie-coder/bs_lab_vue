@@ -60,8 +60,7 @@ export function fetchMyTeachBySection(sectionId) {
   return request.get('/exp/teaches/my/by-section', { params: { sectionId } })
 }
 
-export function fetchLatestExpStandardDraft() {
-  return request.get('/exp/standards/draft/latest')
+export function fetchLatestExpStandardDraft() {  return request.get('/exp/standards/draft/latest')
 }
 
 //exp videos
