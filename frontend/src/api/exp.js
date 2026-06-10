@@ -22,6 +22,12 @@ export function fetchLatestExpTeachesDraft() {
 export function createExpTeachesFromStandard(data) {
   return request.post('/exp/teaches/from', data)
 }
+export function updateExpTeachSimulator(id, simulatorId) {
+  return request.put(`/exp/teaches/${id}/simulator`, { simulatorId })
+}
+export function updateExpTeach(id, data) {
+  return request.put(`/exp/teaches/${id}`, data)
+}
 export function fetchExpStandard(id) {
   return request.get(`/exp/standards/${id}`)
 }

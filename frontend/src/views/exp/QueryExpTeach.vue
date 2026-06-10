@@ -39,6 +39,19 @@
         <el-table-column prop="createUserName" label="创建人" min-width="120" show-overflow-tooltip>
           <template #default="scope">{{ scope.row.createUserName || scope.row.createUserId || '-' }}</template>
         </el-table-column>
+        <el-table-column label="模拟器" min-width="100" align="center">
+          <template #default="scope">
+            <el-button
+              v-if="scope.row.simulatorPreviewUrl"
+              link
+              type="primary"
+              @click="openSimulatorPreview(scope.row)"
+            >
+              预览
+            </el-button>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="scope">
             <el-tag :type="statusTagType(scope.row.status)" effect="light">
@@ -94,6 +107,18 @@
       </template>
     </el-dialog>
 
+    <el-dialog v-model="simulatorDialogVisible" title="模拟器预览" width="1200px" class="user-dialog" destroy-on-close @closed="closeSimulatorPreviewDialog">
+      <iframe
+        v-if="simulatorPreviewUrl"
+        :src="simulatorPreviewUrl"
+        class="simulator-preview-frame"
+        frameborder="0"
+      />
+      <template #footer>
+        <el-button @click="simulatorDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="980px" class="user-dialog">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="user-form">
         <el-row :gutter="16">
@@ -146,6 +171,8 @@ const logLoading = ref(false)
 const logTableData = ref([])
 const viewDialogVisible = ref(false)
 const viewExpId = ref('')
+const simulatorDialogVisible = ref(false)
+const simulatorPreviewUrl = ref('')
 
 const query = reactive({ keyword: '', subjectId: '', status: 'y', expType: 'teach', pageNum: 1, pageSize: 10 })
 const form = reactive({ expName: '', chooseType: '', subjectId: '', schoolLevelId: '', gradeId: '', difficultyId: '', expPrinciple: '', expCaution: '', expDanger: '', classHour: null, status: 'c' })
@@ -258,6 +285,16 @@ const openViewDialog = (row) => {
 const closeViewDialog = () => {
   viewDialogVisible.value = false
   viewExpId.value = ''
+}
+
+const openSimulatorPreview = (row) => {
+  const url = String(row?.simulatorPreviewUrl || '').trim()
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+const closeSimulatorPreviewDialog = () => {
+  simulatorDialogVisible.value = false
+  simulatorPreviewUrl.value = ''
 }
 
 const openEditDialog = (row) => {

@@ -18,6 +18,8 @@ import com.xuanyue.exp.data.repository.DataSchoolSubjectRepository;
 import com.xuanyue.exp.data.repository.DataSchoolSemesterRepository;
 import com.xuanyue.exp.data.repository.DataSchoolGradeRepository;
 import com.xuanyue.exp.data.entity.DataSchoolGrade;
+import com.xuanyue.exp.exp.repository.ExpSimulatorRepository;
+import com.xuanyue.exp.exp.entity.ExpSimulator;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,6 +30,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 
 import javax.persistence.criteria.Predicate;
 import javax.servlet.http.HttpServletRequest;
@@ -48,16 +51,19 @@ public class ExpStandardServiceImpl implements ExpStandardService {
     private final ExpLogRepository logRepository;
     private final SysUserRepository sysUserRepository;
     private final ExpGradeService expGradeService;
+    private final ExpSimulatorRepository expSimulatorRepository;
     private final CoursebookService expCoursebookService;
     private final CoursebookContentService expCoursebookContentService;
     private final DataSchoolSubjectRepository expSubjectService;
     private final DataSchoolSemesterRepository expSemesterService;
     private final DataSchoolGradeRepository gradeRepository;
+    private final MinioStorageService minioStorageService;
 
     public ExpStandardServiceImpl(ExpMsgRepository repository, SysUserRepository sysUserRepository, ExpGradeService expGradeService, ExpLogRepository logRepository
                   ,CoursebookService expCoursebookService, CoursebookContentService expCoursebookContentService
                   ,DataSchoolSubjectRepository expSubjectService, DataSchoolSemesterRepository expSemesterService
-                  ,DataSchoolGradeRepository gradeRepository) {
+                  ,DataSchoolGradeRepository gradeRepository, MinioStorageService minioStorageService
+                  ,ExpSimulatorRepository expSimulatorRepository) {
         this.repository = repository;
         this.sysUserRepository = sysUserRepository;
         this.expGradeService = expGradeService;
@@ -67,6 +73,8 @@ public class ExpStandardServiceImpl implements ExpStandardService {
         this.expSubjectService = expSubjectService;
         this.expSemesterService = expSemesterService;
         this.gradeRepository = gradeRepository;
+        this.minioStorageService = minioStorageService;
+        this.expSimulatorRepository = expSimulatorRepository;
     }
 
     @Override
@@ -88,6 +96,23 @@ public class ExpStandardServiceImpl implements ExpStandardService {
     public List<Map<String, Object>> pageTeach(int pageNum, int pageSize, String keyword, String status, String subjectId, String schoolLevelId, String gradeId, String chooseType, String expType,String currentUserId,String notstatus) {
         Pageable pageable = PageRequest.of(Math.max(pageNum - 1, 0), pageSize, Sort.by(Sort.Direction.DESC, "createTime"));
         List<Map<String, Object>> lstMap =  repository.findAll(spec(keyword, status, subjectId, schoolLevelId, gradeId, chooseType, expType,currentUserId,notstatus), pageable).getContent().stream().map(this::toMap).collect(Collectors.toList());
+        for(Map<String, Object> map : lstMap){
+           if(map.get("simulatorId")!=null){
+            String simulatorId = asString(map.get("simulatorId"));
+            if(simulatorId!=null){
+                ExpSimulator oSimulator = expSimulatorRepository.findById(simulatorId).orElse(null);
+                if(oSimulator!=null){
+                    map.put("simulatorName", oSimulator.getSimulatorName());
+                    map.put("simulatorUrl", oSimulator.getSimulatorUrl());
+                    if(oSimulator.getSimulatorUrl()!=null && StringUtils.hasText(oSimulator.getSimulatorUrl()) && !oSimulator.getSimulatorUrl().startsWith("http")){
+                        map.put("simulatorPreviewUrl", minioStorageService.buildPreviewUrl(oSimulator.getSimulatorUrl()));
+                    }else{
+                        map.put("simulatorPreviewUrl", oSimulator.getSimulatorUrl());
+                    }
+                }
+            }
+           }
+        }
         return lstMap;
     }
 

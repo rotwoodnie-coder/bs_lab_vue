@@ -95,6 +95,12 @@ public class ExpTeachController {
         //return ApiResponse.success("test");
     }
 
+    @PutMapping("/{id}/simulator")
+    public ApiResponse<Void> updateSimulator(@PathVariable String id, @RequestBody Map<String, Object> payload) {
+        teachExpService.updateSimulatorId(id, payload == null ? null : String.valueOf(payload.get("simulatorId")));
+        return ApiResponse.success(null);
+    }
+
     @PutMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id, @RequestBody Map<String, Object> payload) {
         service.update(id, payload);

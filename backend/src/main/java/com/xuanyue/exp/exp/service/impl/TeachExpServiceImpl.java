@@ -103,6 +103,19 @@ public class TeachExpServiceImpl implements TeachExpService {
 
     @Override
     @Transactional
+    public void updateSimulatorId(String expId, String simulatorId) {
+        if (!StringUtils.hasText(expId)) {
+            throw new IllegalArgumentException("实验ID不能为空");
+        }
+        ExpMsg entity = repository.findById(expId).orElseThrow(() -> new IllegalArgumentException("实验不存在"));
+        entity.setSimulatorId(StringUtils.hasText(simulatorId) ? simulatorId.trim() : null);
+        entity.setUpdateUserId(getCurrentUserId());
+        entity.setUpdateTime(new Date());
+        repository.save(entity);
+    }
+
+    @Override
+    @Transactional
     public String createFromStandard(Map<String, Object> payload) {
         String toExpId = (String) payload.get("toExpId");  
         ExpMsg expTo = null;

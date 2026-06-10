@@ -32,11 +32,13 @@ public class ExpSimulatorController {
     @GetMapping
     public ApiResponse<PageResult<ExpSimulatorListItem>> page(@RequestParam(value = "keyword", required = false) String keyword,
                                                               @RequestParam(value = "status", required = false) String status,
+                                                              @RequestParam(value = "subjectId", required = false) String subjectId,
                                                               @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
                                                               @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         ExpSimulatorPageQuery query = new ExpSimulatorPageQuery();
         query.setKeyword(keyword);
         query.setStatus(status);
+        query.setSubjectId(subjectId);
         query.setPageNum(pageNum);
         query.setPageSize(pageSize);
         return ApiResponse.success(service.page(query));

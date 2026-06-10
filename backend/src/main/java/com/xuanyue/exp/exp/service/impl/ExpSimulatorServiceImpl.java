@@ -18,10 +18,12 @@ import org.springframework.util.StringUtils;
 import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ExpSimulatorServiceImpl implements ExpSimulatorService {
@@ -38,33 +40,33 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
 
     @Override
     public PageResult<ExpSimulatorListItem> page(ExpSimulatorPageQuery query) {
-        Pageable pageable = PageRequest.of(Math.max((query.getPageNum() == null ? 1 : query.getPageNum()) - 1, 0), query.getPageSize() == null ? 10 : query.getPageSize());
-        String keyword = StringUtils.hasText(query.getKeyword()) ? query.getKeyword().trim() : null;
-        String status = StringUtils.hasText(query.getStatus()) ? query.getStatus().trim() : null;
+        int pageNum = Math.max(query == null || query.getPageNum() == null ? 1 : query.getPageNum(), 1);
+        int pageSize = Math.max(query == null || query.getPageSize() == null ? 10 : query.getPageSize(), 1);
+        String keyword = StringUtils.hasText(query == null ? null : query.getKeyword()) ? query.getKeyword().trim() : null;
+        String status = StringUtils.hasText(query == null ? null : query.getStatus()) ? query.getStatus().trim() : null;
+        String subjectId = StringUtils.hasText(query == null ? null : query.getSubjectId()) ? query.getSubjectId().trim() : null;
 
-        List<ExpSimulator> all;
-        if (StringUtils.hasText(keyword) && StringUtils.hasText(status)) {
-            all = repository.findBySimulatorNameContainingOrCommentsContainingAndStatus(keyword, keyword, status);
-        } else if (StringUtils.hasText(keyword)) {
-            all = repository.findBySimulatorNameContainingOrCommentsContaining(keyword, keyword);
-        } else if (StringUtils.hasText(status)) {
-            all = repository.findByStatus(status);
-        } else {
-            all = repository.findAll();
-        }
+        List<ExpSimulator> filtered = repository.findAll();
+        filtered = filtered.stream()
+                .filter(item -> !StringUtils.hasText(keyword)
+                        || containsTextIgnoreCase(item.getSimulatorName(), keyword)
+                        || containsTextIgnoreCase(item.getComments(), keyword))
+                .filter(item -> !StringUtils.hasText(status) || status.equals(item.getStatus()))
+                .filter(item -> !StringUtils.hasText(subjectId) || subjectId.equals(item.getSubjectId()))
+                .sorted(Comparator.comparing(ExpSimulator::getSimulatorName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .collect(Collectors.toList());
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), all.size());
+        Map<String, String> userNameMap = loadUserNameMap(filtered);
+        int start = Math.min((pageNum - 1) * pageSize, filtered.size());
+        int end = Math.min(start + pageSize, filtered.size());
         List<ExpSimulatorListItem> list = new ArrayList<ExpSimulatorListItem>();
-        Map<String, String> userNameMap = loadUserNameMap(all);
-        if (start <= end) {
-            for (ExpSimulator simulator : all.subList(start, end)) {
+        if (start < end) {
+            for (ExpSimulator simulator : filtered.subList(start, end)) {
                 list.add(toItem(simulator, userNameMap.get(simulator.getCreateUserId())));
             }
         }
-         PageResult<ExpSimulatorListItem> page= new PageResult<ExpSimulatorListItem>(all.size(), list);
-         List<ExpSimulatorListItem> records = page.getRecords();
-         for (ExpSimulatorListItem record : records) {
+        PageResult<ExpSimulatorListItem> page = new PageResult<ExpSimulatorListItem>(filtered.size(), list);
+        for (ExpSimulatorListItem record : page.getRecords()) {
             String coverImageUrl = record.getCoverImageUrl();
             if (StringUtils.hasText(coverImageUrl)) {
                 record.setCoverImagePreviewUrl(minioStorageService.buildPreviewUrl(coverImageUrl));
@@ -74,9 +76,10 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
             if (StringUtils.hasText(simulatorUrl) && !simulatorUrl.startsWith("http")) {
                 record.setSimulatorPreviewUrl(minioStorageService.buildPreviewUrl(simulatorUrl));
             }
-         }
+        }
         return page;
     }
+
 
     @Override
     public ExpSimulatorListItem get(String simulatorId) {
@@ -134,6 +137,10 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
             }
         }
         return userNameMap;
+    }
+
+    private boolean containsTextIgnoreCase(String source, String keyword) {
+        return StringUtils.hasText(source) && StringUtils.hasText(keyword) && source.toLowerCase().contains(keyword.toLowerCase());
     }
 
     private ExpSimulatorListItem toItem(ExpSimulator simulator, String createUserName) {
