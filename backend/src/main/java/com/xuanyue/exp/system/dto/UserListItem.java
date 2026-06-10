@@ -16,6 +16,7 @@ public class UserListItem {
     private String userRoleId;
     private String userRoleName;
     private String authRoleNames;
+    private String prefTitleId;
 
     public UserListItem() {
     }
@@ -27,6 +28,14 @@ public class UserListItem {
         this.status = status;
         this.phone = phone;
         this.email = email;
+    }
+
+    public String getPrefTitleId() {
+        return prefTitleId;
+    }
+
+    public void setPrefTitleId(String prefTitleId) {
+        this.prefTitleId = prefTitleId;
     }
 
     public String getUserId() {

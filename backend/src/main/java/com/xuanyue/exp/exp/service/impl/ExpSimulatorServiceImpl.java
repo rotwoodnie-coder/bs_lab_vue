@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +28,12 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
 
     private final ExpSimulatorRepository repository;
     private final SysUserRepository sysUserRepository;
+    private final MinioStorageService minioStorageService;
 
-    public ExpSimulatorServiceImpl(ExpSimulatorRepository repository, SysUserRepository sysUserRepository) {
+    public ExpSimulatorServiceImpl(ExpSimulatorRepository repository, SysUserRepository sysUserRepository, MinioStorageService minioStorageService) {
         this.repository = repository;
         this.sysUserRepository = sysUserRepository;
+        this.minioStorageService = minioStorageService;
     }
 
     @Override
@@ -58,7 +62,20 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
                 list.add(toItem(simulator, userNameMap.get(simulator.getCreateUserId())));
             }
         }
-        return new PageResult<ExpSimulatorListItem>(all.size(), list);
+         PageResult<ExpSimulatorListItem> page= new PageResult<ExpSimulatorListItem>(all.size(), list);
+         List<ExpSimulatorListItem> records = page.getRecords();
+         for (ExpSimulatorListItem record : records) {
+            String coverImageUrl = record.getCoverImageUrl();
+            if (StringUtils.hasText(coverImageUrl)) {
+                record.setCoverImagePreviewUrl(minioStorageService.buildPreviewUrl(coverImageUrl));
+            }
+            String simulatorUrl = record.getSimulatorUrl();
+            record.setSimulatorPreviewUrl(simulatorUrl);
+            if (StringUtils.hasText(simulatorUrl) && !simulatorUrl.startsWith("http")) {
+                record.setSimulatorPreviewUrl(minioStorageService.buildPreviewUrl(simulatorUrl));
+            }
+         }
+        return page;
     }
 
     @Override

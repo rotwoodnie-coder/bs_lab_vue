@@ -6,7 +6,9 @@ public class ExpSimulatorListItem {
     private String simulatorName;
     private String subjectId;
     private String coverImageUrl;
+    private String coverImagePreviewUrl;
     private String simulatorUrl;
+    private String simulatorPreviewUrl;
     private String comments;
     private String status;
     private String createUserName;
@@ -41,4 +43,8 @@ public class ExpSimulatorListItem {
     public void setStatus(String status) { this.status = status; }
     public String getCreateUserName() { return createUserName; }
     public void setCreateUserName(String createUserName) { this.createUserName = createUserName; }
+    public String getCoverImagePreviewUrl() { return coverImagePreviewUrl; }
+    public void setCoverImagePreviewUrl(String coverImagePreviewUrl) { this.coverImagePreviewUrl = coverImagePreviewUrl; }
+    public String getSimulatorPreviewUrl() { return simulatorPreviewUrl; }
+    public void setSimulatorPreviewUrl(String simulatorPreviewUrl) { this.simulatorPreviewUrl = simulatorPreviewUrl; }
 }

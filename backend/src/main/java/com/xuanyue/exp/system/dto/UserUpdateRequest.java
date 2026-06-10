@@ -18,6 +18,15 @@ public class UserUpdateRequest {
     private String rootOrgId;
     private String userRoleId;
     private String expireDate;
+    private String prefTitleId;
+
+    public String getPrefTitleId() {
+        return prefTitleId;
+    }
+
+    public void setPrefTitleId(String prefTitleId) {
+        this.prefTitleId = prefTitleId;
+    }   
 
     public String getUserName() {
         return userName;

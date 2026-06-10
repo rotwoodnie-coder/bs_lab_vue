@@ -125,6 +125,11 @@
             <el-option v-for="role in roleOptions" :key="role.roleId" :label="role.roleName" :value="role.roleId" />
           </el-select>
         </el-form-item>
+        <el-form-item label="职称" prop="prefTitleId">
+          <el-select v-model="form.prefTitleId" placeholder="请选择职称" filterable clearable style="width: 100%">
+            <el-option v-for="title in prefTitleOptions" :key="title.title_id" :label="title.title_name" :value="title.title_id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="根机构" prop="rootOrgId" v-show="false">
           <el-input v-model="form.rootOrgId" />
         </el-form-item>
@@ -180,7 +185,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { createUser, deleteUser, fetchDictionaryItems, fetchOrgTree, fetchUserRoles, fetchUsers, saveUserRoles, updateUser, updateUserStatus } from '../../api/index';
+import { createUser, deleteUser, fetchDictionaryItems,fetchDataDictItems, fetchOrgTree, fetchUserRoles, fetchUsers, saveUserRoles, updateUser, updateUserStatus } from '../../api/index';
 
 const loading = ref(false);
 const submitLoading = ref(false);
@@ -197,6 +202,7 @@ const pageSizes = [10, 20, 30, 40, 50]
 const currentUserName = ref('')
 const selectedRoleNames = ref('')
 const roleOptions = ref([])
+const prefTitleOptions = ref([])
 const selectedRoleIds = ref([])
 const orgTreeOptions = ref([])
 const orgTreeProps = { children: 'children', value: 'orgId', label: 'orgName' }
@@ -221,6 +227,7 @@ const form = reactive({
   userOrgId: '',
   rootOrgId: '',
   userRoleId: '',
+  prefTitleId: '',
   phone: '',
   email: '',
   expireDate: '',
@@ -249,6 +256,7 @@ const resetForm = () => {
   form.userOrgId = '';
   form.rootOrgId = '';
   form.userRoleId = '';
+  form.prefTitleId = '';
   form.phone = '';
   form.email = '';
   form.expireDate = getDefaultExpireDate();
@@ -311,6 +319,7 @@ const openEditDialog = (row) => {
   form.userOrgId = row.userOrgId || ''
   form.rootOrgId = row.rootOrgId || rootOrgMap.value[row.userOrgId] || ''
   form.userRoleId = row.userRoleId || ''
+  form.prefTitleId = row.prefTitleId || ''
   form.phone = row.phone || ''
   form.email = row.email || ''
   form.expireDate = row.expireDate || ''
@@ -375,12 +384,16 @@ const handleToggleStatus = async (row) => {
 }
 
 const loadOptions = async () => {
-  const [roleRes, orgRes] = await Promise.all([
+  const [roleRes, titleRes, orgRes] = await Promise.all([
     fetchDictionaryItems('data_role'),
+    fetchDataDictItems('data_pref_title'),
     fetchOrgTree()
   ])
   if (roleRes.data.code === 200) {
     roleOptions.value = (roleRes.data.data || []).filter(item => item.status === 'y')
+  }
+  if (titleRes.data.code === 200) {
+    prefTitleOptions.value = (titleRes.data.data || []).filter(item => item.status === 'y')
   }
   if (orgRes.data.code === 200) {
     const buildRootMap = (nodes, rootId = '') => {

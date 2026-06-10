@@ -128,6 +128,7 @@ public class UserServiceImpl implements UserService {
             item.setUserOrgName(orgName);
             item.setUserRoleName(roleName);
             item.setAuthRoleNames(authRoleNames);
+            item.setPrefTitleId(user.getPrefTitleId());
             item.setExpireDate(formatDate(user.getExpireDate()));
             item.setLastLoginTime(formatDate(user.getLastLoginTime()));
             list.add(item);
@@ -156,6 +157,7 @@ public class UserServiceImpl implements UserService {
         user.setUserPhone(request.getPhone());
         user.setUserEmail(request.getEmail());
         user.setExpireDate(parseExpireDate(request.getExpireDate()));
+        user.setPrefTitleId(request.getPrefTitleId());
         sysUserRepository.save(user);
     }
 
@@ -176,6 +178,7 @@ public class UserServiceImpl implements UserService {
         user.setUserPhone(request.getPhone());
         user.setUserEmail(request.getEmail());
         user.setExpireDate(parseExpireDate(request.getExpireDate()));
+        user.setPrefTitleId(request.getPrefTitleId());
         if (StringUtils.hasText(request.getPassword())) {
             user.setLoginPwd(passwordEncoder.encode(request.getPassword()));
         }

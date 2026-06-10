@@ -29,9 +29,9 @@
           <template #default="scope">
             <el-image
               v-if="scope.row.coverImageUrl"
-              :src="withFilePrefix(scope.row.coverImageUrl)"
-              fit="cover"
-              style="width: 72px; height: 48px; border-radius: 6px"
+              :src="withFilePrefix(scope.row.coverImagePreviewUrl)"
+              fit="contain"
+              style="width: 72px; height: 48px; border-radius: 6px; background: #fafafa"
             />
 
             <span v-else>-</span>
@@ -113,13 +113,13 @@
                   :before-upload="beforeCoverUpload"
                   :on-change="handleCoverSelected"
                 >
-                  <el-button type="primary">本地上传</el-button>
+                  <el-button type="primary">上传封面图片</el-button>
                 </el-upload>
                 <el-button v-if="form.coverImageUrl" @click="clearCoverImage">清空封面</el-button>
                 <span class="cover-tip">仅支持上传图片，上传后自动保存为图片地址</span>
               </div>
               <div v-if="form.coverImageUrl" class="cover-preview">
-                <img :src="withFilePrefix(form.coverImageUrl)" alt="封面预览" />
+                <img :src="withFilePrefix(form.coverImagePreviewUrl)" alt="封面预览" />
               </div>
             </el-form-item>
           </el-col>
@@ -140,7 +140,7 @@
                   :before-upload="beforeSimulatorUpload"
                   :on-change="handleSimulatorSelected"
                 >
-                  <el-button type="primary">上传HTML</el-button>
+                  <el-button type="primary">上传模拟器HTML</el-button>
                 </el-upload>
                 <el-button v-if="form.simulatorUrl" @click="clearSimulatorUrl">清空</el-button>
               </div>
@@ -156,8 +156,8 @@
           <el-col :span="24">
             <el-form-item label="状态" prop="status">
               <el-radio-group v-model="form.status">
-                <el-radio label="y">启用</el-radio>
-                <el-radio label="n">停用</el-radio>
+                <el-radio value="y">启用</el-radio>
+                <el-radio value="n">停用</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
@@ -181,7 +181,7 @@ import {
   fetchExpSimulators,
   recordExpSimulatorLog,
   updateExpSimulator,
-  uploadFile as uploadSimulatorFile
+  uploadMinioFile as uploadSimulatorFile
 } from '../../api/index'
 
 const loading = ref(false)
@@ -199,7 +199,7 @@ const subjectOptions = ref([])
 const fileUrlPrefix = (import.meta.env.VITE_File_URL_PREFIX || '').trim()
 
 const query = reactive({ keyword: '', status: '', pageNum: 1, pageSize: 10 })
-const form = reactive({ simulatorName: '', subjectId: '', coverImageUrl: '', simulatorUrl: '', comments: '', status: 'y' })
+const form = reactive({ simulatorName: '', subjectId: '', coverImageUrl: '',coverImagePreviewUrl:'', simulatorUrl: '', comments: '', status: 'y' })
 
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim())
 const isHtmlFile = (value) => {
@@ -248,6 +248,7 @@ const resetForm = () => {
   form.simulatorName = ''
   form.subjectId = ''
   form.coverImageUrl = ''
+  form.coverImagePreviewUrl = ''
   form.simulatorUrl = ''
   form.comments = ''
   form.status = 'y'
@@ -255,6 +256,7 @@ const resetForm = () => {
 
 const clearCoverImage = () => {
   form.coverImageUrl = ''
+  form.coverImagePreviewUrl = ''
 }
 
 const clearSimulatorUrl = () => {
@@ -347,6 +349,7 @@ const openEditDialog = (row) => {
   form.simulatorName = row.simulatorName || ''
   form.subjectId = row.subjectId != null ? String(row.subjectId) : ''
   form.coverImageUrl = row.coverImageUrl || ''
+  form.coverImagePreviewUrl = row.coverImagePreviewUrl || ''
   form.simulatorUrl = row.simulatorUrl || ''
   form.comments = row.comments || ''
   form.status = row.status || 'y'
@@ -391,6 +394,7 @@ const handleCoverSelected = async (uploadFile) => {
     if (res.data.code === 200) {
       const data = res.data.data || {}
       form.coverImageUrl = data.fileUrl || data.url || data.path || ''
+      form.coverImagePreviewUrl = data.previewUrl || data.url || data.path || ''
       if (!form.coverImageUrl) {
         ElMessage.error('上传成功，但未返回图片地址')
       }
@@ -428,7 +432,7 @@ const handleSimulatorSelected = async (uploadFile) => {
 }
 
 const openSimulator = async (row) => {
-  const url = normalizeUrl(row.simulatorUrl)
+  const url = normalizeUrl(row.simulatorPreviewUrl)
   if (!validateSimulatorUrlPattern(url)) {
     ElMessage.warning('模拟器URL无效')
     return
