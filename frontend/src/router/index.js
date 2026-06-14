@@ -179,6 +179,16 @@ const routes = [
         component: () => import('../views/exp/QueryExpTeach.vue')
       },
       {
+        path: 'exp/exp-student-audit',
+        name: 'exp-student-audit-management',
+        component: () => import('../views/exp/AuditExpStudent.vue')
+      },
+      {
+        path: 'exp/exp-student-public',
+        name: 'exp-student-query-management',
+        component: () => import('../views/exp/QueryExpStudent.vue')
+      },
+      {
         path: 'exp/exp-question',
         name: 'exp-question-management',
         component: () => import('../views/exp/ExpQuestionView.vue')
