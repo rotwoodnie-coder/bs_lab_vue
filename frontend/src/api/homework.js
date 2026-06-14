@@ -20,6 +20,10 @@ export function fetchExpHomeworks(params) {
   export function deleteExpHomework(id) {
     return request.delete(`/homework/${id}`)
   }
+
+  export function assignExpHomework(id) {
+    return request.put(`/homework/${id}/assign`)
+  }
   
   // homework student
   export function fetchExpHomeworkStudents(params) {

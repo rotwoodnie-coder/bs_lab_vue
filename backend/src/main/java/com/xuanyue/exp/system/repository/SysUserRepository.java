@@ -14,6 +14,10 @@ public interface SysUserRepository extends JpaRepository<SysUser, String> {
 
     List<SysUser> findByUserNameContainingOrLoginNameContaining(String userName, String loginName);
 
+    List<SysUser> findByUserOrgIdAndStatus(String userOrgId, String status);
+
+    List<SysUser> findByUserOrgIdAndStatusAndUserRoleId(String userOrgId, String status, String userRoleId);
+
     List<SysUser> findByStatus(String status);
 
     List<SysUser> findByUserNameContainingOrLoginNameContainingAndStatus(String userName, String loginName, String status);

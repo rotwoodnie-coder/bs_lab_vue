@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.Date;
 
 @Entity
@@ -26,6 +27,9 @@ public class ExpHomeworkStudent {
     @Column(name = "require_date")
     private String requireDate;
 
+    @Column(name = "student_user_id")
+    private String studentUserId;
+    
     @Column(name = "student_exp_id")
     private String studentExpId;
 
@@ -43,6 +47,18 @@ public class ExpHomeworkStudent {
 
     @Column(name = "mark_result")
     private String markResult;
+
+    @Transient
+    private String teacherExpName;
+
+    @Transient
+    private String teacherUserName;
+
+    @Transient
+    private String studentExpName;
+
+    @Transient
+    private String studentUserName;
 
     public String getSeqId() { return seqId; }
     public void setSeqId(String seqId) { this.seqId = seqId; }
@@ -66,4 +82,14 @@ public class ExpHomeworkStudent {
     public void setMarkComments(String markComments) { this.markComments = markComments; }
     public String getMarkResult() { return markResult; }
     public void setMarkResult(String markResult) { this.markResult = markResult; }
+    public String getStudentUserId() { return studentUserId; }
+    public void setStudentUserId(String studentUserId) { this.studentUserId = studentUserId; }
+    public String getTeacherExpName() { return teacherExpName; }
+    public void setTeacherExpName(String teacherExpName) { this.teacherExpName = teacherExpName; }
+    public String getTeacherUserName() { return teacherUserName; }
+    public void setTeacherUserName(String teacherUserName) { this.teacherUserName = teacherUserName; }
+    public String getStudentExpName() { return studentExpName; }
+    public void setStudentExpName(String studentExpName) { this.studentExpName = studentExpName; }
+    public String getStudentUserName() { return studentUserName; }
+    public void setStudentUserName(String studentUserName) { this.studentUserName = studentUserName; }
 }

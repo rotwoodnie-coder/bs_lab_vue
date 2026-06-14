@@ -27,14 +27,14 @@ public class ExpHomeworkController {
     }
 
     @GetMapping
-    public ApiResponse<PageResult<ExpHomework>> page(@RequestParam(value = "keyword", required = false) String keyword,
+    public ApiResponse<PageResult<Map<String, Object>>> page(@RequestParam(value = "keyword", required = false) String keyword,
                                                      @RequestParam(value = "teacherExpId", required = false) String teacherExpId,
-                                                     @RequestParam(value = "tearcherUserId", required = false) String tearcherUserId,
+                                                     @RequestParam(value = "teacherUserId", required = false) String teacherUserId,
                                                      @RequestParam(value = "classId", required = false) String classId,
                                                      @RequestParam(value = "requireDate", required = false) String requireDate,
                                                      @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
                                                      @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        return ApiResponse.success(service.page(keyword, teacherExpId, tearcherUserId, classId, requireDate, pageNum, pageSize));
+        return ApiResponse.success(service.page(keyword, teacherExpId, teacherUserId, classId, requireDate, pageNum, pageSize));
     }
 
     @GetMapping("/{id}")
@@ -51,6 +51,12 @@ public class ExpHomeworkController {
     @PutMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable("id") String id, @RequestBody Map<String, Object> payload) {
         service.update(id, payload);
+        return ApiResponse.success(null);
+    }
+
+    @PutMapping("/{id}/assign")
+    public ApiResponse<Void> assign(@PathVariable("id") String id) {
+        service.assign(id);
         return ApiResponse.success(null);
     }
 

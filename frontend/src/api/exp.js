@@ -8,6 +8,10 @@ export function fetchExpStandardsMy(params) {
   return request.get('/exp/standards/my', { params })
 }
 
+export function fetchExpStandardsAll(params) {
+  return request.get('/exp/standards', { params })
+}
+
 export function fetchExpTeaches(params) {
   return request.get('/exp/teaches', { params })
 }

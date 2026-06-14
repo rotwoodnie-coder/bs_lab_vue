@@ -51,6 +51,14 @@ export function saveTeacherSubject(teacherId, data) {
   return request.put(`/edu/teacher-subjects/${teacherId}`, data)
 }
 
+export function fetchTeacherClasses(params) {
+  return request.get('/edu/teacher-classes', { params })
+}
+
+export function saveTeacherClasses(teacherId, data) {
+  return request.put(`/edu/teacher-classes/${teacherId}`, data)
+}
+
 
 //subject group
 export function fetchSubjectGroups(params) {
