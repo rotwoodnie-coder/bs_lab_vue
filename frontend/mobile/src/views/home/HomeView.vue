@@ -8,9 +8,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { ensureNoticeReadState } from '@/utils/noticeRead'
 import BottomNav from '@/components/BottomNav.vue'
 import HomeNoticeModal from '@/components/HomeNoticeModal.vue'
 import HomeStudent from './HomeStudent.vue'
@@ -32,8 +31,4 @@ const themeClass = computed(() => {
 function onNoticeLoaded(notice) {
   latestNotice.value = notice
 }
-
-onMounted(() => {
-  ensureNoticeReadState().catch(() => {})
-})
 </script>

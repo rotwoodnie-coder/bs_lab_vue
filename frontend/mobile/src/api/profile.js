@@ -10,7 +10,7 @@ export function fetchProfile() {
 
 /**
  * 更新个人资料
- * @param {object} data - { userName?, userNickName?, userPhone?, userEmail?, perResume? }
+ * @param {object} data - { userName?, userNickName?, userPhone?, userEmail?, perResume?, userLogo? }
  */
 export function updateProfile(data) {
   return request.put('/mobile/profile', data)

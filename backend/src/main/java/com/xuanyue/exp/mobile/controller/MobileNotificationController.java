@@ -40,4 +40,9 @@ public class MobileNotificationController {
         sysMsgService.markRead(msgId, currentUserId);
         return ApiResponse.success(null);
     }
+
+    @PutMapping("/read-all")
+    public ApiResponse<?> markAllRead(@RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
+        return ApiResponse.success(sysMsgService.markAllRead(currentUserId));
+    }
 }

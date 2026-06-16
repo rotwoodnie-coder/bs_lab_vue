@@ -42,7 +42,9 @@
             :class="msg.role === 'user' ? 'msg-user' : 'msg-ai'"
             v-html="msg.content"
           ></div>
-          <div v-if="msg.role === 'user'" class="avatar avatar-sm avatar-grad-warm shrink-0" aria-hidden="true">{{ userInitial }}</div>
+          <div v-if="msg.role === 'user'" class="shrink-0">
+            <UserAvatar size="sm" shrink aria-hidden />
+          </div>
         </div>
 
         <!-- 打字指示器 -->
@@ -134,9 +136,12 @@ import { normalizeRole } from '@/utils/role'
 import { sendChatMessage, fetchChatHistory, clearChatSession } from '@/api/chat'
 import { createSpeechRecognizer, isSpeechRecognitionSupported } from '@/utils/speechRecognition'
 import PageBackButton from '@/components/PageBackButton.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useProfileStore } from '@/stores/profile'
 
 const router = useRouter()
 const userStore = useUserStore()
+const profileStore = useProfileStore()
 const appStore = useAppStore()
 
 appStore.setActiveTab('chat')
@@ -155,8 +160,7 @@ const threadId = ref('')
 const messages = ref([])
 let voiceRecognizer = null
 
-const userName = computed(() => userStore.userInfo.username || '用户')
-const userInitial = computed(() => userName.value.charAt(0) || '用')
+const userName = computed(() => profileStore.displayName || userStore.userInfo.username || '用户')
 const userRoleId = computed(() => normalizeRole(userStore.userInfo.userRoleId))
 
 const roleConfig = computed(() => {

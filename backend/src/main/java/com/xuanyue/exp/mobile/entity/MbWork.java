@@ -65,6 +65,15 @@ public class MbWork {
     @Column(name = "school_name")
     private String schoolName;
 
+    @Column(name = "class_org_id")
+    private String classOrgId;
+
+    @Column(name = "school_grade_id")
+    private String schoolGradeId;
+
+    @Column(name = "review_time")
+    private Date reviewTime;
+
     @Column(name = "tint")
     private String tint;
 
@@ -110,6 +119,12 @@ public class MbWork {
     public void setClassName(String className) { this.className = className; }
     public String getSchoolName() { return schoolName; }
     public void setSchoolName(String schoolName) { this.schoolName = schoolName; }
+    public String getClassOrgId() { return classOrgId; }
+    public void setClassOrgId(String classOrgId) { this.classOrgId = classOrgId; }
+    public String getSchoolGradeId() { return schoolGradeId; }
+    public void setSchoolGradeId(String schoolGradeId) { this.schoolGradeId = schoolGradeId; }
+    public Date getReviewTime() { return reviewTime; }
+    public void setReviewTime(Date reviewTime) { this.reviewTime = reviewTime; }
     public String getTint() { return tint; }
     public void setTint(String tint) { this.tint = tint; }
     public String getStatus() { return status; }

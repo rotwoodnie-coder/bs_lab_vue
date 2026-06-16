@@ -34,7 +34,14 @@
         <div v-if="loading" class="text-sm muted mb-4">正在加载申请信息…</div>
 
         <div v-else-if="showChildCard" class="child-card mb-4">
-          <div class="child-avatar">{{ primaryItem.childName.charAt(0) || '?' }}</div>
+          <div class="child-card__avatar-wrap">
+            <UserAvatar
+              size="xl"
+              :name="primaryItem.childName"
+              :src="primaryItem.childAvatarUrl"
+              role="student"
+            />
+          </div>
           <div class="child-name">{{ primaryItem.childName }}</div>
           <div class="child-class">{{ classLabel(primaryItem) || '班级信息待确认' }}</div>
           <div v-if="primaryItem.relation" class="child-relation text-xs muted mt-1">关系：{{ primaryItem.relation }}</div>
@@ -49,7 +56,9 @@
         </div>
 
         <div v-else-if="!loading && !primaryItem.childName" class="child-card mb-4">
-          <div class="child-avatar">?</div>
+          <div class="child-card__avatar-wrap">
+            <UserAvatar size="xl" name="?" role="student" />
+          </div>
           <div class="child-name">暂无申请详情</div>
           <div class="child-class">{{ restricted ? '请耐心等待审核' : '请稍后在个人中心查看审核进度' }}</div>
         </div>
@@ -58,7 +67,13 @@
           <div class="text-xs font-semibold muted-2 text-left">绑定申请记录</div>
           <div v-for="item in applications" :key="item.bindId || item.childName" class="apply-item">
             <div class="apply-item__info">
-              <div class="apply-item__avatar">{{ (item.childName || '?').charAt(0) }}</div>
+              <UserAvatar
+                size="sm"
+                :name="item.childName"
+                :src="item.childAvatarUrl"
+                role="student"
+                extra-class="apply-item__avatar-host"
+              />
               <div>
                 <div class="apply-item__name">{{ item.childName || '未填写' }}</div>
                 <div class="apply-item__class">{{ classLabel(item) || '班级信息待确认' }}</div>
@@ -145,6 +160,8 @@ import {
 } from '@/utils/parentAccess'
 import { useUserStore } from '@/stores/user'
 import { fetchBindApplications } from '@/api/parent'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 import {
   readBindSuccessSnapshot,
   normalizeBindItem,
@@ -379,11 +396,7 @@ async function loadApplicationsFromApi() {
   }
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(async () => {
   snapshotItem.value = readBindSuccessSnapshot()
@@ -444,14 +457,10 @@ onUnmounted(() => {
   margin-bottom: 0;
   border: 1px solid var(--color-border-soft);
 }
-.child-avatar {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  background: var(--gradient-amber-rose);
-  display: flex; align-items: center; justify-content: center;
+.child-card__avatar-wrap {
+  display: flex;
+  justify-content: center;
   margin: 0 auto var(--space-3);
-  font-size: 30px; font-weight: var(--weight-bold); color: #fff;
-  box-shadow: 0 4px 16px rgba(217,119,6,0.24);
 }
 .child-name { font-size: var(--text-xl); font-weight: var(--weight-bold); }
 .child-class { font-size: var(--text-xs); color: var(--color-text-3); margin-top: var(--space-1); }
@@ -499,12 +508,8 @@ onUnmounted(() => {
 }
 .apply-item + .apply-item { margin-top: var(--space-2); }
 .apply-item__info { display: flex; align-items: center; gap: var(--space-3); min-width: 0; text-align: left; }
-.apply-item__avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: var(--weight-bold); color: #fff;
+.apply-item__avatar-host {
   flex-shrink: 0;
-  background: var(--gradient-amber-rose);
 }
 .apply-item__name { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-text-1); }
 .apply-item__class { font-size: var(--text-xs); color: var(--color-text-3); margin-top: 1px; }

@@ -54,7 +54,7 @@
 
         <div v-else-if="items.length === 0" class="empty-state py-8">
           <i data-lucide="flask-conical" class="icon icon-xl muted-2"></i>
-          <p class="muted-2 mt-3">暂无内容</p>
+          <p class="muted-2 mt-3">{{ emptyHint }}</p>
         </div>
 
         <div v-else class="waterfall-grid home-feed px-4">
@@ -77,12 +77,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { useAppStore } from '@/stores/app'
-import { fetchHomeFeed, fetchGradeFilters, fetchLatestNotice } from '@/api/home'
-import { fetchUnreadCount } from '@/api/notification'
+import { fetchHomeBootstrap, fetchHomeFeed } from '@/api/home'
+import { GRADE_FILTERS, gradeEmptyHint } from '@/utils/gradeFilters'
 import FeedCard from '@/components/FeedCard.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const emit = defineEmits(['notice-loaded'])
 
@@ -90,33 +91,47 @@ const appStore = useAppStore()
 appStore.setActiveTab('home')
 
 const items = ref([])
-const gradeFilters = ref([{ key: 'all', label: '全部' }])
+const gradeFilters = ref(GRADE_FILTERS)
 const activeGradeKey = ref('all')
+const emptyHint = computed(() => gradeEmptyHint(activeGradeKey.value))
 const unreadCount = ref(0)
 
 const page = ref(1)
-const total = ref(0)
 const loading = ref(false)
 const loadingMore = ref(false)
-const hasMore = computed(() => items.value.length < total.value)
+const hasMore = ref(false)
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 12
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
+const { initIcons } = useLucideIcons()
+
+async function loadBootstrap() {
+  loading.value = true
+  page.value = 1
+  try {
+    const res = await fetchHomeBootstrap({
+      gradeKey: activeGradeKey.value,
+      size: PAGE_SIZE
+    })
+    if (res?.data) {
+      applyFeedData(res.data.feed)
+      unreadCount.value = Number(res.data.unreadCount || 0)
+      if (res.data.notice) emit('notice-loaded', res.data.notice)
+    }
+  } catch (e) {
+    console.warn('加载首页失败', e)
+    await loadFeed(false)
+  } finally {
+    loading.value = false
+    initIcons()
+  }
 }
 
-async function loadGradeFilters() {
-  try {
-    const res = await fetchGradeFilters()
-    if (res?.data?.length) gradeFilters.value = res.data
-  } catch (e) {
-    console.warn('加载年级列表失败', e)
-  }
+function applyFeedData(feed) {
+  if (!feed) return
+  const records = feed.records || []
+  hasMore.value = records.length >= PAGE_SIZE
+  items.value = records
 }
 
 async function loadFeed(isLoadMore = false) {
@@ -134,7 +149,7 @@ async function loadFeed(isLoadMore = false) {
     })
     if (res?.data) {
       const records = res.data.records || []
-      total.value = res.data.total || 0
+      hasMore.value = records.length >= PAGE_SIZE
       items.value = isLoadMore ? [...items.value, ...records] : records
     }
   } catch (e) {
@@ -143,22 +158,6 @@ async function loadFeed(isLoadMore = false) {
     loading.value = false
     loadingMore.value = false
     initIcons()
-  }
-}
-
-async function loadNotice() {
-  try {
-    const res = await fetchLatestNotice()
-    if (res?.data) emit('notice-loaded', res.data)
-  } catch { /* ignore */ }
-}
-
-async function loadUnread() {
-  try {
-    const res = await fetchUnreadCount()
-    unreadCount.value = Number(res?.data || 0)
-  } catch {
-    unreadCount.value = 0
   }
 }
 
@@ -174,9 +173,6 @@ function loadMore() {
 }
 
 onMounted(() => {
-  loadGradeFilters()
-  loadFeed()
-  loadNotice()
-  loadUnread()
+  loadBootstrap()
 })
 </script>

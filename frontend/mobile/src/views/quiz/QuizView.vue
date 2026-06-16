@@ -16,7 +16,7 @@
 
     <div v-else-if="!quiz.ready" class="px-4 py-12 text-center stack-3">
       <p class="muted-2">{{ quiz.message || '题库暂无可用题目' }}</p>
-      <router-link to="/tasks?category=quiz" class="btn btn-ghost btn-sm">返回我的任务</router-link>
+      <router-link to="/tasks?status=pending&category=quiz" class="btn btn-ghost btn-sm">返回我的任务</router-link>
     </div>
 
     <template v-else>
@@ -90,6 +90,7 @@ import { useRoute, useRouter } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTodayQuiz, submitQuiz } from '@/api/quiz'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const QUIZ_DRAFT_KEY = 'mb_quiz_draft'
 const QUIZ_RESULT_KEY = 'mb_quiz_result'
@@ -97,6 +98,7 @@ const QUIZ_RESULT_KEY = 'mb_quiz_result'
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
+const submitting = ref(false)
 const currentIndex = ref(0)
 const quiz = ref({
   ready: false,
@@ -165,33 +167,49 @@ async function next() {
 }
 
 async function submitDraft(practice) {
+  if (submitting.value) return
+  submitting.value = true
   try {
     const res = await submitQuiz({ answers: answers.value, practice })
     if (res?.code === 200 && res.data) {
       sessionStorage.setItem(QUIZ_RESULT_KEY, JSON.stringify(res.data))
       sessionStorage.removeItem(QUIZ_DRAFT_KEY)
-      router.push(`/quiz/result/${res.data.resultType || (practice ? 'practice' : 'low')}`)
+      router.replace(`/quiz/result/${res.data.resultType || (practice ? 'practice' : 'low')}`)
       return
     }
-    if (res?.code === 409) {
+    if (res?.code === 409 && !practice) {
+      const todayRes = await fetchTodayQuiz().catch(() => null)
+      const tr = todayRes?.data?.todayResult
+      if (tr) {
+        const data = {
+          score: tr.score,
+          total: tr.total,
+          points: tr.points,
+          perfect: tr.perfect,
+          resultType: tr.resultType || (tr.perfect ? 'perfect' : 'low'),
+          streakDays: tr.streakDays
+        }
+        sessionStorage.setItem(QUIZ_RESULT_KEY, JSON.stringify(data))
+        sessionStorage.removeItem(QUIZ_DRAFT_KEY)
+        router.replace(`/quiz/result/${data.resultType}`)
+        return
+      }
       router.replace('/quiz/completed')
       return
     }
     alert(res?.message || '提交失败，请稍后重试')
   } catch (e) {
-    if (e?.response?.status === 409) {
+    if (e?.response?.status === 409 && !practice) {
       router.replace('/quiz/completed')
       return
     }
     alert(e?.response?.data?.message || '提交失败，请稍后重试')
+  } finally {
+    submitting.value = false
   }
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(async () => {
   try {

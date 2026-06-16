@@ -1,69 +1,70 @@
 package com.xuanyue.exp.mobile.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xuanyue.exp.mobile.dto.MobileAccountSecurityDto;
 import com.xuanyue.exp.mobile.dto.MobileUserPreferencesDto;
-import com.xuanyue.exp.mobile.entity.MbNoticeRead;
 import com.xuanyue.exp.mobile.entity.MbParentChild;
-import com.xuanyue.exp.mobile.entity.MbUserSettings;
-import com.xuanyue.exp.mobile.repository.MbNoticeReadRepository;
 import com.xuanyue.exp.mobile.repository.MbParentChildRepository;
-import com.xuanyue.exp.mobile.repository.MbUserSettingsRepository;
+import com.xuanyue.exp.mobile.support.MobileIds;
+import com.xuanyue.exp.system.entity.SysMsg;
 import com.xuanyue.exp.system.entity.SysUser;
+import com.xuanyue.exp.system.repository.SysMsgRepository;
 import com.xuanyue.exp.system.repository.SysUserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * 移动端设置：公告已读走 sys_msg.read_tag + link_id（与 school_notice 发布逻辑一致）；
+ * 用户偏好暂无独立表，进程内缓存（实库未建 mb_user_settings）。
+ */
 @Service
 public class MobileSettingsService {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    /** 与 SchoolNoticeServiceImpl 发布公告时写入的 msg_type_id 一致 */
+    private static final String MSG_TYPE_NOTICE = "Msg_Notice";
+
     private static final SimpleDateFormat LOGIN_FMT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
-    private final MbUserSettingsRepository userSettingsRepository;
-    private final MbNoticeReadRepository noticeReadRepository;
+    /** 无 mb_user_settings 表时的运行时偏好缓存 */
+    private final Map<String, MobileUserPreferencesDto> preferenceCache = new ConcurrentHashMap<>();
+
     private final MbParentChildRepository parentChildRepository;
     private final SysUserRepository sysUserRepository;
+    private final SysMsgRepository sysMsgRepository;
     private final MobileDingTalkService dingTalkService;
 
-    public MobileSettingsService(MbUserSettingsRepository userSettingsRepository,
-                                 MbNoticeReadRepository noticeReadRepository,
-                                 MbParentChildRepository parentChildRepository,
+    public MobileSettingsService(MbParentChildRepository parentChildRepository,
                                  SysUserRepository sysUserRepository,
+                                 SysMsgRepository sysMsgRepository,
                                  MobileDingTalkService dingTalkService) {
-        this.userSettingsRepository = userSettingsRepository;
-        this.noticeReadRepository = noticeReadRepository;
         this.parentChildRepository = parentChildRepository;
         this.sysUserRepository = sysUserRepository;
+        this.sysMsgRepository = sysMsgRepository;
         this.dingTalkService = dingTalkService;
     }
 
     public MobileUserPreferencesDto getPreferences(String userId) {
         String uid = resolveUserId(userId);
-        return userSettingsRepository.findById(uid)
-                .map(this::parsePreferences)
-                .orElseGet(MobileUserPreferencesDto::new);
+        if (!StringUtils.hasText(uid)) {
+            return new MobileUserPreferencesDto();
+        }
+        return preferenceCache.getOrDefault(uid, new MobileUserPreferencesDto());
     }
 
-    @Transactional
     public MobileUserPreferencesDto savePreferences(String userId, MobileUserPreferencesDto preferences) {
         String uid = resolveUserId(userId);
         MobileUserPreferencesDto toSave = preferences != null ? preferences : new MobileUserPreferencesDto();
-        MbUserSettings entity = userSettingsRepository.findById(uid).orElseGet(MbUserSettings::new);
-        entity.setUserId(uid);
-        try {
-            entity.setSettingsJson(MAPPER.writeValueAsString(toSave));
-        } catch (Exception e) {
-            throw new IllegalStateException("保存设置失败");
+        if (StringUtils.hasText(uid)) {
+            preferenceCache.put(uid, toSave);
         }
-        entity.setUpdateTime(new Date());
-        userSettingsRepository.save(entity);
         return toSave;
     }
 
@@ -128,8 +129,14 @@ public class MobileSettingsService {
 
     public List<String> listReadNoticeIds(String userId) {
         String uid = resolveUserId(userId);
-        return noticeReadRepository.findByUserIdOrderByReadTimeDesc(uid).stream()
-                .map(MbNoticeRead::getNoticeId)
+        if (!StringUtils.hasText(uid)) {
+            return Collections.emptyList();
+        }
+        return sysMsgRepository.findByReceiverUserIdAndMsgTypeIdOrderBySendTimeDesc(uid, MSG_TYPE_NOTICE).stream()
+                .filter(msg -> isRead(msg.getReadTag()))
+                .map(SysMsg::getLinkId)
+                .filter(StringUtils::hasText)
+                .distinct()
                 .collect(Collectors.toList());
     }
 
@@ -138,7 +145,15 @@ public class MobileSettingsService {
             return false;
         }
         String uid = resolveUserId(userId);
-        return noticeReadRepository.existsByUserIdAndNoticeId(uid, noticeId.trim());
+        if (!StringUtils.hasText(uid)) {
+            return false;
+        }
+        String id = noticeId.trim();
+        List<SysMsg> messages = sysMsgRepository.findByReceiverUserIdAndLinkIdOrderBySendTimeDesc(uid, id);
+        if (messages.isEmpty()) {
+            return false;
+        }
+        return messages.stream().anyMatch(msg -> isRead(msg.getReadTag()));
     }
 
     @Transactional
@@ -147,26 +162,37 @@ public class MobileSettingsService {
             throw new IllegalArgumentException("公告 ID 不能为空");
         }
         String uid = resolveUserId(userId);
+        if (!StringUtils.hasText(uid)) {
+            throw new IllegalArgumentException("请先登录");
+        }
         String id = noticeId.trim();
-        if (noticeReadRepository.existsByUserIdAndNoticeId(uid, id)) {
+        Date now = new Date();
+        List<SysMsg> messages = sysMsgRepository.findByReceiverUserIdAndLinkIdOrderBySendTimeDesc(uid, id);
+        if (!messages.isEmpty()) {
+            for (SysMsg msg : messages) {
+                if (!isRead(msg.getReadTag())) {
+                    msg.setReadTag("1");
+                    msg.setReadTime(now);
+                    sysMsgRepository.save(msg);
+                }
+            }
             return;
         }
-        MbNoticeRead read = new MbNoticeRead();
-        read.setUserId(uid);
-        read.setNoticeId(id);
-        read.setReadTime(new Date());
-        noticeReadRepository.save(read);
+        // 无广播消息时（如仅展示 school_notice 最新一条），写入已读回执到 sys_msg
+        SysMsg receipt = new SysMsg();
+        receipt.setMsgId(MobileIds.newId());
+        receipt.setReceiverUserId(uid);
+        receipt.setMsgTypeId(MSG_TYPE_NOTICE);
+        receipt.setMsgContent("{\"noticeRead\":true}");
+        receipt.setReadTag("1");
+        receipt.setLinkId(id);
+        receipt.setSendTime(now);
+        receipt.setReadTime(now);
+        sysMsgRepository.save(receipt);
     }
 
-    private MobileUserPreferencesDto parsePreferences(MbUserSettings entity) {
-        if (entity == null || !StringUtils.hasText(entity.getSettingsJson())) {
-            return new MobileUserPreferencesDto();
-        }
-        try {
-            return MAPPER.readValue(entity.getSettingsJson(), MobileUserPreferencesDto.class);
-        } catch (Exception e) {
-            return new MobileUserPreferencesDto();
-        }
+    private boolean isRead(String readTag) {
+        return "1".equals(safe(readTag));
     }
 
     private String maskPhone(String phone) {
@@ -178,5 +204,9 @@ public class MobileSettingsService {
 
     private String resolveUserId(String userId) {
         return StringUtils.hasText(userId) ? userId.trim() : userId;
+    }
+
+    private static String safe(String value) {
+        return value != null ? value.trim() : "";
     }
 }

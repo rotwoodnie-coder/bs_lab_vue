@@ -87,6 +87,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 import SimCard from '@/components/SimCard.vue'
 import { fetchSimulators } from '@/api/simulator'
 import { fetchDictItems } from '@/api/dict'
@@ -113,13 +114,7 @@ const showResults = computed(() => hasSearched.value && query.value.trim().lengt
 
 let debounceTimer = null
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 function refreshRecent() {
   recentList.value = loadExpSearchRecent()

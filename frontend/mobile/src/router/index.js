@@ -13,6 +13,7 @@ import {
 } from '@/utils/parentAccess'
 
 import { useUserStore } from '@/stores/user'
+import { useProfileStore } from '@/stores/profile'
 
 
 
@@ -58,7 +59,11 @@ const routes = [
 
   { path: '/sim/:id', name: 'sim-detail', component: () => import('@/views/experiment/VirtualExpDetailView.vue') },
 
-  { path: '/tasks', name: 'tasks', component: () => import('@/views/tasks/TasksView.vue'), meta: { roles: ['student', 'parent', 'teacher'] } },
+  { path: '/tasks', name: 'tasks', component: () => import('@/views/tasks/TasksView.vue'), meta: { roles: ['student', 'parent', 'teacher', 'researcher', 'admin'] } },
+
+  { path: '/tasks/:taskId/summary', name: 'task-summary', component: () => import('@/views/teacher/TaskSummaryView.vue'), meta: { roles: ['teacher'] } },
+
+  { path: '/tasks/:taskId/submissions/:workId', name: 'task-submission', component: () => import('@/views/teacher/TaskSubmissionView.vue'), meta: { roles: ['teacher'] } },
 
   { path: '/tasks/:id', name: 'task-detail', component: () => import('@/views/tasks/TaskDetailView.vue'), meta: { roles: ['student', 'parent'] } },
 
@@ -86,9 +91,18 @@ const routes = [
 
   { path: '/assign', name: 'assign', component: () => import('@/views/teacher/AssignView.vue'), meta: { roles: ['teacher'] } },
 
-  { path: '/review', name: 'review', component: () => import('@/views/teacher/ReviewView.vue'), meta: { roles: ['teacher'] } },
+  { path: '/review', redirect: '/audits' },
 
-  { path: '/board', name: 'board', component: () => import('@/views/teacher/ProgressBoardView.vue'), meta: { roles: ['teacher'] } },
+  { path: '/board', redirect: (to) => {
+    if (to.query.taskId) return { path: `/tasks/${to.query.taskId}/summary`, replace: true }
+    return { path: '/tasks', replace: true }
+  }},
+
+  { path: '/audits', name: 'audits', component: () => import('@/views/audits/AuditsHubView.vue'), meta: { roles: ['teacher', 'researcher', 'admin'] } },
+
+  { path: '/content-audits', name: 'content-audits', component: () => import('@/views/researcher/ContentAuditsView.vue'), meta: { roles: ['researcher', 'admin'] } },
+
+  { path: '/content-audits/:expId', name: 'content-audit-detail', component: () => import('@/views/researcher/ContentAuditDetailView.vue'), meta: { roles: ['researcher', 'admin'] } },
 
   { path: '/parent-binds', name: 'parent-binds', component: () => import('@/views/teacher/ParentBindAuditView.vue'), meta: { roles: ['teacher'] } },
 
@@ -117,6 +131,8 @@ const router = createRouter({
 function homeForRole(role) {
 
   if (role === 'parent') return '/tasks'
+
+  if (role === 'researcher' || role === 'admin') return '/home'
 
   return '/home'
 
@@ -166,6 +182,12 @@ router.beforeEach(async (to) => {
 
     return '/login'
 
+  }
+
+  try {
+    useProfileStore().loadProfile()
+  } catch {
+    // pinia not ready
   }
 
   if (isParentRoleUser()) {

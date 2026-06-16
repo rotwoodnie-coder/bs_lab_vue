@@ -2,6 +2,7 @@ package com.xuanyue.exp.mobile.controller;
 
 import com.xuanyue.exp.common.ApiResponse;
 import com.xuanyue.exp.common.PageResult;
+import com.xuanyue.exp.mobile.dto.HomeBootstrapDto;
 import com.xuanyue.exp.mobile.dto.HomeFeedItem;
 import com.xuanyue.exp.mobile.dto.NoticeDto;
 import com.xuanyue.exp.mobile.dto.ParentDashboardDto;
@@ -27,15 +28,29 @@ public class MobileHomeController {
     }
 
     /**
+     * 首页首屏聚合（feed + 公告 + 未读数）
+     * GET /api/mobile/home/bootstrap?gradeKey=all&size=12
+     */
+    @GetMapping("/bootstrap")
+    public ApiResponse<HomeBootstrapDto> bootstrap(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestParam(defaultValue = "all") String gradeKey,
+            @RequestParam(defaultValue = "12") int size) {
+        return ApiResponse.success(homeService.getBootstrap(userId, gradeKey, size));
+    }
+
+    /**
      * 获取首页信息流（分页）
      * GET /api/mobile/home/feed?gradeKey=all&page=1&size=20
      */
     @GetMapping("/feed")
     public ApiResponse<PageResult<HomeFeedItem>> getFeed(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestParam(value = "childUserId", required = false) String childUserId,
             @RequestParam(defaultValue = "all") String gradeKey,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        PageResult<HomeFeedItem> result = homeService.getFeed(gradeKey, page, size);
+        PageResult<HomeFeedItem> result = homeService.getFeed(userId, childUserId, gradeKey, page, size);
         return ApiResponse.success(result);
     }
 

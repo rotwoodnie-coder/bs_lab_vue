@@ -34,6 +34,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTodayQuiz } from '@/api/quiz'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const loading = ref(true)
 const history = ref([])
@@ -43,11 +44,7 @@ function historyLink(item) {
   return `/quiz/result/${type}?date=${item.date}`
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(async () => {
   try {

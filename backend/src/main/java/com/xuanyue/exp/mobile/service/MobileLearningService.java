@@ -33,6 +33,7 @@ import com.xuanyue.exp.mobile.support.MobileTextUtils;
 
 import com.xuanyue.exp.mobile.support.MobileUserContext;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -498,7 +499,17 @@ public class MobileLearningService {
 
 
 
-        if (quizRecordRepository.findByUserIdAndQuizDate(uid, todaySql).isPresent()) {
+        Optional<MbQuizRecord> existingOpt = quizRecordRepository.findByUserIdAndQuizDate(uid, todaySql);
+
+        if (existingOpt.isPresent()) {
+
+            MbQuizRecord existing = existingOpt.get();
+
+            if (isQuizSubmissionComplete(existing)) {
+
+                return toSubmitResult(existing, uid, todaySql);
+
+            }
 
             throw new IllegalStateException("今日已提交过答卷");
 
@@ -529,15 +540,98 @@ public class MobileLearningService {
         record.setAnswersJson(MobileJsonUtils.toJson(answers));
 
         record.setCreateTime(new java.util.Date());
-        quizRecordRepository.saveAndFlush(record);
+
+        try {
+
+            quizRecordRepository.saveAndFlush(record);
+
+        } catch (DataIntegrityViolationException ex) {
+
+            MbQuizRecord saved = quizRecordRepository.findByUserIdAndQuizDate(uid, todaySql)
+
+                    .orElseThrow(() -> new IllegalStateException("今日已提交过答卷"));
+
+            if (isQuizSubmissionComplete(saved)) {
+
+                return toSubmitResult(saved, uid, todaySql);
+
+            }
+
+            throw new IllegalStateException("今日已提交过答卷");
+
+        }
 
         if (points > 0) {
+
             pointsService.credit(uid, points, "quiz", record.getRecordId(), "每日答题");
+
         }
+
         growthEventService.onQuizSubmitted(uid, record, points);
+
         badgeGrantService.onQuizSubmitted(uid, record);
 
+
+
         return result;
+
+    }
+
+
+
+    /** 正式答卷已写入（有作答 JSON 或完整计分字段） */
+
+    private boolean isQuizSubmissionComplete(MbQuizRecord record) {
+
+        if (record == null) {
+
+            return false;
+
+        }
+
+        if (StringUtils.hasText(record.getAnswersJson())) {
+
+            List<Integer> parsed = MobileJsonUtils.parseIntegerList(record.getAnswersJson());
+
+            if (!parsed.isEmpty()) {
+
+                return true;
+
+            }
+
+        }
+
+        return record.getTotal() != null && record.getTotal() > 0
+
+                && record.getScore() != null
+
+                && StringUtils.hasText(record.getQuestionIdsJson());
+
+    }
+
+
+
+    private QuizSubmitResultDto toSubmitResult(MbQuizRecord record, String uid, Date todaySql) {
+
+        QuizSubmitResultDto dto = new QuizSubmitResultDto();
+
+        int score = record.getScore() != null ? record.getScore() : 0;
+
+        int total = record.getTotal() != null ? record.getTotal() : 0;
+
+        dto.setScore(score);
+
+        dto.setTotal(total);
+
+        dto.setPoints(record.getPoints() != null ? record.getPoints() : 0);
+
+        dto.setPerfect("y".equalsIgnoreCase(record.getPerfect()));
+
+        dto.setResultType(resolveResultType(score, total, false));
+
+        dto.setStreakDays(countStreakIncludingToday(uid, todaySql));
+
+        return dto;
 
     }
 

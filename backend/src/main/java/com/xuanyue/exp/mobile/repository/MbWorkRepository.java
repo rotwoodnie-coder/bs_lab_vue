@@ -4,6 +4,7 @@ import com.xuanyue.exp.mobile.entity.MbWork;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MbWorkRepository extends JpaRepository<MbWork, String> {
     List<MbWork> findByStatusAndWorkTypeOrderByCreateTimeDesc(String status, String workType);
@@ -14,4 +15,7 @@ public interface MbWorkRepository extends JpaRepository<MbWork, String> {
     long countByStudentUserIdAndStatus(String studentUserId, String status);
     long countByStudentUserIdAndStatusAndIsFeatured(String studentUserId, String status, String isFeatured);
     List<MbWork> findByTaskId(String taskId);
+
+    Optional<MbWork> findFirstByTaskIdAndStudentUserIdAndStatusOrderByCreateTimeDesc(
+            String taskId, String studentUserId, String status);
 }

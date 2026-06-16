@@ -8,6 +8,8 @@ public class StudentSearchItemDto {
     private String classOrgId;
     private String className;
     private String gradeName;
+    /** 学生头像可访问 URL */
+    private String avatarUrl;
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -21,4 +23,6 @@ public class StudentSearchItemDto {
     public void setClassName(String className) { this.className = className; }
     public String getGradeName() { return gradeName; }
     public void setGradeName(String gradeName) { this.gradeName = gradeName; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 }

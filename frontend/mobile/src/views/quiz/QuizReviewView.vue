@@ -66,6 +66,7 @@ import { useRoute } from 'vue-router'
 
 import { fetchQuizReview } from '@/api/quiz'
 import PageBackButton from '@/components/PageBackButton.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 
 
@@ -93,15 +94,7 @@ const backLink = computed(() => {
 
 
 
-function initIcons() {
-
-  nextTick(() => {
-
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-
-  })
-
-}
+const { initIcons } = useLucideIcons()
 
 
 

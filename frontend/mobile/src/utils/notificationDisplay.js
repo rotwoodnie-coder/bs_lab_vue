@@ -1,7 +1,7 @@
 import { formatDateTime } from './feedDisplay'
 
 const TYPE_META = {
-  task: { label: '学习任务', tab: 'study', icon: 'clipboard-list', tone: 'brand' },
+  task: { label: '实验任务', tab: 'study', icon: 'clipboard-list', tone: 'brand' },
   bind: { label: '绑定审核', tab: 'system', icon: 'user-check', tone: 'warning' },
   grade: { label: '批阅反馈', tab: 'study', icon: 'check-circle', tone: 'success' },
   achievement: { label: '成就提醒', tab: 'study', icon: 'award', tone: 'warning' },

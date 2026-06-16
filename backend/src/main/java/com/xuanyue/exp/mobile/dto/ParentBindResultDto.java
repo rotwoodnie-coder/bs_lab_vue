@@ -5,6 +5,8 @@ public class ParentBindResultDto {
     private String bindId;
     private String childUserId;
     private String childName;
+    /** 学生头像可访问 URL */
+    private String childAvatarUrl;
     private String bindStatus;
     private String schoolName;
     private String gradeName;
@@ -20,6 +22,8 @@ public class ParentBindResultDto {
     public void setChildUserId(String childUserId) { this.childUserId = childUserId; }
     public String getChildName() { return childName; }
     public void setChildName(String childName) { this.childName = childName; }
+    public String getChildAvatarUrl() { return childAvatarUrl; }
+    public void setChildAvatarUrl(String childAvatarUrl) { this.childAvatarUrl = childAvatarUrl; }
     public String getBindStatus() { return bindStatus; }
     public void setBindStatus(String bindStatus) { this.bindStatus = bindStatus; }
     public String getSchoolName() { return schoolName; }

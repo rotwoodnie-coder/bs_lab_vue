@@ -31,7 +31,7 @@
         <div class="pad-settings__mobile-home">
           <div class="px-4 mt-3 mb-1">
             <div class="card card-pad row items-center gap-3 w-full pad-settings__mobile-user">
-              <div class="avatar avatar-lg" :class="avatarClass" style="font-size:24px;">{{ userInitial }}</div>
+              <UserAvatar size="lg" font-size="24px" />
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-bold truncate">{{ displayName }}</div>
                 <div class="text-xs muted truncate">{{ mobileUserSubline }}</div>
@@ -95,13 +95,26 @@
             </div>
             <div class="col items-center settings-profile-form">
               <!-- 头像 -->
-              <div class="relative" @click="openAvatarSheet">
-                <div class="avatar avatar-xl" :class="avatarClass" style="font-size:36px;">{{ userInitial }}</div>
-                <div class="absolute row items-center justify-center" style="bottom:-4px;right:-4px;width:28px;height:28px;border-radius:var(--radius-full);background:var(--color-surface);box-shadow:var(--shadow-sm);cursor:pointer;">
+              <div
+                class="relative settings-avatar-trigger"
+                :class="{ 'settings-avatar-trigger--busy': avatarUploading }"
+                @click="openAvatarSheet"
+              >
+                <UserAvatar size="xl" extra-class="settings-avatar" font-size="36px">
+                  <template #overlay>
+                    <span v-if="avatarUploading" class="settings-avatar__mask">上传中…</span>
+                  </template>
+                </UserAvatar>
+                <div class="absolute row items-center justify-center settings-avatar__camera" aria-hidden="true">
                   <i data-lucide="camera" class="icon icon-sm muted"></i>
                 </div>
               </div>
-              <div class="text-xs muted mt-2" @click="openAvatarSheet" style="cursor:pointer;">点击更换头像</div>
+              <div class="text-xs muted mt-2" @click="openAvatarSheet" style="cursor:pointer;">
+                {{ avatarUploading ? '正在上传头像…' : '点击更换头像' }}
+              </div>
+              <p v-if="profileMsg && activeSection === 'profile'" class="text-xs mt-2" :class="profileMsgType === 'success' ? 'text-success' : 'text-danger'">
+                {{ profileMsg }}
+              </p>
 
               <!-- 角色标签：学生 -->
               <div v-if="isStudent" class="settings-profile-meta">
@@ -191,7 +204,13 @@
                     :key="child.id || child.name"
                     class="row items-center gap-3 surface-2 rounded-xl p-3"
                   >
-                    <div class="avatar avatar-sm" :class="child.isDefault ? 'avatar-grad-warm' : 'avatar-grad-cool'">{{ child.initial }}</div>
+                    <UserAvatar
+                      size="sm"
+                      :name="child.name"
+                      :src="child.avatarUrl"
+                      :grad-class="child.isDefault ? 'avatar-grad-warm' : 'avatar-grad-cool'"
+                      role="student"
+                    />
                     <div class="flex-1 min-w-0">
                       <div class="text-sm font-medium">{{ child.name }}</div>
                       <div v-if="child.hint" class="text-xs muted truncate">{{ child.hint }}</div>
@@ -226,7 +245,7 @@
             <!-- 各角色统一：简洁版（参考学生） -->
             <div class="settings-group">
               <div class="settings-card">
-                <div class="settings-row settings-row--action" @click="openSection('password')">
+                <div class="settings-row settings-row--action" @click="openAccountSubSection('password')">
                   <div class="settings-row__main">
                     <div class="settings-row__label">登录密码</div>
                     <div class="settings-row__hint">建议定期更换，不少于 8 位</div>
@@ -234,13 +253,14 @@
                   <span class="settings-row__value">修改</span>
                   <i data-lucide="chevron-right" class="icon muted-2"></i>
                 </div>
-                <div class="settings-row" :class="{ 'settings-row--action': !isStudent }" @click="!isStudent && changePhone()">
+                <div class="settings-row settings-row--action" @click="openAccountSubSection('phone')">
                   <div class="settings-row__main">
                     <div class="settings-row__label">绑定手机号</div>
                     <div class="settings-row__hint">{{ accountSecurity.phoneBound ? accountSecurity.maskedPhone : '未绑定' }}</div>
                   </div>
                   <span v-if="accountSecurity.phoneBound" class="settings-row__value text-success">已绑定</span>
-                  <i v-if="!isStudent && !accountSecurity.phoneBound" data-lucide="chevron-right" class="icon muted-2"></i>
+                  <span v-else-if="!isStudent" class="settings-row__value">去绑定</span>
+                  <i data-lucide="chevron-right" class="icon muted-2"></i>
                 </div>
                 <div
                   class="settings-row"
@@ -272,14 +292,21 @@
             </div>
           </section>
 
-          <!-- ===== 修改密码（内嵌，由 account 面板进入） ===== -->
-          <section class="pad-settings__section" :class="{ 'is-active': activeSection === 'password' }">
-            <div class="settings-panel-head">
-              <h2>修改密码</h2>
-              <p>请先输入原密码，再设置新密码</p>
+          <!-- ===== 修改密码 ===== -->
+          <SettingsEditSection
+            :active="activeSection === 'password'"
+            title="修改密码"
+            description="请先输入原密码，再设置新密码"
+          >
+            <div v-if="pwdSuccess" class="card card-pad text-center tint-green stack-2">
+              <div class="text-3xl">✅</div>
+              <p class="text-sm font-bold">密码修改成功</p>
+              <p class="text-xs muted">请使用新密码登录</p>
+              <button type="button" class="btn btn-outline btn-block mt-2" @click="finishPasswordEdit">
+                返回账号与安全
+              </button>
             </div>
-            <p class="text-xs muted mb-4 pad-settings__mobile-only">请先输入原密码，再设置新密码</p>
-            <div class="stack-4 settings-profile-form">
+            <template v-else>
               <div>
                 <label class="text-xs font-medium muted block mb-1">原密码</label>
                 <div class="input-group">
@@ -291,7 +318,7 @@
                 <label class="text-xs font-medium muted block mb-1">新密码</label>
                 <div class="input-group">
                   <i data-lucide="lock" class="icon"></i>
-                  <input v-model="pwdForm.newPassword" class="input" type="password" placeholder="不少于 6 位" autocomplete="new-password" />
+                  <input v-model="pwdForm.newPassword" class="input" type="password" placeholder="不少于 8 位，含字母和数字" autocomplete="new-password" />
                 </div>
               </div>
               <div>
@@ -304,9 +331,60 @@
               <button type="button" class="btn btn-danger btn-block" :disabled="pwdSaving" @click="savePassword">
                 {{ pwdSaving ? '修改中…' : '修改密码' }}
               </button>
-              <p v-if="pwdMsg && pwdMsgType === 'error'" class="text-sm text-danger">{{ pwdMsg }}</p>
+              <p v-if="pwdMsg" class="text-sm" :class="pwdMsgType === 'error' ? 'text-danger' : 'text-success'">{{ pwdMsg }}</p>
+            </template>
+          </SettingsEditSection>
+
+          <!-- ===== 绑定 / 换绑手机号 ===== -->
+          <SettingsEditSection
+            :active="activeSection === 'phone'"
+            :title="phonePanelTitle"
+            :description="phonePanelDescription"
+          >
+            <div v-if="phoneSuccess" class="card card-pad text-center tint-green stack-2">
+              <div class="text-3xl">✅</div>
+              <p class="text-sm font-bold">手机号已更新</p>
+              <p class="text-xs muted">{{ accountSecurity.maskedPhone || maskPhone(phoneForm.userPhone) }}</p>
+              <button type="button" class="btn btn-outline btn-block mt-2" @click="finishPhoneEdit">
+                返回账号与安全
+              </button>
             </div>
-          </section>
+            <template v-else-if="isStudent">
+              <div class="settings-card card-pad stack-2">
+                <div class="text-xs muted">当前绑定手机号</div>
+                <div class="text-base font-bold">{{ accountSecurity.maskedPhone || maskedPhoneLabel || '未绑定' }}</div>
+                <p class="text-xs muted">学生账号手机号由学校统一管理，如需变更请联系班主任。</p>
+              </div>
+              <button type="button" class="btn btn-outline btn-block" @click="openSection('account')">
+                返回账号与安全
+              </button>
+            </template>
+            <template v-else>
+              <div v-if="accountSecurity.phoneBound" class="settings-card card-pad stack-2 mb-1">
+                <div class="text-xs muted">当前绑定</div>
+                <div class="text-base font-bold">{{ accountSecurity.maskedPhone || maskedPhoneLabel }}</div>
+              </div>
+              <div>
+                <label class="text-xs font-medium muted block mb-1">{{ accountSecurity.phoneBound ? '新手机号' : '手机号' }}</label>
+                <div class="input-group">
+                  <i data-lucide="phone" class="icon"></i>
+                  <input
+                    v-model="phoneForm.userPhone"
+                    class="input"
+                    type="tel"
+                    inputmode="numeric"
+                    maxlength="11"
+                    placeholder="请输入 11 位手机号"
+                    autocomplete="tel"
+                  />
+                </div>
+              </div>
+              <button type="button" class="btn btn-gradient btn-block" :disabled="phoneSaving" @click="savePhone">
+                {{ phoneSaving ? '保存中…' : (accountSecurity.phoneBound ? '确认换绑' : '确认绑定') }}
+              </button>
+              <p v-if="phoneMsg" class="text-sm" :class="phoneMsgType === 'error' ? 'text-danger' : 'text-success'">{{ phoneMsg }}</p>
+            </template>
+          </SettingsEditSection>
 
           <!-- ===== 消息通知 ===== -->
           <section class="pad-settings__section" :class="{ 'is-active': activeSection === 'notifications' }">
@@ -393,26 +471,16 @@
       </div>
     </div>
 
-    <!-- 修改密码成功对话框 -->
-    <div v-if="pwdSuccessOpen" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="pwdSuccessTitle">
-      <div class="modal-content">
-        <div class="text-4xl mb-3">✅</div>
-        <h2 id="pwdSuccessTitle" class="text-base font-bold mb-2">密码修改成功</h2>
-        <p class="text-sm muted mb-5">您的登录密码已更新，请使用新密码登录</p>
-        <button type="button" class="btn btn-danger btn-block" @click="confirmPwdSuccess">确定</button>
-      </div>
-    </div>
-
     <!-- 头像选择底部弹出 -->
     <div class="sheet-overlay" :class="{ show: avatarSheetOpen }" @click="avatarSheetOpen = false"></div>
     <div class="sheet" :class="{ open: avatarSheetOpen }">
       <div class="sheet-handle"></div>
       <div class="text-center text-sm font-bold muted pb-2">更换头像</div>
-      <div class="sheet-item row items-center gap-3" @click="chooseAvatar('camera')">
+      <div class="sheet-item row items-center gap-3" @click.stop="chooseAvatar('camera')">
         <i data-lucide="camera" class="icon icon-lg"></i>
         <span class="text-sm">拍照</span>
       </div>
-      <div class="sheet-item row items-center gap-3" @click="chooseAvatar('gallery')">
+      <div class="sheet-item row items-center gap-3" @click.stop="chooseAvatar('gallery')">
         <i data-lucide="image" class="icon icon-lg"></i>
         <span class="text-sm">从相册选择</span>
       </div>
@@ -421,51 +489,73 @@
         <span class="text-sm font-medium text-danger">取消</span>
       </div>
     </div>
-    <input
-      ref="avatarInputRef"
-      type="file"
-      accept="image/*"
-      style="display:none"
-      @change="onAvatarSelected"
-    />
+    <Teleport to="body">
+      <input
+        ref="galleryInputRef"
+        type="file"
+        accept="image/*"
+        class="visually-hidden-file-input"
+        @change="onAvatarSelected"
+      />
+      <input
+        ref="cameraInputRef"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        class="visually-hidden-file-input"
+        @change="onAvatarSelected"
+      />
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, onUnmounted, nextTick } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useProfileStore } from '@/stores/profile'
 import { useAppStore } from '@/stores/app'
 import BottomNav from '@/components/BottomNav.vue'
-import { fetchProfile, updateProfile, changePassword } from '@/api/profile'
-import { uploadFile } from '@/api/work'
+import UserAvatar from '@/components/UserAvatar.vue'
+import SettingsEditSection from '@/components/settings/SettingsEditSection.vue'
+import { changePassword } from '@/api/profile'
+import { validatePassword } from '@/utils/passwordRules'
+import { validatePhone, maskPhone as maskPhoneLabel } from '@/utils/phoneRules'
 import { fetchBadges } from '@/api/badge'
 import { fetchUnreadCount, fetchMessages } from '@/api/notification'
 import { fetchParentChildren, setDefaultChild } from '@/api/parent'
 import { fetchAccountSecurity, fetchDingTalkAuthorizeUrl, unbindDingTalk, fetchPreferences, savePreferences } from '@/api/settings'
 import { mapMessageItem } from '@/utils/notificationDisplay'
 import { getDingTalkRedirectBase } from '@/utils/dingtalk'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const profileStore = useProfileStore()
+const { profile, avatarUploading } = storeToRefs(profileStore)
 const appStore = useAppStore()
 appStore.setActiveTab('profile')
 
-const profile = ref({})
 const activeSection = ref('')
 const isMobileSettingsLayout = ref(false)
 let settingsLayoutMediaQuery = null
 const avatarSheetOpen = ref(false)
-const avatarInputRef = ref(null)
-const avatarUploading = ref(false)
+const galleryInputRef = ref(null)
+const cameraInputRef = ref(null)
 const saving = ref(false)
 const profileMsg = ref('')
 const profileMsgType = ref('')
 const pwdSaving = ref(false)
-const pwdSuccessOpen = ref(false)
+const pwdSuccess = ref(false)
 const pwdMsg = ref('')
 const pwdMsgType = ref('')
+const phoneSaving = ref(false)
+const phoneSuccess = ref(false)
+const phoneMsg = ref('')
+const phoneMsgType = ref('')
+const phoneForm = reactive({ userPhone: '' })
 const prefsMsg = ref('')
 const prefsMsgType = ref('')
 const prefsSaving = ref(false)
@@ -488,6 +578,8 @@ const dingTalkBusy = ref(false)
 const form = reactive({ userName: '', userNickName: '', userPhone: '', userEmail: '', perResume: '' })
 const pwdForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' })
 
+const ACCOUNT_SUB_SECTIONS = ['password', 'phone']
+
 const parentRelation = ref('')
 
 const allTabs = [
@@ -498,7 +590,7 @@ const allTabs = [
 
 const visibleTabs = computed(() => allTabs)
 
-const displayName = computed(() => profile.value.userNickName || profile.value.userName || '用户')
+const displayName = computed(() => profileStore.displayName)
 const userOrgNameLabel = computed(() => profile.value.userOrgName || profile.value.rootOrgName || '')
 const studentNoLabel = computed(() => profile.value.loginName || '')
 const maskedPhoneLabel = computed(() => maskPhone(profile.value.userPhone))
@@ -512,16 +604,27 @@ const notifyPreviewList = ref([])
 const badgeCountLabel = computed(() => badgeEarned.value)
 const notifyUnreadLabel = computed(() => `${unreadCount.value} 条未读`)
 
-const roleLower = computed(() => (profile.value.userRoleId || 'student').toLowerCase())
+const roleLower = computed(() => profileStore.roleLower)
 
-const isStudent = computed(() => roleLower.value === 'student')
-const isParent = computed(() => roleLower.value === 'parent')
-const isTeacher = computed(() => roleLower.value === 'teacher')
+const isStudent = computed(() => profileStore.isStudent)
+const isParent = computed(() => profileStore.isParent)
+const isTeacher = computed(() => profileStore.isTeacher)
 
 function maskPhone(phone) {
-  if (!phone || phone.length < 7) return ''
-  return phone.slice(0, 3) + '****' + phone.slice(-4)
+  return maskPhoneLabel(phone)
 }
+
+const phonePanelTitle = computed(() => {
+  if (isStudent.value) return '绑定手机号'
+  return accountSecurity.value.phoneBound ? '换绑手机号' : '绑定手机号'
+})
+
+const phonePanelDescription = computed(() => {
+  if (isStudent.value) return '查看当前绑定的手机号'
+  return accountSecurity.value.phoneBound
+    ? '输入新手机号完成换绑'
+    : '绑定手机号可用于找回账号与接收通知'
+})
 
 const mobileUserSubline = computed(() => {
   if (isStudent.value) {
@@ -532,7 +635,7 @@ const mobileUserSubline = computed(() => {
   if (isTeacher.value) return `科学教师 · ${teacherClassLabel.value}`
   return roleLabel.value
 })
-const userInitial = computed(() => displayName.value.charAt(0) || '用')
+
 const roleLabel = computed(() => {
   if (isParent.value) return '家长'
   if (isTeacher.value) {
@@ -542,14 +645,10 @@ const roleLabel = computed(() => {
   return '学生'
 })
 const roleKey = computed(() => roleLower.value === 'parent' ? 'parent' : roleLower.value === 'teacher' ? 'teacher' : 'student')
-const avatarClass = computed(() => {
-  if (isParent.value) return 'avatar-grad-cool'
-  if (isTeacher.value) return 'avatar-grad-ocean'
-  return 'avatar-grad-warm'
-})
 const currentPaneTitle = computed(() => {
   if (activeSection.value === 'password') return '修改密码'
-  const t = visibleTabs.find((n) => n.key === activeSection.value)
+  if (activeSection.value === 'phone') return phonePanelTitle.value
+  const t = visibleTabs.value.find((n) => n.key === activeSection.value)
   return t ? t.label : ''
 })
 
@@ -561,7 +660,7 @@ async function loadPreferences() {
       const privacy = prefRes.data.privacy || {}
       const notify = prefRes.data.notify || {}
       parentPrefs.viewWorks = privacy.childWorks !== false
-      parentPrefs.receiveNotify = notify.childProgress !== false
+      parentPrefs.receiveNotify = notify.parentAssist !== false && notify.childProgress !== false
       parentPrefs.aiAnalysis = !!privacy.ai
       parentPrefsSnapshot = { ...parentPrefs }
     }
@@ -580,6 +679,7 @@ async function toggleParentPref(key) {
         ai: parentPrefs.aiAnalysis
       },
       notify: {
+        parentAssist: parentPrefs.receiveNotify,
         childProgress: parentPrefs.receiveNotify
       }
     })
@@ -653,29 +753,70 @@ async function handleDingTalkTap() {
   }
 }
 
-async function changePhone() {
-  const current = profile.value.userPhone || form.userPhone || ''
-  const val = window.prompt('请输入手机号', current)
-  if (!val || !val.trim()) return
+async function savePhone() {
+  phoneMsg.value = ''
+  const nextPhone = phoneForm.userPhone.trim()
+  const phoneError = validatePhone(nextPhone)
+  if (phoneError) {
+    phoneMsg.value = phoneError
+    phoneMsgType.value = 'error'
+    return
+  }
+
+  phoneSaving.value = true
   try {
-    const payload = isStudent.value
-      ? { userPhone: val.trim() }
-      : { userPhone: val.trim(), userNickName: form.userNickName }
-    const res = await updateProfile(payload)
+    const payload = {
+      userPhone: nextPhone,
+      userNickName: form.userNickName || profile.value.userNickName || profile.value.userName
+    }
+    const res = await profileStore.patchProfile(payload)
     if (res?.code === 200) {
-      await loadProfile()
-      const accountRes = await fetchAccountSecurity().catch(() => null)
-      if (accountRes?.code === 200 && accountRes.data) {
-        accountSecurity.value = { ...accountSecurity.value, ...accountRes.data }
-      }
-      prefsMsg.value = '手机号已更新'
-      prefsMsgType.value = 'success'
+      phoneSuccess.value = true
+      phoneMsg.value = ''
+      await refreshAccountSecurity()
+      resetForm()
     } else {
-      alert(res?.message || '更新失败')
+      phoneMsg.value = res?.message || '更新失败'
+      phoneMsgType.value = 'error'
     }
   } catch {
-    alert('更新失败，请稍后重试')
+    phoneMsg.value = '更新失败，请稍后重试'
+    phoneMsgType.value = 'error'
+  } finally {
+    phoneSaving.value = false
   }
+}
+
+function resetPhoneEdit() {
+  phoneForm.userPhone = profile.value.userPhone || form.userPhone || ''
+  phoneMsg.value = ''
+  phoneMsgType.value = ''
+  phoneSuccess.value = false
+}
+
+function resetPasswordEdit() {
+  pwdForm.oldPassword = ''
+  pwdForm.newPassword = ''
+  pwdForm.confirmPassword = ''
+  pwdMsg.value = ''
+  pwdMsgType.value = ''
+  pwdSuccess.value = false
+}
+
+function openAccountSubSection(key) {
+  if (key === 'phone') resetPhoneEdit()
+  if (key === 'password') resetPasswordEdit()
+  openSection(key)
+}
+
+function finishPasswordEdit() {
+  resetPasswordEdit()
+  openSection('account')
+}
+
+function finishPhoneEdit() {
+  resetPhoneEdit()
+  openSection('account')
 }
 
 function formatDate(dateStr) {
@@ -698,20 +839,41 @@ function ensureInitialSection() {
   if (activeSection.value) return
 
   const panel = route.query.panel
-  if (typeof panel === 'string' && visibleTabs.some((tab) => tab.key === panel)) {
+  if (panel === 'password' || panel === 'phone') {
+    activeSection.value = panel
+    if (panel === 'phone') resetPhoneEdit()
+    if (panel === 'password') resetPasswordEdit()
+    return
+  }
+  if (typeof panel === 'string' && visibleTabs.value.some((tab) => tab.key === panel)) {
     activeSection.value = panel
     return
   }
 
   if (!preferMobileSettingsHome()) {
-    activeSection.value = visibleTabs[0]?.key || 'profile'
+    activeSection.value = visibleTabs.value[0]?.key || 'profile'
   }
 }
 
-function openSection(key) { activeSection.value = key; initIcons() }
+function openSection(key) {
+  activeSection.value = key
+  initIcons()
+  nextTick(() => {
+    const panel = document.querySelector('.pad-settings__panel')
+    panel?.scrollTo?.({ top: 0, behavior: 'auto' })
+  })
+}
 function closeSection() { activeSection.value = '' }
 function handleMobileBack() {
-  if (activeSection.value === 'password') {
+  if (ACCOUNT_SUB_SECTIONS.includes(activeSection.value)) {
+    if (activeSection.value === 'password' && pwdSuccess.value) {
+      finishPasswordEdit()
+      return
+    }
+    if (activeSection.value === 'phone' && phoneSuccess.value) {
+      finishPhoneEdit()
+      return
+    }
     openSection('account')
     return
   }
@@ -723,37 +885,41 @@ function handleMobileBack() {
   goBack()
 }
 
-function openAvatarSheet() { avatarSheetOpen.value = true }
+function openAvatarSheet() {
+  if (avatarUploading.value) return
+  avatarSheetOpen.value = true
+  initIcons()
+}
 
 function chooseAvatar(source) {
+  const input = source === 'camera' ? cameraInputRef.value : galleryInputRef.value
+  if (!input || avatarUploading.value) return
+  // 须在用户手势内同步触发，避免 iOS/微信 WebView 拦截
+  input.value = ''
+  input.click()
   avatarSheetOpen.value = false
-  if (!avatarInputRef.value) return
-  avatarInputRef.value.accept = source === 'camera' ? 'image/*' : 'image/*'
-  avatarInputRef.value.setAttribute('capture', source === 'camera' ? 'environment' : '')
-  if (source !== 'camera') avatarInputRef.value.removeAttribute('capture')
-  avatarInputRef.value.click()
 }
 
 async function onAvatarSelected(event) {
   const file = event.target.files?.[0]
   event.target.value = ''
-  if (!file) return
-  avatarUploading.value = true
+  if (!file || avatarUploading.value) return
+
+  avatarSheetOpen.value = false
+  profileMsg.value = ''
+
   try {
-    const up = await uploadFile(file)
-    const url = up?.data?.url || up?.data?.fileUrl || up?.url
-    if (!url) throw new Error('上传失败')
-    const res = await updateProfile({ userLogo: url })
-    if (res?.code === 200) {
-      await loadProfile()
-    } else {
-      alert(res?.message || '头像更新失败')
-    }
+    await profileStore.uploadAvatar(file)
+    profileMsg.value = '头像已更新'
+    profileMsgType.value = 'success'
+    resetForm()
   } catch (e) {
     console.warn('头像上传失败', e)
-    alert('头像上传失败，请稍后重试')
+    profileMsg.value = e?.message || '头像上传失败，请稍后重试'
+    profileMsgType.value = 'error'
+    alert(profileMsg.value)
   } finally {
-    avatarUploading.value = false
+    initIcons()
   }
 }
 
@@ -816,6 +982,7 @@ async function loadExtras() {
         id: c.id,
         name: c.name || '孩子',
         initial: (c.avatar || c.name || '孩').charAt(0),
+        avatarUrl: c.avatarUrl || '',
         isDefault: !!c.current,
         hint: c.classLabel || ''
       }))
@@ -826,28 +993,11 @@ async function loadExtras() {
 
 async function loadProfile() {
   try {
-    const res = await fetchProfile()
-    if (res.code === 200 && res.data) {
-      profile.value = res.data
-      resetForm()
-      await loadExtras()
-    } else if (userStore.userInfo?.userId) {
-      profile.value = {
-        userRoleId: userStore.userInfo.userRoleId,
-        userName: userStore.userInfo.username,
-        userNickName: userStore.userInfo.username,
-        rootOrgName: userStore.userInfo.rootOrgName
-      }
-    }
+    await profileStore.loadProfile(true)
+    resetForm()
+    await loadExtras()
   } catch {
-    if (userStore.userInfo?.userId) {
-      profile.value = {
-        userRoleId: userStore.userInfo.userRoleId,
-        userName: userStore.userInfo.username,
-        userNickName: userStore.userInfo.username,
-        rootOrgName: userStore.userInfo.rootOrgName
-      }
-    }
+    // profileStore keeps last known profile when fetch fails
   } finally {
     ensureInitialSection()
     initIcons()
@@ -865,11 +1015,11 @@ async function saveProfile() {
       payload.userNickName = form.userNickName
       payload.userEmail = form.userEmail
     }
-    const res = await updateProfile(payload)
+    const res = await profileStore.patchProfile(payload)
     if (res.code === 200) {
       profileMsg.value = '✅ 资料已保存！'
       profileMsgType.value = 'success'
-      await loadProfile()
+      resetForm()
     } else {
       profileMsg.value = res.message || '保存失败'
       profileMsgType.value = 'error'
@@ -886,32 +1036,26 @@ async function savePassword() {
   pwdMsg.value = ''
   if (!pwdForm.oldPassword) { pwdMsg.value = '请输入原密码'; pwdMsgType.value = 'error'; return }
   if (!pwdForm.newPassword) { pwdMsg.value = '请输入新密码'; pwdMsgType.value = 'error'; return }
-  if (pwdForm.newPassword.length < 6) { pwdMsg.value = '新密码至少 6 位'; pwdMsgType.value = 'error'; return }
+  const passwordError = validatePassword(pwdForm.newPassword)
+  if (passwordError) { pwdMsg.value = passwordError; pwdMsgType.value = 'error'; return }
   if (pwdForm.newPassword !== pwdForm.confirmPassword) { pwdMsg.value = '两次密码不一致'; pwdMsgType.value = 'error'; return }
 
   pwdSaving.value = true
   try {
     const res = await changePassword(pwdForm.oldPassword, pwdForm.newPassword)
     if (res.code === 200) {
-      pwdForm.oldPassword = ''
-      pwdForm.newPassword = ''
-      pwdForm.confirmPassword = ''
-      pwdSuccessOpen.value = true
+      pwdSuccess.value = true
+      pwdMsg.value = ''
     } else {
       pwdMsg.value = res.message || '修改失败'
       pwdMsgType.value = 'error'
     }
-  } catch (e) {
+  } catch {
     pwdMsg.value = '修改失败，请检查原密码是否正确'
     pwdMsgType.value = 'error'
   } finally {
     pwdSaving.value = false
   }
-}
-
-function confirmPwdSuccess() {
-  pwdSuccessOpen.value = false
-  openSection('account')
 }
 
 async function handleLogout() {
@@ -926,13 +1070,7 @@ function goBack() {
   else router.push('/profile')
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(() => {
   settingsLayoutMediaQuery = window.matchMedia('(max-width: 767px)')
@@ -940,6 +1078,10 @@ onMounted(() => {
   settingsLayoutMediaQuery.addEventListener('change', syncSettingsLayoutMode)
   loadProfile()
   initIcons()
+})
+
+onActivated(() => {
+  loadProfile()
 })
 
 onUnmounted(() => {

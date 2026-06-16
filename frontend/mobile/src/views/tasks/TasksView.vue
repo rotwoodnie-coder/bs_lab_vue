@@ -1,33 +1,81 @@
 <template>
-  <div class="prototype-container pad-shell" data-layout="list-workbench" data-tasks-list>
+
+  <div
+
+    class="prototype-container pad-shell"
+
+    :class="{ 'theme-teacher': isTeacherView }"
+
+    :data-layout="isTeacherView ? 'teacher-home' : 'list-workbench'"
+
+    data-tasks-list
+
+  >
+
     <BottomNav />
 
+
+
     <div class="pad-main pad-workbench">
+
       <header class="pad-workbench__topbar">
+
         <PageBackButton />
+
         <h1 class="pad-workbench__title">{{ pageTitle }}</h1>
+
         <div class="pad-workbench__topbar-actions">
-          <router-link to="/search" class="icon-btn" aria-label="搜索">
-            <i data-lucide="search" class="icon"></i>
+
+          <router-link v-if="isTeacherView" to="/assign" class="icon-btn" aria-label="布置任务">
+
+            <i data-lucide="pen-square" class="icon"></i>
+
           </router-link>
+
+          <router-link v-else to="/search" class="icon-btn" aria-label="搜索">
+
+            <i data-lucide="search" class="icon"></i>
+
+          </router-link>
+
         </div>
+
       </header>
 
-      <div v-if="!isTeacherView" class="pad-workbench__filters">
-        <div class="tabs" data-tasks-tabs>
+
+
+      <div class="pad-workbench__filters">
+
+        <div class="tabs" data-tasks-status-tabs>
+
           <button
-            v-for="tab in visibleCategoryTabs"
+
+            v-for="tab in statusTabs"
+
             :key="tab.key"
+
             type="button"
+
             class="tab"
-            :class="{ active: activeCategory === tab.key }"
-            @click="switchCategory(tab.key)"
+
+            :class="{ active: activeStatus === tab.key }"
+
+            @click="switchStatus(tab.key)"
+
           >{{ tab.label }}</button>
+
         </div>
-        <div class="tabs mt-2" data-tasks-status-tabs>
+
+      </div>
+
+
+
+      <!-- 手机竖屏：teacher-home 下 filters 隐藏，单独展示 Tab -->
+      <div v-if="isTeacherView" class="tasks-teacher-mobile-tabs px-4 pt-2">
+        <div class="tabs" data-tasks-status-tabs>
           <button
             v-for="tab in statusTabs"
-            :key="tab.key"
+            :key="'mt-' + tab.key"
             type="button"
             class="tab"
             :class="{ active: activeStatus === tab.key }"
@@ -36,444 +84,741 @@
         </div>
       </div>
 
-      <div class="pad-workbench__body">
-        <div v-if="isParentView" class="parent-tasks-hub-wrap px-4 pt-3">
-          <ParentTasksHub ref="parentHubRef" />
-        </div>
-        <div class="pad-workbench__main">
-          <div class="pad-workbench__mobile-head px-4 safe-top stack-4" data-parent-task-list>
+
+
+      <div
+
+        class="pad-workbench__body"
+
+        :class="{ 'pad-workbench__body--teacher': isTeacherView && showTeacherHub }"
+
+      >
+
+        <TeacherTasksHub
+
+          v-if="isTeacherView && showTeacherHub"
+
+          ref="teacherHubRef"
+
+        />
+
+
+
+        <div v-else class="pad-workbench__main">
+
+          <div class="pad-workbench__mobile-head px-4 safe-top stack-4">
+
             <header class="topbar page-topbar">
+
               <PageBackButton />
+
               <h1 class="topbar-title text-xl flex-1 min-w-0">{{ pageTitle }}</h1>
-              <router-link to="/search" class="icon-btn" aria-label="搜索">
+
+              <router-link v-if="isTeacherView" to="/assign" class="icon-btn" aria-label="布置任务">
+
+                <i data-lucide="pen-square" class="icon"></i>
+
+              </router-link>
+
+              <router-link v-else to="/search" class="icon-btn" aria-label="搜索">
+
                 <i data-lucide="search" class="icon"></i>
+
               </router-link>
+
             </header>
-            <div v-if="!isTeacherView" class="tabs" data-tasks-tabs>
+
+            <div class="tabs" data-tasks-status-tabs>
+
               <button
-                v-for="tab in visibleCategoryTabs"
-                :key="'m-cat-' + tab.key"
-                type="button"
-                class="tab"
-                :class="{ active: activeCategory === tab.key }"
-                @click="switchCategory(tab.key)"
-              >{{ tab.label }}</button>
-            </div>
-            <div v-if="!isTeacherView" class="tabs" data-tasks-status-tabs>
-              <button
+
                 v-for="tab in statusTabs"
-                :key="'m-status-' + tab.key"
+
+                :key="'m-' + tab.key"
+
                 type="button"
+
                 class="tab"
+
                 :class="{ active: activeStatus === tab.key }"
+
                 @click="switchStatus(tab.key)"
+
               >{{ tab.label }}</button>
+
             </div>
+
           </div>
 
-          <div v-if="loading" class="px-4 py-8 text-center muted-2">加载中…</div>
-          <div v-else-if="isTeacherView" class="pad-list__grid stack-3 px-4 pb-28">
-            <p v-if="teacherTasks.length === 0" class="tasks-empty text-center py-8 muted-2">暂无布置的任务</p>
-            <router-link
-              v-for="task in teacherTasks"
-              :key="task.taskId"
-              :to="{ path: '/board', query: { taskId: task.taskId } }"
-              class="card card-link card-pad task-card--homework"
-            >
-              <div class="row justify-between items-start gap-3">
-                <div class="min-w-0">
-                  <span class="task-type-badge task-type-badge--homework">📋 班级任务</span>
-                  <div class="text-base font-bold mt-2">{{ task.title || '未命名任务' }}</div>
-                  <p v-if="task.className" class="text-xs muted mt-2">{{ task.className }}</p>
-                </div>
-                <span class="badge badge-info shrink-0">看板</span>
-              </div>
-            </router-link>
-            <router-link to="/assign" class="btn btn-primary btn-block">
-              <i data-lucide="pen-square" class="icon"></i>
-              布置新任务
-            </router-link>
+
+
+          <div v-if="isParentView" class="px-4 pt-2">
+
+            <ChildPicker />
+
           </div>
+
+
+
+          <div v-if="loading" class="px-4 py-12 text-center muted-2">加载中…</div>
+
           <div v-else class="pad-list__grid stack-3 px-4 pb-28">
-            <p v-if="displayTasks.length === 0" class="tasks-empty text-center py-8 muted-2">暂无符合条件的任务</p>
 
-            <!-- 答题 Tab：今日答题固定入口 -->
-            <div v-if="activeCategory === 'quiz' && todayQuizTask" class="task-quiz-block">
-              <router-link
-                :to="todayQuizTask.link || '/quiz'"
-                class="card card-link card-pad task-quiz-compact"
-                :class="todayQuizTask.state === 'pending' ? 'task-quiz-compact--pending' : ''"
-              >
-                <div class="row items-center gap-3">
-                  <div class="task-quiz-compact__icon" aria-hidden="true">🧠</div>
-                  <div class="flex-1 min-w-0">
-                    <div class="row items-center justify-between gap-2">
-                      <span class="text-sm font-bold">{{ todayQuizTask.title || '今日答题' }}</span>
-                      <span
-                        v-if="todayQuizTask.state === 'done' && todayQuizTask.quizScore"
-                        class="task-quiz-compact__score text-success"
-                      >{{ todayQuizTask.quizScore }}</span>
-                      <span
-                        v-else-if="todayQuizTask.state === 'pending'"
-                        class="badge badge-warning shrink-0"
-                      >{{ todayQuizTask.stateLabel }}</span>
-                    </div>
-                    <p v-if="todayQuizTask.desc" class="text-xs muted mt-1">{{ todayQuizTask.desc }}</p>
-                  </div>
-                  <span
-                    v-if="todayQuizTask.state === 'pending'"
-                    class="task-quiz-compact__cta text-xs text-brand font-bold shrink-0"
-                  >去答题</span>
-                  <span
-                    v-else-if="todayQuizTask.state === 'done'"
-                    class="badge badge-success shrink-0"
-                  >{{ todayQuizTask.stateLabel }}</span>
-                </div>
-              </router-link>
-              <div class="task-quiz-block__foot">
-                <router-link to="/quiz/history" class="text-xs text-brand font-medium">答题记录</router-link>
-              </div>
-            </div>
+            <p v-if="tasks.length === 0" class="tasks-empty text-center py-12 muted-2">
 
-            <template v-for="task in listTasks" :key="task.id">
-              <!-- 历史答题记录 -->
-              <router-link
-                v-if="task.category === 'quiz'"
-                :to="task.link || '/quiz/completed'"
-                class="card card-link card-pad task-quiz-compact"
-              >
-                <div class="row items-center gap-3">
-                  <div class="task-quiz-compact__icon">🧠</div>
-                  <div class="flex-1 min-w-0">
-                    <div class="row justify-between items-start gap-2">
-                      <div class="text-sm font-bold">{{ task.title || '每日答题' }}</div>
-                      <span class="badge shrink-0" :class="task.badgeClass">{{ task.stateLabel }}</span>
-                    </div>
-                    <p v-if="task.desc" class="text-xs muted mt-1">{{ task.desc }}</p>
-                    <div v-if="task.quizScore" class="task-quiz-compact__score mt-1 text-accent">{{ task.quizScore }}</div>
-                  </div>
-                </div>
-              </router-link>
+              {{ emptyLabel }}
 
-              <!-- 创意开始 -->
+            </p>
+
+
+
+            <template v-for="task in tasks" :key="task.id + '-' + task.kind">
+
               <button
-                v-else-if="task.kind === 'creative-start'"
+
+                v-if="task.kind === 'creative-start'"
+
                 type="button"
+
                 class="card card-pad card-link text-left w-full"
+
                 :class="'task-card--' + cardVariant(task)"
+
                 :disabled="startingCreative"
+
                 @click="handleCreativeStart"
+
               >
-                <div class="row justify-between items-start gap-3">
-                  <div class="min-w-0">
-                    <span class="task-type-badge" :class="'task-type-badge--' + cardVariant(task)">
-                      {{ taskTypeLabel(task) }}
-                    </span>
-                    <div class="text-base font-bold mt-2">{{ task.title }}</div>
-                  </div>
-                  <span class="badge shrink-0" :class="task.badgeClass">{{ task.stateLabel }}</span>
-                </div>
-                <p v-if="task.desc" class="text-xs muted mt-2">{{ task.desc }}</p>
+
+                <TaskCardInner :task="task" />
+
               </button>
 
-              <!-- 普通任务 -->
+
+
               <div
+
                 v-else-if="isParentView && showParentAssist(task)"
+
                 class="card card-pad"
+
                 :class="'task-card--' + cardVariant(task)"
+
               >
-                <router-link :to="task.link || `/tasks/${task.id}`" class="block card-link">
-                  <div class="row justify-between items-start gap-3">
-                    <div class="min-w-0">
-                      <span class="task-type-badge" :class="'task-type-badge--' + cardVariant(task)">
-                        {{ taskTypeLabel(task) }}
-                      </span>
-                      <div class="text-base font-bold mt-2">{{ task.title }}</div>
-                    </div>
-                    <span class="badge shrink-0" :class="task.badgeClass">{{ task.stateLabel }}</span>
-                  </div>
-                  <p v-if="task.desc" class="text-xs muted mt-2">{{ task.desc }}</p>
+
+                <router-link :to="taskLink(task)" class="block card-link">
+
+                  <TaskCardInner :task="task" />
+
                 </router-link>
+
                 <p v-if="task.materialsLine" class="parent-task-materials text-xs muted mt-3">
+
                   🧪 材料：{{ task.materialsLine }}
+
                 </p>
+
                 <router-link
+
                   :to="task.uploadLink || `/upload?taskId=${task.id}`"
+
                   class="parent-task-upload row items-center justify-center gap-2 mt-3 pt-3 text-sm text-brand font-medium"
+
                 >
+
                   <i data-lucide="camera" class="icon"></i>
+
                   上传
+
                 </router-link>
+
               </div>
+
+
+
               <router-link
+
                 v-else
-                :to="task.link || `/tasks/${task.id}`"
+
+                :to="taskLink(task)"
+
                 class="card card-link card-pad"
+
                 :class="'task-card--' + cardVariant(task)"
+
               >
-                <div class="row justify-between items-start gap-3">
-                  <div class="min-w-0">
-                    <span class="task-type-badge" :class="'task-type-badge--' + cardVariant(task)">
-                      {{ taskTypeLabel(task) }}
-                    </span>
-                    <div class="text-base font-bold mt-2">{{ task.title }}</div>
-                  </div>
-                  <span class="badge shrink-0" :class="task.badgeClass">{{ task.stateLabel }}</span>
-                </div>
-                <p v-if="task.desc" class="text-xs muted mt-2">{{ task.desc }}</p>
+
+                <TaskCardInner :task="task" />
+
               </router-link>
+
             </template>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
+
 </template>
 
+
+
 <script setup>
-import { ref, computed, onMounted, nextTick, watch, provide } from 'vue'
+
+import { ref, computed, onMounted, watch, provide } from 'vue'
+
 import { useRoute, useRouter } from 'vue-router'
+
 import { useAppStore } from '@/stores/app'
+
 import BottomNav from '@/components/BottomNav.vue'
+
 import PageBackButton from '@/components/PageBackButton.vue'
-import { fetchTasks } from '@/api/task'
-import { fetchTeacherTasks } from '@/api/teacher'
+
+import ChildPicker from '@/views/home/ChildPicker.vue'
+
+import TaskCardInner from '@/components/tasks/TaskCardInner.vue'
+
+import TeacherTasksHub from '@/views/tasks/TeacherTasksHub.vue'
+
+import { fetchTaskInbox, fetchTasks } from '@/api/task'
+
 import { startCreativeTask } from '@/api/creative'
+
 import { useParentContext } from '@/composables/useParentContext'
-import { isParentRole, isTeacherRole } from '@/utils/role'
+
+import { useLucideIcons } from '@/composables/useLucideIcons'
+import { isParentRole, normalizeRole } from '@/utils/role'
+
 import { useUserStore } from '@/stores/user'
-import ParentTasksHub from './ParentTasksHub.vue'
+
+
 
 const route = useRoute()
+
 const router = useRouter()
+
 const appStore = useAppStore()
+
 const userStore = useUserStore()
-const { childQueryParam, selectedChild, loadChildren, children: parentChildren } = useParentContext()
-const parentHubRef = ref(null)
+
+const { childQueryParam, selectedChild, loadChildren, selectChild, children } = useParentContext()
+
+
+
 const isParentView = computed(() => isParentRole(userStore.userInfo.userRoleId))
-const isTeacherView = computed(() => isTeacherRole(userStore.userInfo.userRoleId))
-const pageTitle = computed(() => {
-  if (isParentView.value) return '孩子任务'
-  return '我的任务'
+
+const isTeacherView = computed(() => normalizeRole(userStore.userInfo.userRoleId) === 'teacher')
+
+const showTeacherHub = computed(() => activeStatus.value === 'pending')
+
+const useStudentTaskApi = computed(() => {
+
+  const role = normalizeRole(userStore.userInfo.userRoleId)
+
+  return role === 'student' || role === 'parent'
+
 })
+
+
+
+provide('parentSelectedId', selectedChild)
+
+provide('parentSelectChild', selectChild)
+
+provide('parentChildren', computed(() => children.value))
+
+
+
 appStore.setActiveTab('tasks')
 
+
+
 const loading = ref(false)
+
 const startingCreative = ref(false)
-const tasks = ref([])
-const teacherTasks = ref([])
-const activeCategory = ref('experiment')
+
+const allTasks = ref([])
+
 const activeStatus = ref('pending')
 
-const categoryTabs = [
-  { key: 'experiment', label: '实验' },
-  { key: 'remix', label: '拍同款' },
-  { key: 'creative', label: '创意' },
-  { key: 'quiz', label: '答题' }
-]
+const teacherHubRef = ref(null)
 
-const visibleCategoryTabs = computed(() =>
-  isParentView.value ? categoryTabs.filter((t) => t.key !== 'quiz') : categoryTabs
-)
 
-const statusTabs = [
-  { key: 'pending', label: '待完成' },
-  { key: 'done', label: '已完成' }
-]
 
-const VALID_CATEGORIES = categoryTabs.map((t) => t.key)
+const categoryLabels = {
 
-const todayQuizTask = computed(() => {
-  if (activeCategory.value !== 'quiz') return null
-  return tasks.value.find((t) => t.kind === 'quiz-today') || null
-})
+  experiment: '我的实验',
 
-const quizHistoryTasks = computed(() => {
-  if (activeCategory.value !== 'quiz') return []
-  return tasks.value.filter((t) => t.kind === 'quiz-history')
-})
+  remix: '拍同款',
 
-const listTasks = computed(() => {
-  if (activeCategory.value !== 'quiz') return tasks.value
-  return tasks.value.filter((t) => t.kind !== 'quiz-today')
-})
+  creative: '创意实验',
 
-const displayTasks = computed(() => {
-  if (activeCategory.value === 'quiz' && todayQuizTask.value) {
-    return [todayQuizTask.value, ...quizHistoryTasks.value]
-  }
-  return tasks.value
-})
+  quiz: '每日答题'
 
-function scrollToParentTaskList() {
-  const el = document.querySelector('[data-parent-task-list]')
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
 }
 
-provide('scrollToParentTaskList', scrollToParentTaskList)
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+
+const activeCategory = computed(() => {
+
+  const cat = route.query.category
+
+  return typeof cat === 'string' && categoryLabels[cat] ? cat : ''
+
+})
+
+
+
+const pageTitle = computed(() => {
+
+  if (isTeacherView.value) return '班级任务'
+
+  if (activeCategory.value) {
+
+    return categoryLabels[activeCategory.value]
+
+  }
+
+  return '我的任务'
+
+})
+
+
+
+const tasks = computed(() => {
+
+  if (!activeCategory.value) return allTasks.value
+
+  return allTasks.value.filter((t) => t.category === activeCategory.value)
+
+})
+
+
+
+const statusTabs = computed(() => {
+
+  if (isTeacherView.value) {
+
+    return [
+
+      { key: 'pending', label: '进行中' },
+
+      { key: 'done', label: '已完成' },
+
+      { key: 'cancelled', label: '已取消' }
+
+    ]
+
+  }
+
+  return [
+
+    { key: 'pending', label: '待办任务' },
+
+    { key: 'done', label: '已完成' }
+
+  ]
+
+})
+
+
+
+const emptyLabel = computed(() => {
+
+  if (activeStatus.value === 'cancelled') return '暂无已取消任务'
+
+  if (activeStatus.value === 'pending') {
+
+    return isTeacherView.value ? '暂无进行中的任务' : '暂无待办任务'
+
+  }
+
+  return '暂无已完成任务'
+
+})
+
+
+
+const { initIcons } = useLucideIcons()
+
+
 
 function cardVariant(task) {
+
   if (task.category === 'quiz') return 'quiz'
+
   if (task.category === 'remix') return 'remix'
+
   if (task.category === 'creative') return 'creative'
+
+  if (task.category === 'class') return 'homework'
+
+  if (task.category === 'audit') return 'simulator'
+
   if (task.subType === 'simulator') return 'simulator'
+
   return 'homework'
+
 }
 
-function taskTypeLabel(task) {
-  if (task.category === 'quiz') return '🧠 答题'
-  if (task.category === 'remix') return '📷 拍同款'
-  if (task.category === 'creative') return '💡 创意'
-  if (task.subType === 'simulator') return '🖥️ 模拟实验'
-  return '🔬 实验'
+
+
+function taskLink(task) {
+
+  if (task.link) return task.link
+
+  if (task.kind === 'teacher-class' || task.kind === 'teacher-class-cancelled' || task.category === 'class') {
+
+    return `/tasks/${task.id}/summary`
+
+  }
+
+  if (task.kind === 'exp-audit' || task.category === 'audit') {
+
+    return `/content-audits/${task.id}`
+
+  }
+
+  return `/tasks/${task.id}`
+
 }
+
+
 
 function showParentAssist(task) {
+
   if (!task || task.state === 'done') return false
+
   if (task.category === 'quiz') return false
+
   if (task.kind === 'creative-start') return false
+
+  if (task.category === 'class' || task.category === 'audit') return false
+
   return true
+
 }
+
+
+
+async function loadStudentParentTasks() {
+
+  const childUserId = childQueryParam()
+
+  const status = activeStatus.value
+
+  const categories = isParentView.value
+
+    ? ['experiment', 'remix', 'creative']
+
+    : ['experiment', 'remix', 'creative', 'quiz']
+
+  const results = await Promise.all(
+
+    categories.map((category) =>
+
+      fetchTasks({ childUserId, category, status, page: 1, size: 50 })
+
+    )
+
+  )
+
+  const merged = []
+
+  const seen = new Set()
+
+  for (const res of results) {
+
+    if (res?.code !== 200) continue
+
+    for (const item of res?.data?.records || []) {
+
+      const key = `${item.id}-${item.kind || item.category || ''}`
+
+      if (seen.has(key)) continue
+
+      seen.add(key)
+
+      merged.push(item)
+
+    }
+
+  }
+
+  merged.sort((a, b) => (b.sortTime || 0) - (a.sortTime || 0))
+
+  allTasks.value = merged
+
+}
+
+
 
 async function loadTasks() {
-  loading.value = true
-  try {
-    if (isTeacherView.value) {
-      const res = await fetchTeacherTasks()
-      teacherTasks.value = res?.code === 200 && Array.isArray(res.data) ? res.data : []
-    } else {
-      const res = await fetchTasks({
-        childUserId: childQueryParam(),
-        category: activeCategory.value,
-        status: activeStatus.value,
-        page: 1,
-        size: 50
-      })
-      tasks.value = (res?.data?.records) || []
-    }
-  } catch (e) {
-    console.warn('加载任务失败', e)
-    if (isTeacherView.value) teacherTasks.value = []
-    else tasks.value = []
-  } finally {
-    loading.value = false
+
+  if (isTeacherView.value && showTeacherHub.value) {
+
+    teacherHubRef.value?.reload?.()
+
     initIcons()
+
+    return
+
   }
+
+  loading.value = true
+
+  try {
+
+    if (useStudentTaskApi.value) {
+
+      await loadStudentParentTasks()
+
+      return
+
+    }
+
+    const res = await fetchTaskInbox({
+
+      childUserId: childQueryParam(),
+
+      status: activeStatus.value,
+
+      page: 1,
+
+      size: 50
+
+    })
+
+    allTasks.value = res?.code === 200 ? (res?.data?.records || []) : []
+
+  } catch (e) {
+
+    console.warn('加载任务失败', e)
+
+    allTasks.value = []
+
+  } finally {
+
+    loading.value = false
+
+    initIcons()
+
+  }
+
 }
+
+
 
 function syncRouteQuery() {
-  if (isTeacherView.value) return
-  const query = {
-    category: activeCategory.value,
-    status: activeStatus.value
+
+  const query = { status: activeStatus.value }
+
+  if (activeCategory.value) {
+
+    query.category = activeCategory.value
+
   }
-  if (route.query.category === query.category && route.query.status === query.status) return
+
+  const sameStatus = route.query.status === query.status
+
+  const sameCategory = (route.query.category || '') === (query.category || '')
+
+  if (sameStatus && sameCategory) return
+
   router.replace({ path: '/tasks', query })
+
 }
 
-function switchCategory(key) {
-  activeCategory.value = key
-  syncRouteQuery()
-  loadTasks()
-}
+
 
 function switchStatus(key) {
+
   activeStatus.value = key
+
   syncRouteQuery()
+
   loadTasks()
+
 }
+
+
 
 async function handleCreativeStart() {
+
   if (startingCreative.value) return
+
   startingCreative.value = true
+
   try {
+
     const res = await startCreativeTask()
+
     const taskId = res?.data?.id
+
     if (taskId) {
+
       router.push(`/tasks/${taskId}`)
+
       return
+
     }
+
     await loadTasks()
+
   } catch (e) {
+
     const taskId = e?.response?.data?.data?.id
+
     if (taskId) {
+
       router.push(`/tasks/${taskId}`)
+
     } else {
+
       console.warn('开始创意任务失败', e)
+
     }
+
   } finally {
+
     startingCreative.value = false
+
   }
+
 }
 
-function resolveQueryCategory() {
-  const qCat = route.query.category || route.query.type
-  if (qCat === 'homework' || qCat === 'all') return 'experiment'
-  if (qCat && VALID_CATEGORIES.includes(qCat)) return qCat
-  return null
-}
 
-watch(() => [route.query.category, route.query.type], () => {
-  const cat = resolveQueryCategory()
-  if (cat) {
-    activeCategory.value = cat
-    loadTasks()
-  }
-})
 
 watch(selectedChild, () => {
+
   if (isParentView.value) loadTasks()
+
 })
+
+
 
 watch(() => route.query.status, (val) => {
-  if (val === 'pending' || val === 'done') {
-    activeStatus.value = val
+
+  const allowed = isTeacherView.value
+
+    ? ['pending', 'done', 'cancelled']
+
+    : ['pending', 'done']
+
+  if (allowed.includes(val)) {
+
+    if (activeStatus.value !== val) {
+
+      activeStatus.value = val
+
+    }
+
     loadTasks()
+
   }
+
 })
+
+
+
+watch(() => route.query.category, () => {
+
+  if (!isTeacherView.value || !showTeacherHub.value) {
+
+    loadTasks()
+
+  }
+
+})
+
+
 
 onMounted(async () => {
+
+  initIcons()
+
   if (isParentView.value) {
+
     await loadChildren()
-    if (activeCategory.value === 'quiz') activeCategory.value = 'experiment'
+
   }
-  const cat = resolveQueryCategory()
-  if (cat) activeCategory.value = cat
+
   const qStatus = route.query.status
-  if (qStatus === 'pending' || qStatus === 'done') {
+
+  const allowed = isTeacherView.value
+
+    ? ['pending', 'done', 'cancelled']
+
+    : ['pending', 'done']
+
+  if (allowed.includes(qStatus)) {
+
     activeStatus.value = qStatus
+
   }
+
   syncRouteQuery()
+
   loadTasks()
+
 })
+
 </script>
 
+
+
 <style scoped>
+
 .tasks-empty {
+
   column-span: all;
+
   width: 100%;
+
 }
+
+
 
 .parent-task-materials {
+
   display: -webkit-box;
+
   -webkit-line-clamp: 2;
+
   -webkit-box-orient: vertical;
+
   overflow: hidden;
+
   line-height: 1.45;
+
 }
 
+
+
 .parent-task-upload {
+
   border-top: 1px solid var(--surface-border, rgba(0, 0, 0, 0.06));
+
   text-decoration: none;
+
 }
+
+.tasks-teacher-mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .tasks-teacher-mobile-tabs {
+    display: block;
+  }
+}
+
 </style>
+
+

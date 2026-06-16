@@ -5,6 +5,7 @@ import com.xuanyue.exp.common.PageResult;
 import com.xuanyue.exp.mobile.dto.CreateTaskRequest;
 import com.xuanyue.exp.mobile.dto.MobileTaskListItemDto;
 import com.xuanyue.exp.mobile.dto.MobileTaskDto;
+import com.xuanyue.exp.mobile.service.MobileInboxService;
 import com.xuanyue.exp.mobile.service.MobileTaskService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +15,26 @@ import org.springframework.web.bind.annotation.*;
 public class MobileTaskController {
 
     private final MobileTaskService taskService;
+    private final MobileInboxService inboxService;
 
-    public MobileTaskController(MobileTaskService taskService) {
+    public MobileTaskController(MobileTaskService taskService, MobileInboxService inboxService) {
         this.taskService = taskService;
+        this.inboxService = inboxService;
+    }
+
+    @GetMapping("/inbox")
+    public ApiResponse<PageResult<MobileTaskListItemDto>> inbox(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestParam(value = "childUserId", required = false) String childUserId,
+            @RequestParam(value = "status", defaultValue = "pending") String status,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "50") int size) {
+        try {
+            return ApiResponse.success(inboxService.list(userId, childUserId, status, page, size));
+        } catch (IllegalArgumentException e) {
+            int code = "请先登录".equals(e.getMessage()) ? 401 : 400;
+            return ApiResponse.fail(code, e.getMessage());
+        }
     }
 
     @GetMapping

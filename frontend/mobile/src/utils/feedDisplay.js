@@ -18,6 +18,7 @@ export function formatPlayCount(count) {
 }
 
 export function detailRoute(item) {
+  if (item.type === 'work') return `/works/${item.id}`
   if (item.type === 'video') return `/video/${item.id}`
   if (item.type === 'simulation') {
     const simId = item.simulatorId || item.id
@@ -32,12 +33,25 @@ export function sceneIcon(item) {
 }
 
 export function tagIcon(item) {
-  const map = { video: 'play-circle', exp: 'flask-conical', sim: 'flask-conical' }
+  const map = {
+    video: 'play-circle',
+    exp: 'flask-conical',
+    sim: 'flask-conical',
+    'work-homework': 'clipboard-list',
+    'work-remix': 'clapperboard',
+    'work-creative': 'lightbulb'
+  }
   return map[item.tagType] || 'play-circle'
 }
 
 export function metaLineParts(item) {
   const parts = []
+  if (item.type === 'work') {
+    if (item.grade) parts.push(item.grade)
+    if (item.tagLabel) parts.push(item.tagLabel)
+    parts.push(item.playCount ? `${item.playCount}赞` : '0赞')
+    return parts
+  }
   if (item.subject) parts.push(item.subject)
   if (item.grade) parts.push(item.grade)
   parts.push(formatPlayCount(item.playCount))
@@ -45,6 +59,13 @@ export function metaLineParts(item) {
 }
 
 export function authorLineParts(item) {
+  if (item.type === 'work' || item.authorRole === 'student') {
+    const parts = []
+    if (item.author) parts.push(item.author)
+    if (item.classLabel) parts.push(item.classLabel)
+    else if (item.grade) parts.push(item.grade)
+    return parts
+  }
   const parts = []
   const name = item.author ? `${item.author}老师` : '未知'
   parts.push(name)

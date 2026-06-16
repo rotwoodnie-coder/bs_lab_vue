@@ -1,5 +1,6 @@
 package com.xuanyue.exp.mobile.service;
 
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 import com.xuanyue.exp.mobile.dto.ParentBindApplicationsDto;
 import com.xuanyue.exp.mobile.dto.ParentBindRequest;
 import com.xuanyue.exp.mobile.dto.ParentBindResultDto;
@@ -8,6 +9,7 @@ import com.xuanyue.exp.mobile.entity.MbParentChild;
 import com.xuanyue.exp.mobile.repository.MbParentChildRepository;
 import com.xuanyue.exp.mobile.repository.MbTaskSubmissionRepository;
 import com.xuanyue.exp.mobile.repository.MbWorkRepository;
+import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileIds;
 import com.xuanyue.exp.mobile.support.MobileParentAccessService;
 import com.xuanyue.exp.mobile.support.MobileUserContext;
@@ -35,6 +37,7 @@ public class MobileParentService {
     private final MbWorkRepository workRepository;
     private final MobileParentAccessService parentAccessService;
     private final MobileNotificationService notificationService;
+    private final MinioStorageService minioStorageService;
 
     public MobileParentService(MbParentChildRepository parentChildRepository,
                                MobileOrgBindService orgBindService,
@@ -42,7 +45,8 @@ public class MobileParentService {
                                MbTaskSubmissionRepository taskSubmissionRepository,
                                MbWorkRepository workRepository,
                                MobileParentAccessService parentAccessService,
-                               MobileNotificationService notificationService) {
+                               MobileNotificationService notificationService,
+                               MinioStorageService minioStorageService) {
         this.parentChildRepository = parentChildRepository;
         this.orgBindService = orgBindService;
         this.sysUserRepository = sysUserRepository;
@@ -50,6 +54,7 @@ public class MobileParentService {
         this.workRepository = workRepository;
         this.parentAccessService = parentAccessService;
         this.notificationService = notificationService;
+        this.minioStorageService = minioStorageService;
     }
 
     @Transactional
@@ -93,7 +98,7 @@ public class MobileParentService {
             bind.setUpdateTime(new Date());
             parentChildRepository.save(bind);
             notificationService.notifyTeachersOfBindApplication(parentId, bind, student);
-            return toBindResult(bind, student.getUserName(), "绑定申请已提交，等待学校审核");
+            return toBindResult(bind, student.getUserName(), "绑定申请已提交，等待学校审核", student);
         }
 
         MbParentChild bind = new MbParentChild();
@@ -112,7 +117,7 @@ public class MobileParentService {
         parentChildRepository.save(bind);
 
         notificationService.notifyTeachersOfBindApplication(parentId, bind, student);
-        return toBindResult(bind, student.getUserName(), "绑定申请已提交，等待学校审核");
+        return toBindResult(bind, student.getUserName(), "绑定申请已提交，等待学校审核", student);
     }
 
     @Transactional(readOnly = true)
@@ -124,7 +129,8 @@ public class MobileParentService {
         List<MbParentChild> binds = parentChildRepository.findByParentUserIdAndBindStatusOrderByIsDefaultDesc(parentId, "pending");
         List<ParentBindResultDto> result = new ArrayList<>();
         for (MbParentChild bind : binds) {
-            result.add(toBindResult(bind, resolveChildName(bind.getChildUserId()), null));
+            SysUser child = sysUserRepository.findById(bind.getChildUserId()).orElse(null);
+            result.add(toBindResult(bind, resolveChildName(bind.getChildUserId()), null, child));
         }
         return result;
     }
@@ -146,7 +152,9 @@ public class MobileParentService {
         List<MbParentChild> binds = parentChildRepository.findByParentUserIdOrderByIsDefaultDesc(parentId);
         List<ParentBindResultDto> apps = new ArrayList<>();
         for (MbParentChild bind : binds) {
-            apps.add(toBindResult(bind, resolveChildName(bind.getChildUserId()), null));
+            SysUser child = sysUserRepository.findById(bind.getChildUserId()).orElse(null);
+            String childName = child != null ? displayChildName(child) : resolveChildName(bind.getChildUserId());
+            apps.add(toBindResult(bind, childName, null, child));
         }
         dto.setApplications(apps);
         return dto;
@@ -171,11 +179,12 @@ public class MobileParentService {
         bind.setRejectReason(null);
     }
 
-    private ParentBindResultDto toBindResult(MbParentChild bind, String childName, String message) {
+    private ParentBindResultDto toBindResult(MbParentChild bind, String childName, String message, SysUser child) {
         ParentBindResultDto dto = new ParentBindResultDto();
         dto.setBindId(bind.getBindId());
         dto.setChildUserId(bind.getChildUserId());
         dto.setChildName(childName);
+        dto.setChildAvatarUrl(MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, child));
         dto.setBindStatus(bind.getBindStatus());
         dto.setSchoolName(bind.getSchoolName());
         dto.setGradeName(bind.getGradeName());
@@ -201,8 +210,11 @@ public class MobileParentService {
             }
             ParentChildListItemDto item = new ParentChildListItemDto();
             item.setId(bind.getChildUserId());
-            item.setName(resolveChildName(bind.getChildUserId()));
-            item.setAvatar(item.getName().isEmpty() ? "孩" : item.getName().substring(0, 1));
+            SysUser child = sysUserRepository.findById(bind.getChildUserId()).orElse(null);
+            String childName = child != null ? displayChildName(child) : resolveChildName(bind.getChildUserId());
+            item.setName(childName);
+            item.setAvatar(MobileAvatarSupport.initialOf(childName, "孩"));
+            item.setAvatarUrl(MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, child));
             item.setCurrent("y".equalsIgnoreCase(safe(bind.getIsDefault())));
             item.setClassLabel(bind.getClassName());
             item.setBindStatus(bind.getBindStatus());
@@ -230,8 +242,15 @@ public class MobileParentService {
 
     private String resolveChildName(String childUserId) {
         return sysUserRepository.findById(childUserId)
-                .map(SysUser::getUserName)
+                .map(this::displayChildName)
                 .orElse("孩子");
+    }
+
+    private String displayChildName(SysUser user) {
+        if (StringUtils.hasText(user.getUserNickName())) {
+            return user.getUserNickName();
+        }
+        return user.getUserName() != null ? user.getUserName() : "孩子";
     }
 
     private String safe(String value) {

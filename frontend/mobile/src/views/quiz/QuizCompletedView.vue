@@ -1,7 +1,7 @@
 <template>
   <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
     <div class="topbar page-topbar safe-top">
-      <PageBackButton fallback="/tasks?category=quiz" />
+      <PageBackButton fallback="/tasks?status=pending&category=quiz" />
       <h1 class="topbar-title">🧠 每日答题</h1>
       <span v-if="result" class="badge badge-success shrink-0">已完成</span>
     </div>
@@ -63,6 +63,7 @@ import { useRouter } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTodayQuiz } from '@/api/quiz'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const router = useRouter()
 const loading = ref(true)
@@ -74,11 +75,7 @@ const scoreLabel = computed(() => {
   return `${result.value.score} / ${result.value.total}`
 })
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(async () => {
   try {

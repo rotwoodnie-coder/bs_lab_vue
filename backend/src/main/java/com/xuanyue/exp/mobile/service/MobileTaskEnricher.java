@@ -4,6 +4,8 @@ import com.xuanyue.exp.exp.entity.ExpMaterial;
 import com.xuanyue.exp.exp.entity.ExpStep;
 import com.xuanyue.exp.exp.repository.ExpMaterialRepository;
 import com.xuanyue.exp.exp.repository.ExpStepRepository;
+import com.xuanyue.exp.exp.entity.ExpSimulator;
+import com.xuanyue.exp.exp.repository.ExpSimulatorRepository;
 import com.xuanyue.exp.exp.service.ExpStandardService;
 import com.xuanyue.exp.mobile.dto.MobileTaskDto;
 import com.xuanyue.exp.mobile.dto.MobileTaskExpBriefDto;
@@ -26,13 +28,13 @@ public class MobileTaskEnricher {
     private static final List<String> REMIX_COMPLETION_GUIDE = Arrays.asList(
             "回看参考视频，对照实验资料完成同款实验",
             "拍摄实验过程，上传至少一张照片或短视频",
-            "上传后任务完成，作品归入作品墙「拍同款」"
+            "提交后由老师审核，通过后展示在作品墙「拍同款」"
     );
 
     private static final List<String> CREATIVE_COMPLETION_GUIDE = Arrays.asList(
             "确定创意主题并完成实验探究",
             "拍摄过程与成果，上传至少一张照片或短视频",
-            "上传后任务完成，作品归入作品墙「创意实验」"
+            "提交后由老师审核，通过后展示在作品墙「创意实验」"
     );
 
     private static final List<String> SIMULATOR_COMPLETION_FALLBACK = Arrays.asList(
@@ -48,13 +50,16 @@ public class MobileTaskEnricher {
     private final ExpStandardService expStandardService;
     private final ExpMaterialRepository materialRepository;
     private final ExpStepRepository stepRepository;
+    private final ExpSimulatorRepository simulatorRepository;
 
     public MobileTaskEnricher(ExpStandardService expStandardService,
                               ExpMaterialRepository materialRepository,
-                              ExpStepRepository stepRepository) {
+                              ExpStepRepository stepRepository,
+                              ExpSimulatorRepository simulatorRepository) {
         this.expStandardService = expStandardService;
         this.materialRepository = materialRepository;
         this.stepRepository = stepRepository;
+        this.simulatorRepository = simulatorRepository;
     }
 
     public void enrich(MobileTaskDto dto, MbTask task) {
@@ -62,7 +67,12 @@ public class MobileTaskEnricher {
             return;
         }
         if (StringUtils.hasText(task.getVideoId())) {
-            dto.setExpBrief(buildExpBrief(task.getVideoId().trim()));
+            if ("simulator".equalsIgnoreCase(task.getTaskType())
+                    || simulatorRepository.existsById(task.getVideoId().trim())) {
+                dto.setExpBrief(buildSimulatorBrief(task.getVideoId().trim()));
+            } else {
+                dto.setExpBrief(buildExpBrief(task.getVideoId().trim()));
+            }
         }
         dto.setCompletionGuide(buildCompletionGuide(task));
     }
@@ -106,6 +116,21 @@ public class MobileTaskEnricher {
         return brief;
     }
 
+    public MobileTaskExpBriefDto buildSimulatorBrief(String simulatorId) {
+        MobileTaskExpBriefDto brief = new MobileTaskExpBriefDto();
+        if (!StringUtils.hasText(simulatorId)) {
+            return brief;
+        }
+        ExpSimulator simulator = simulatorRepository.findById(simulatorId.trim()).orElse(null);
+        if (simulator == null) {
+            return brief;
+        }
+        if (StringUtils.hasText(simulator.getComments())) {
+            brief.setStepsLine(MobileTextUtils.toPlainOneLine(simulator.getComments(), 200));
+        }
+        return brief;
+    }
+
     private String buildCurriculumLine(Map<String, Object> detail) {
         List<String> parts = new ArrayList<>();
         appendCurriculumPart(parts, "教材", detail.get("coursebookName"));
@@ -145,7 +170,7 @@ public class MobileTaskEnricher {
         if ("creative".equals(task.getTaskType())) {
             return new ArrayList<>(CREATIVE_COMPLETION_GUIDE);
         }
-        if ("simulator".equals(task.getTaskType())) {
+        if ("simulator".equals(task.getTaskType()) || isSimulatorVideoId(task.getVideoId())) {
             LinkedHashSet<String> lines = new LinkedHashSet<>();
             collectGuideLines(lines, task);
             if (lines.isEmpty()) {
@@ -195,5 +220,9 @@ public class MobileTaskEnricher {
         if (StringUtils.hasText(line)) {
             lines.add(line);
         }
+    }
+
+    private boolean isSimulatorVideoId(String videoId) {
+        return StringUtils.hasText(videoId) && simulatorRepository.existsById(videoId.trim());
     }
 }

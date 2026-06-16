@@ -22,12 +22,18 @@ export function fetchTeacherAssignOptions() {
   return request.get('/mobile/teacher/assign-options')
 }
 
-export function fetchTeacherTasks() {
-  return request.get('/mobile/teacher/tasks')
+export function fetchTeacherTasks(params = {}) {
+  return request.get('/mobile/teacher/tasks', {
+    params: { scope: params.scope || 'active' }
+  })
 }
 
 export function remindTeacherTask(taskId) {
   return request.post('/mobile/teacher/remind', null, { params: { taskId } })
+}
+
+export function cancelTeacherTask(taskId, payload = {}) {
+  return request.post(`/mobile/teacher/tasks/${taskId}/cancel`, payload)
 }
 
 export function fetchTeacherParentBinds(params = {}) {
@@ -46,4 +52,8 @@ export function fetchTeacherParentBindPendingCount() {
 
 export function auditTeacherParentBind(bindId, payload) {
   return request.patch(`/mobile/teacher/parent-binds/${bindId}`, payload)
+}
+
+export function fetchTeacherWorkDetail(workId) {
+  return request.get(`/mobile/teacher/works/${workId}`)
 }

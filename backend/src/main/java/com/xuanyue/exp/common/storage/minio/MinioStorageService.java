@@ -10,5 +10,7 @@ public interface MinioStorageService {
     Map<String, Object> upload(MultipartFile file) throws IOException;
 
     boolean deleteByUrl(String fileUrl);
-    String buildPreviewUrl(String objectName);
+    String buildPreviewUrl(String fileUrlOrObjectName);
+    String resolveAccessibleUrl(String fileUrl);
+    String normalizeStorageKey(String fileUrl);
 }

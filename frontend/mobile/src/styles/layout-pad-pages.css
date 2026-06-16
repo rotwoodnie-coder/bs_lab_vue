@@ -473,6 +473,188 @@
   display: none !important;
 }
 
+/* ── badge-wall：手机默认显示 mobile 结构 ── */
+.pad-badges__mobile-only {
+  display: block;
+}
+
+.pad-main.pad-badges {
+  display: none;
+}
+
+/* ── badge-wall：P19 Pad 左右分栏（竖屏 + 横屏 ≥768px）── */
+@media (min-width: 768px) {
+  .pad-badges__mobile-only {
+    display: none !important;
+  }
+
+  .pad-main.pad-badges {
+    display: flex;
+  }
+
+  .pad-shell[data-layout="badge-wall"] {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    padding-bottom: 72px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .pad-shell[data-layout="badge-wall"] .pad-main.pad-badges {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .pad-shell[data-layout="badge-wall"] .pad-badges__topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+    height: 48px;
+    padding: 0 var(--space-4);
+    border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-surface);
+  }
+
+  .pad-badges__topbar .pad-workbench__title {
+    flex-shrink: 0;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+  }
+
+  .pad-badges__split {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .pad-badges__rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 220px;
+    flex-shrink: 0;
+    padding: var(--space-3);
+    border-right: 1px solid var(--color-border-soft);
+    background: var(--color-surface-2);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .pad-badges__nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    width: 100%;
+    padding: 10px var(--space-4);
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+
+  .pad-badges__nav-item:hover {
+    background: var(--color-surface);
+    color: var(--color-text-1);
+  }
+
+  .pad-badges__nav-item.active {
+    background: var(--brand);
+    color: var(--brand-on);
+  }
+
+  .pad-badges__nav-count {
+    min-width: 1.5rem;
+    padding: 0 6px;
+    border-radius: var(--radius-full);
+    background: rgba(0, 0, 0, 0.06);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .pad-badges__nav-item.active .pad-badges__nav-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: inherit;
+  }
+
+  .pad-badges__content {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+
+  .pad-badges__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--c-amber-100) 0%, var(--c-orange-100) 100%);
+    border: 1px solid var(--c-amber-200);
+  }
+
+  .pad-badges__summary-num {
+    flex-shrink: 0;
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-bold);
+    color: var(--c-amber-600);
+    line-height: 1;
+  }
+
+  .pad-badges__summary-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pad-badges__summary-meta .text-sm {
+    font-weight: var(--weight-bold);
+  }
+
+  .pad-badges__hint {
+    color: var(--c-amber-700, #b45309);
+    font-weight: var(--weight-medium);
+  }
+
+  .pad-badges__summary .progress {
+    width: 100%;
+    max-width: none;
+    margin-top: var(--space-2);
+  }
+
+  .pad-badges__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .pad-badges__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) and (orientation: portrait) {
+  .pad-badges__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 /* ── 通用工作台顶栏（与 P03 一致：标题 + 搜索图标）── */
 .pad-workbench__topbar,
 .pad-workbench__filters {
@@ -771,95 +953,7 @@
     display: none !important;
   }
 
-  /* ── badge-wall：P19 勋章墙 ── */
-  .pad-badges__mobile-only {
-    display: block;
-  }
-
-  .pad-shell[data-layout="badge-wall"] {
-    width: 100%;
-    max-width: none;
-    height: 100dvh;
-    padding-bottom: 72px;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  .pad-shell[data-layout="badge-wall"] .pad-main.pad-badges {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .pad-shell[data-layout="badge-wall"] .pad-badges__topbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    flex-shrink: 0;
-    height: 48px;
-    padding: 0 var(--space-4);
-    border-bottom: 1px solid var(--color-border-soft);
-    background: var(--color-surface);
-  }
-
-  .pad-badges__topbar .pad-workbench__title {
-    flex-shrink: 0;
-  }
-
-  .pad-badges__filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-left: auto;
-  }
-
-  .pad-shell[data-layout="badge-wall"] .pad-badges__body {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    padding: var(--space-3) var(--space-4) var(--space-4);
-  }
-
-  .pad-badges__summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
-    margin-bottom: var(--space-4);
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--c-amber-100) 0%, var(--c-orange-100) 100%);
-    border: 1px solid var(--c-amber-200);
-  }
-
-  .pad-badges__summary-num {
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-bold);
-    color: var(--c-amber-600);
-    line-height: 1;
-  }
-
-  .pad-badges__summary-meta {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .pad-badges__summary-meta .text-sm {
-    font-weight: var(--weight-bold);
-  }
-
-  .pad-badges__summary .progress {
-    max-width: 280px;
-    margin-top: var(--space-2);
-  }
-
-  .pad-badges__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
-
+  /* ── badge-wall：P19 勋章墙（左右分栏，见 @media min-width 768px 通用规则）── */
   .pad-shell[data-layout="badge-wall"] .pad-badges__mobile-only {
     display: none !important;
   }
@@ -867,9 +961,16 @@
   /* ── teacher-home：P17/P23 ── */
   .pad-shell[data-layout="teacher-home"] .pad-teacher__overview {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher {
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .pad-shell[data-layout="teacher-home"] .pad-teacher__body {
@@ -1358,6 +1459,12 @@ html.in-iframe-pad .pad-shell[data-layout="badge-wall"] .pad-badges__topbar {
   display: flex;
 }
 
+html.in-iframe-pad .pad-shell[data-layout="badge-wall"] .pad-badges__split {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
 html.in-iframe-pad .pad-shell[data-layout="badge-wall"] .pad-badges__mobile-only {
   display: none !important;
 }
@@ -1493,7 +1600,7 @@ html.in-iframe-pad .pad-shell[data-layout="explore"] .pad-explore__mobile-head {
   display: none;
 }
 
-/* ── teacher-form：P21 布置作业 ── */
+/* ── teacher-form：P21 布置实验任务 ── */
 @media (min-width: 768px) and (orientation: landscape) {
   .pad-shell[data-layout="teacher-form"] {
     width: 100%;
@@ -1566,7 +1673,7 @@ html.in-iframe-pad .pad-shell[data-layout="teacher-form"] .pad-form__mobile-only
   .pad-shell .pad-form__body,
   .pad-shell .pad-home__rail,
   .pad-shell .pad-badges__topbar,
-  .pad-shell .pad-badges__body,
+  .pad-shell .pad-badges__split,
   .pad-shell[data-layout="badge-wall"] .pad-main.pad-badges {
     display: none !important;
   }
@@ -1778,6 +1885,13 @@ html.in-iframe-pad .pad-shell[data-layout="teacher-form"] .pad-form__mobile-only
     overflow-y: auto;
     padding: var(--space-4);
     -webkit-overflow-scrolling: touch;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pad-shell[data-layout="settings-split"] .pad-settings__mobile-menu button {
+    cursor: pointer;
+    touch-action: manipulation;
   }
 
   .pad-shell[data-layout="settings-split"].pad-settings--mobile-pane-open .pad-settings__mobile-pane-head {
@@ -1817,6 +1931,13 @@ html.in-iframe-pad .pad-shell[data-layout="teacher-form"] .pad-form__mobile-only
 
   .pad-shell[data-layout="upload-split"] .pad-upload__mobile-only {
     display: block !important;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .pad-shell[data-layout="upload-split"] .pad-upload {
+    display: none !important;
   }
 
   .pad-shell[data-layout="upload-split"] #uploadFormBlock > .upload-preview-grid,

@@ -77,12 +77,25 @@
             :class="'delay-' + ((i % 6) + 1)"
           >
             <div class="video-card__media" :class="work.tint">
+              <img
+                v-if="work.coverUrl"
+                :src="resolveCoverUrl(work)"
+                alt=""
+                class="video-card__cover"
+              />
               <span class="video-card__tag">{{ typeLabel(work.type) }}</span>
-              <span class="video-card__play"><i data-lucide="play" class="icon"></i></span>
+              <span v-if="work.coverType === 'video' || !work.coverUrl" class="video-card__play"><i data-lucide="play" class="icon"></i></span>
             </div>
             <div class="video-card__body">
               <div class="video-card__info">
-                <span v-if="!isMineScope" class="video-card__avatar avatar avatar-sm avatar-grad-warm">{{ work.authorInitial }}</span>
+                <UserAvatar
+                  v-if="!isMineScope"
+                  size="sm"
+                  extra-class="video-card__avatar"
+                  :name="work.author"
+                  :src="work.authorAvatarUrl"
+                  role="student"
+                />
                 <div class="video-card__text">
                   <h3 class="video-card__title">{{ work.title }}</h3>
                   <p class="video-card__meta video-card__meta--work row items-center flex-wrap gap-1">
@@ -143,9 +156,12 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { fetchWorks } from '@/api/work'
 import { startCreativeTask } from '@/api/creative'
 import { useUserStore } from '@/stores/user'
+import { resolveMediaUrl } from '@/utils/fileUrl'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
 const router = useRouter()
@@ -155,7 +171,7 @@ const submitOptions = [
   {
     key: 'homework',
     label: '我的实验',
-    desc: '完成老师布置的实验作业',
+    desc: '完成老师布置的实验任务',
     icon: 'notebook-text',
     color: 'var(--c-blue-600)'
   },
@@ -234,8 +250,13 @@ const emptyHint = computed(() => {
 function typeLabel(type) {
   if (type === 'remix') return '拍同款'
   if (type === 'creative') return '创意'
-  if (type === 'homework') return '作业'
+  if (type === 'homework') return '作品'
   return '作品'
+}
+
+function resolveCoverUrl(work) {
+  if (!work) return ''
+  return resolveMediaUrl(work, 'coverUrl')
 }
 
 function workLinkComponent(work) {
@@ -392,11 +413,7 @@ watch(() => [route.query.scope, route.query.type, route.query.reviewStatus], () 
   loadWorks()
 })
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(() => {
   resolveFromRoute()

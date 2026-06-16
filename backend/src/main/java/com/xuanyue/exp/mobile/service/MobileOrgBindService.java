@@ -1,7 +1,9 @@
 package com.xuanyue.exp.mobile.service;
 
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 import com.xuanyue.exp.mobile.dto.OrgOptionDto;
 import com.xuanyue.exp.mobile.dto.StudentSearchItemDto;
+import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.system.entity.SysOrg;
 import com.xuanyue.exp.system.entity.SysUser;
 import com.xuanyue.exp.system.repository.SysOrgRepository;
@@ -27,10 +29,14 @@ public class MobileOrgBindService {
 
     private final SysOrgRepository sysOrgRepository;
     private final SysUserRepository sysUserRepository;
+    private final MinioStorageService minioStorageService;
 
-    public MobileOrgBindService(SysOrgRepository sysOrgRepository, SysUserRepository sysUserRepository) {
+    public MobileOrgBindService(SysOrgRepository sysOrgRepository,
+                                SysUserRepository sysUserRepository,
+                                MinioStorageService minioStorageService) {
         this.sysOrgRepository = sysOrgRepository;
         this.sysUserRepository = sysUserRepository;
+        this.minioStorageService = minioStorageService;
     }
 
     public List<OrgOptionDto> listSchools() {
@@ -106,6 +112,7 @@ public class MobileOrgBindService {
             if (gradeOrg != null) {
                 item.setGradeName(gradeOrg.getOrgName());
             }
+            item.setAvatarUrl(MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, user));
             result.add(item);
         }
         result.sort(Comparator.comparing(StudentSearchItemDto::getUserName, Comparator.nullsLast(String::compareTo)));

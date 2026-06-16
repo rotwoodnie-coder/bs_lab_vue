@@ -1,6 +1,18 @@
 import request from './request'
 
 /**
+ * 首页首屏聚合：feed + 公告 + 未读数
+ */
+export function fetchHomeBootstrap(params = {}) {
+  return request.get('/mobile/home/bootstrap', {
+    params: {
+      gradeKey: params.gradeKey || 'all',
+      size: params.size || 12
+    }
+  })
+}
+
+/**
  * 获取首页信息流（按年级筛选）
  * @param {object} params - { schoolLevelId, page, size }
  * @returns {Promise<{total: number, records: Array}>}
