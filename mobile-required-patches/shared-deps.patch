@@ -1,0 +1,321 @@
+diff --git a/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageService.java b/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageService.java
+index 6703411..74372ca 100644
+--- a/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageService.java
++++ b/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageService.java
+@@ -10,5 +10,7 @@ public interface MinioStorageService {
+     Map<String, Object> upload(MultipartFile file) throws IOException;
+ 
+     boolean deleteByUrl(String fileUrl);
+-    String buildPreviewUrl(String objectName);
++    String buildPreviewUrl(String fileUrlOrObjectName);
++    String resolveAccessibleUrl(String fileUrl);
++    String normalizeStorageKey(String fileUrl);
+ }
+diff --git a/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageServiceImpl.java b/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageServiceImpl.java
+index c1ba7e6..ce042c2 100644
+--- a/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageServiceImpl.java
++++ b/backend/src/main/java/com/xuanyue/exp/common/storage/minio/MinioStorageServiceImpl.java
+@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
+ import java.io.IOException;
+ import java.io.InputStream;
+ import io.minio.GetPresignedObjectUrlArgs;
++import io.minio.StatObjectArgs;
+ import io.minio.http.Method;
+ 
+ import java.time.LocalDate;
+@@ -62,12 +63,8 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
+             }
+             throw new RuntimeException("MinIO涓婁紶澶辫触", e);
+         }
+-        System.out.println("objectName: " + objectName);
+         String fileUrl = buildFileUrl(objectName);
+         String previewUrl = buildPreviewUrl(objectName);
+-        System.out.println("objectName: " + objectName);
+-        System.out.println("fileUrl: " + fileUrl);
+-        System.out.println("previewUrl: " + previewUrl);
+         Map<String, Object> result = new HashMap<String, Object>();
+         result.put("fileUrl", fileUrl);
+         result.put("previewUrl", previewUrl);
+@@ -121,18 +118,25 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
+ 
+     
+     private String buildFileUrl(String objectName) {
+-        String prefix = "/";//normalizeUrlPrefix(properties.getUrlPrefix());
+-        if (!StringUtils.hasText(prefix)) {
++        if (!StringUtils.hasText(objectName)) {
+             return objectName;
+         }
+-        if (prefix.endsWith("/")) {
+-            return prefix + objectName;
+-        }
+-        return prefix + "/" + objectName;
++        return objectName.startsWith("/") ? objectName : "/" + objectName;
+     }
+ 
+     @Override
+-    public String buildPreviewUrl(String objectName) {
++    public String buildPreviewUrl(String fileUrlOrObjectName) {
++        if (!StringUtils.hasText(fileUrlOrObjectName)) {
++            return fileUrlOrObjectName;
++        }
++        String trimmed = fileUrlOrObjectName.trim();
++        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
++            return trimmed;
++        }
++        String objectName = resolveObjectName(trimmed);
++        if (!StringUtils.hasText(objectName)) {
++            return trimmed;
++        }
+         try {
+             return minioClient.getPresignedObjectUrl(
+                     GetPresignedObjectUrlArgs.builder()
+@@ -143,8 +147,56 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
+                             .build()
+             );
+         } catch (Exception e) {
+-            return buildFileUrl(objectName);
++            return joinPublicUrl(normalizeUrlPrefix(properties.getUrlPrefix()), objectName);
++        }
++    }
++
++    @Override
++    public String resolveAccessibleUrl(String fileUrl) {
++        if (!StringUtils.hasText(fileUrl)) {
++            return fileUrl;
++        }
++        String trimmed = fileUrl.trim();
++        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
++            return trimmed;
++        }
++        String objectName = resolveObjectName(trimmed);
++        if (objectExists(objectName)) {
++            String presigned = buildPreviewUrl(objectName);
++            if (StringUtils.hasText(presigned)
++                    && (presigned.startsWith("http://") || presigned.startsWith("https://"))) {
++                return presigned;
++            }
+         }
++        return joinPublicUrl(normalizeUrlPrefix(properties.getUrlPrefix()), objectName);
++    }
++
++    private boolean objectExists(String objectName) {
++        try {
++            minioClient.statObject(StatObjectArgs.builder()
++                    .bucket(properties.getBucket())
++                    .object(objectName)
++                    .build());
++            return true;
++        } catch (Exception e) {
++            return false;
++        }
++    }
++
++    private String joinPublicUrl(String prefix, String path) {
++        if (!StringUtils.hasText(path)) {
++            return path;
++        }
++        if (!StringUtils.hasText(prefix)) {
++            return path;
++        }
++        String normalizedPath = path.startsWith("/") ? path : "/" + path;
++        return prefix + normalizedPath;
++    }
++
++    @Override
++    public String normalizeStorageKey(String fileUrl) {
++        return resolveObjectName(fileUrl);
+     }
+ 
+     private String resolveObjectName(String fileUrl) {
+diff --git a/backend/src/main/java/com/xuanyue/exp/exp/dto/ExpSimulatorPageQuery.java b/backend/src/main/java/com/xuanyue/exp/exp/dto/ExpSimulatorPageQuery.java
+index 5a3edc1..eb6a0bf 100644
+--- a/backend/src/main/java/com/xuanyue/exp/exp/dto/ExpSimulatorPageQuery.java
++++ b/backend/src/main/java/com/xuanyue/exp/exp/dto/ExpSimulatorPageQuery.java
+@@ -5,6 +5,7 @@ public class ExpSimulatorPageQuery {
+     private String keyword;
+     private String status;
+     private String subjectId;
++    private String gradeKey;
+     private Integer pageNum;
+     private Integer pageSize;
+ 
+@@ -18,4 +19,6 @@ public class ExpSimulatorPageQuery {
+     public void setPageSize(Integer pageSize) { this.pageSize = pageSize; }
+     public String getSubjectId() { return subjectId; }
+     public void setSubjectId(String subjectId) { this.subjectId = subjectId; }
++    public String getGradeKey() { return gradeKey; }
++    public void setGradeKey(String gradeKey) { this.gradeKey = gradeKey; }
+ }
+diff --git a/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpGradeRepository.java b/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpGradeRepository.java
+index e408cd2..45884c4 100644
+--- a/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpGradeRepository.java
++++ b/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpGradeRepository.java
+@@ -3,11 +3,14 @@ package com.xuanyue.exp.exp.repository;
+ import com.xuanyue.exp.exp.entity.ExpGrade;
+ import org.springframework.data.jpa.repository.JpaRepository;
+ 
++import java.util.Collection;
+ import java.util.List;
+ 
+ public interface ExpGradeRepository extends JpaRepository<ExpGrade, String> {
+ 
+     List<ExpGrade> findByExpIdOrderBySortOrderAsc(String expId);
+ 
++    List<ExpGrade> findByExpIdIn(Collection<String> expIds);
++
+     void deleteByExpId(String expId);
+ }
+diff --git a/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpSimulatorRepository.java b/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpSimulatorRepository.java
+index f395fd5..2d82b68 100644
+--- a/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpSimulatorRepository.java
++++ b/backend/src/main/java/com/xuanyue/exp/exp/repository/ExpSimulatorRepository.java
+@@ -2,6 +2,8 @@ package com.xuanyue.exp.exp.repository;
+ 
+ import com.xuanyue.exp.exp.entity.ExpSimulator;
+ import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Query;
++import org.springframework.data.repository.query.Param;
+ 
+ import java.util.List;
+ 
+@@ -12,4 +14,13 @@ public interface ExpSimulatorRepository extends JpaRepository<ExpSimulator, Stri
+     List<ExpSimulator> findByStatus(String status);
+ 
+     List<ExpSimulator> findBySimulatorNameContainingOrCommentsContainingAndStatus(String simulatorName, String comments, String status);
++
++    /** 閫氳繃 exp_msg + exp_grade 鍏宠仈骞寸骇 */
++    @Query(value = "SELECT DISTINCT s.simulator_id FROM exp_simulator s " +
++            "INNER JOIN exp_msg e ON e.simulator_id = s.simulator_id " +
++            "INNER JOIN exp_grade eg ON e.exp_id = eg.exp_id " +
++            "WHERE s.status = :status AND eg.grade_id IN (:gradeIds)",
++            nativeQuery = true)
++    List<String> findIdsByStatusAndGradeIds(@Param("status") String status,
++                                            @Param("gradeIds") List<String> gradeIds);
+ }
+diff --git a/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java b/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java
+index 450c177..27063db 100644
+--- a/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java
++++ b/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java
+@@ -18,10 +18,13 @@ import org.springframework.util.StringUtils;
+ import com.xuanyue.exp.common.storage.minio.MinioStorageService;
+ 
+ import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.Comparator;
+ import java.util.HashMap;
++import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Set;
+ import java.util.UUID;
+ import java.util.stream.Collectors;
+ 
+@@ -45,14 +48,23 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
+         String keyword = StringUtils.hasText(query == null ? null : query.getKeyword()) ? query.getKeyword().trim() : null;
+         String status = StringUtils.hasText(query == null ? null : query.getStatus()) ? query.getStatus().trim() : null;
+         String subjectId = StringUtils.hasText(query == null ? null : query.getSubjectId()) ? query.getSubjectId().trim() : null;
++        String gradeKey = query == null ? null : query.getGradeKey();
++        List<String> gradeIds = resolveGradeIds(gradeKey);
++        Set<String> allowedByGrade = null;
++        if (gradeIds != null && !gradeIds.isEmpty()) {
++            String gradeStatus = StringUtils.hasText(status) ? status : "y";
++            allowedByGrade = new HashSet<>(repository.findIdsByStatusAndGradeIds(gradeStatus, gradeIds));
++        }
+ 
+         List<ExpSimulator> filtered = repository.findAll();
++        final Set<String> gradeAllowed = allowedByGrade;
+         filtered = filtered.stream()
+                 .filter(item -> !StringUtils.hasText(keyword)
+                         || containsTextIgnoreCase(item.getSimulatorName(), keyword)
+                         || containsTextIgnoreCase(item.getComments(), keyword))
+                 .filter(item -> !StringUtils.hasText(status) || status.equals(item.getStatus()))
+                 .filter(item -> !StringUtils.hasText(subjectId) || subjectId.equals(item.getSubjectId()))
++                .filter(item -> gradeAllowed == null || gradeAllowed.contains(item.getSimulatorId()))
+                 .sorted(Comparator.comparing(ExpSimulator::getSimulatorName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                 .collect(Collectors.toList());
+ 
+@@ -143,6 +155,22 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
+         return StringUtils.hasText(source) && StringUtils.hasText(keyword) && source.toLowerCase().contains(keyword.toLowerCase());
+     }
+ 
++    private List<String> resolveGradeIds(String gradeKey) {
++        if (!StringUtils.hasText(gradeKey) || "all".equalsIgnoreCase(gradeKey.trim())) {
++            return null;
++        }
++        switch (gradeKey.trim()) {
++            case "g12":
++                return Arrays.asList("g1", "g2");
++            case "g34":
++                return Arrays.asList("g3", "g4");
++            case "g56":
++                return Arrays.asList("g5", "g6");
++            default:
++                return null;
++        }
++    }
++
+     private ExpSimulatorListItem toItem(ExpSimulator simulator, String createUserName) {
+         return new ExpSimulatorListItem(simulator.getSimulatorId(), simulator.getSimulatorName(), simulator.getSubjectId(), simulator.getCoverImageUrl(), simulator.getSimulatorUrl(), simulator.getComments(), simulator.getStatus(), createUserName);
+     }
+diff --git a/backend/src/main/resources/application-dev.yml b/backend/src/main/resources/application-dev.yml
+index a221987..a1b6758 100644
+--- a/backend/src/main/resources/application-dev.yml
++++ b/backend/src/main/resources/application-dev.yml
+@@ -1,37 +1,20 @@
++# ===========================
++# 寮€鍙戠幆澧冮厤缃?(dev)
++# 婵€娲绘柟寮忥細--spring.profiles.active=dev
++# ===========================
+ server:
+-  port: 8011
++  port: 8010
+ 
+ spring:
+-  datasource:
+-    url: jdbc:mysql://10.0.181.204:13306/bs_exp?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+-    username: root
+-    password: ZHTKFc5ta7tPTeyx
+-    driver-class-name: com.mysql.cj.jdbc.Driver
+-  servlet:
+-    multipart:
+-      max-file-size: 1GB
+-      max-request-size: 1GB
+   jpa:
+-    hibernate:
+-      ddl-auto: none
+-    open-in-view: false
+     show-sql: true
+     properties:
+       hibernate:
+         format_sql: true
+-        dialect: org.hibernate.dialect.MySQL5Dialect
+ 
+ app:
+-  file:
+-    upload-dir: D:/java/apache-tomcat-file/webapps/ROOT/uploads
+-    url-prefix: http://127.0.0.1:7080/uploads
+-  minio:
+-    endpoint: http://10.0.181.204:19000
+-    access-key: minio
+-    secret-key: KCfK6d2e7JkJWkEp
+-    bucket: bslab-media-dev
+-    url-prefix: http://10.0.181.204:19000/bslab-media-dev
+-    max-file-size: 1048576000
++  dingtalk:
++    enabled: false
+ 
+ logging:
+   level:
+diff --git a/backend/src/main/resources/application.yml b/backend/src/main/resources/application.yml
+index 8997dd9..0047c88 100644
+--- a/backend/src/main/resources/application.yml
++++ b/backend/src/main/resources/application.yml
+@@ -3,7 +3,7 @@ server:
+ 
+ spring:
+   datasource:
+-    url: jdbc:mysql://10.0.181.204:13306/bs_exp?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
++    url: jdbc:mysql://10.0.181.204:13306/bs_exp_vue?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+     username: root
+     password: ZHTKFc5ta7tPTeyx
+     driver-class-name: com.mysql.cj.jdbc.Driver
