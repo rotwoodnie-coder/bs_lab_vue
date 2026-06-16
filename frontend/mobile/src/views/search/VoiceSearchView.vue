@@ -49,6 +49,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createSpeechRecognizer, isSpeechRecognitionSupported } from '@/utils/speechRecognition'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
 const router = useRouter()
@@ -69,11 +70,7 @@ const closeLink = computed(() => returnPath.value)
 
 let recognizer = null
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 function stopRecognizer() {
   try {

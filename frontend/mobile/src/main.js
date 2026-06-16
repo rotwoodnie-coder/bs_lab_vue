@@ -27,6 +27,8 @@ import App from './App.vue'
 import router from './router'
 
 import { bootstrapAuthSession } from './bootstrap/auth'
+import { useProfileStore } from './stores/profile'
+import { isLoggedIn } from './utils/authStorage'
 
 
 
@@ -39,6 +41,14 @@ async function startApp() {
   app.use(pinia)
 
   await bootstrapAuthSession()
+
+  if (isLoggedIn()) {
+    try {
+      useProfileStore().loadProfile(true)
+    } catch {
+      // ignore preload errors
+    }
+  }
 
   app.use(router)
 

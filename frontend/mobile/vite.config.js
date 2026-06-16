@@ -35,10 +35,10 @@ export default defineConfig(({ mode }) => {
         configureServer(server) {
           server.httpServer?.once('listening', () => {
             if (!lanIp) return
-            console.log('\n  📱 局域网访问方式（推荐，只需 8011 一个端口）：')
+            console.log('\n  📱 局域网访问方式（单端口方案，推荐）：')
             console.log('     1. 执行 pnpm build:lan')
             console.log('     2. 重启后端')
-            console.log(`     3. 手机打开 http://${lanIp}:8011/m/#/login\n`)
+            console.log(`     3. 手机打开 http://${lanIp}:8010/m/#/login\n`)
             console.log('  📱 Vite 开发模式（需 5174 端口可达）：')
             console.log(`     http://${lanIp}:${port}/#/login\n`)
           })

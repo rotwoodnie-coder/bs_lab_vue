@@ -10,9 +10,11 @@
         :aria-label="tab.ariaLabel"
       >
         <span class="nav-icon" :class="{ 'nav-icon--avatar': tab.key === 'profile' }">
-          <template v-if="tab.key === 'profile'">
-            <span class="avatar avatar-sm avatar-grad-warm nav-avatar" :title="userName">{{ userInitial }}</span>
-          </template>
+          <UserAvatar
+            v-if="tab.key === 'profile'"
+            size="sm"
+            extra-class="nav-avatar"
+          />
           <template v-else>
             <i :data-lucide="tab.icon" class="icon"></i>
           </template>
@@ -27,18 +29,14 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useAppStore } from '@/stores/app'
-import { useUserStore } from '@/stores/user'
 import { useScrollRevealBottomNav } from '@/composables/useScrollRevealBottomNav'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 const navRef = ref(null)
 useScrollRevealBottomNav(navRef)
 
 const appStore = useAppStore()
-const userStore = useUserStore()
 
 const tabs = computed(() => appStore.tabs)
 const activeTab = computed(() => appStore.activeTab)
-
-const userName = computed(() => userStore.userInfo.username || '用户')
-const userInitial = computed(() => userName.value.charAt(0) || '用')
 </script>

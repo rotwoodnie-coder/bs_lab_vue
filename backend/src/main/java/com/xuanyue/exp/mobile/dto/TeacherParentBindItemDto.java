@@ -28,6 +28,9 @@ public class TeacherParentBindItemDto {
 
     private String childName;
 
+    /** 学生头像可访问 URL（来自 sys_user.user_logo） */
+    private String childAvatarUrl;
+
     private String studentNo;
 
     private String schoolName;
@@ -75,6 +78,10 @@ public class TeacherParentBindItemDto {
     public String getChildName() { return childName; }
 
     public void setChildName(String childName) { this.childName = childName; }
+
+    public String getChildAvatarUrl() { return childAvatarUrl; }
+
+    public void setChildAvatarUrl(String childAvatarUrl) { this.childAvatarUrl = childAvatarUrl; }
 
     public String getStudentNo() { return studentNo; }
 

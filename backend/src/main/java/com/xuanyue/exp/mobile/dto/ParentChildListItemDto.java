@@ -5,6 +5,8 @@ public class ParentChildListItemDto {
     private String id;
     private String name;
     private String avatar;
+    /** 孩子头像可访问 URL */
+    private String avatarUrl;
     private boolean current;
     private int pending;
     private int completed;
@@ -18,6 +20,8 @@ public class ParentChildListItemDto {
     public void setName(String name) { this.name = name; }
     public String getAvatar() { return avatar; }
     public void setAvatar(String avatar) { this.avatar = avatar; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
     public boolean isCurrent() { return current; }
     public void setCurrent(boolean current) { this.current = current; }
     public int getPending() { return pending; }

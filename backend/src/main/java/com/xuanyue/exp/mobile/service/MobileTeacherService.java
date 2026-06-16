@@ -1,13 +1,15 @@
 package com.xuanyue.exp.mobile.service;
 
 import com.xuanyue.exp.common.PageResult;
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
+import com.xuanyue.exp.exp.entity.ExpMsg;
+import com.xuanyue.exp.exp.repository.ExpMsgRepository;
 import com.xuanyue.exp.mobile.dto.*;
-import com.xuanyue.exp.mobile.entity.MbTask;
-import com.xuanyue.exp.mobile.entity.MbTaskSubmission;
-import com.xuanyue.exp.mobile.entity.MbWork;
-import com.xuanyue.exp.mobile.repository.MbTaskRepository;
-import com.xuanyue.exp.mobile.repository.MbTaskSubmissionRepository;
-import com.xuanyue.exp.mobile.repository.MbWorkRepository;
+import com.xuanyue.exp.mobile.entity.MobileExpHomework;
+import com.xuanyue.exp.mobile.entity.MobileExpHomeworkStudent;
+import com.xuanyue.exp.mobile.repository.MobileExpHomeworkRepository;
+import com.xuanyue.exp.mobile.repository.MobileExpHomeworkStudentRepository;
+import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileUserContext;
 import com.xuanyue.exp.system.entity.SysOrg;
 import com.xuanyue.exp.system.entity.SysUser;
@@ -21,42 +23,60 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * MobileTeacherService — 重构版
+ *
+ * 数据源改用 exp_homework / exp_homework_student / exp_msg，
+ * 外部方法签名与返回 DTO 不变。
+ */
 @Service
 public class MobileTeacherService {
 
     private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private static final String STUDENT_ROLE = "Student";
     private static final String CLASS_ORG_TYPE = "Org_School_Class";
-    private static final List<String> DONE_STATES = Arrays.asList("done", "submitted", "reviewed");
 
-    private final MbWorkRepository workRepository;
-    private final MbTaskRepository taskRepository;
-    private final MbTaskSubmissionRepository submissionRepository;
+    private final MobileExpHomeworkRepository homeworkRepository;
+    private final MobileExpHomeworkStudentRepository homeworkStudentRepository;
+    private final ExpMsgRepository expMsgRepository;
     private final SysUserRepository sysUserRepository;
     private final SysOrgRepository sysOrgRepository;
     private final MobileWorkService workService;
-    private final MobileHomeService homeService;
     private final MobileNotificationService notificationService;
     private final MobileTeacherParentBindService parentBindService;
+    private final MinioStorageService minioStorageService;
 
-    public MobileTeacherService(MbWorkRepository workRepository,
-                                MbTaskRepository taskRepository,
-                                MbTaskSubmissionRepository submissionRepository,
+    public MobileTeacherService(MobileExpHomeworkRepository homeworkRepository,
+                                MobileExpHomeworkStudentRepository homeworkStudentRepository,
+                                ExpMsgRepository expMsgRepository,
                                 SysUserRepository sysUserRepository,
                                 SysOrgRepository sysOrgRepository,
                                 MobileWorkService workService,
-                                MobileHomeService homeService,
                                 MobileNotificationService notificationService,
-                                MobileTeacherParentBindService parentBindService) {
-        this.workRepository = workRepository;
-        this.taskRepository = taskRepository;
-        this.submissionRepository = submissionRepository;
+                                MobileTeacherParentBindService parentBindService,
+                                MinioStorageService minioStorageService) {
+        this.homeworkRepository = homeworkRepository;
+        this.homeworkStudentRepository = homeworkStudentRepository;
+        this.expMsgRepository = expMsgRepository;
         this.sysUserRepository = sysUserRepository;
         this.sysOrgRepository = sysOrgRepository;
         this.workService = workService;
-        this.homeService = homeService;
         this.notificationService = notificationService;
         this.parentBindService = parentBindService;
+        this.minioStorageService = minioStorageService;
+    }
+
+    @Transactional(readOnly = true)
+    public int countPendingReviews(String userId) {
+        String teacherId = MobileUserContext.resolveTeacherId(userId);
+        List<MobileExpHomework> hws = homeworkRepository
+                .findByTearcherUserIdAndCreateTimeIsNotNullOrderByCreateTimeDesc(teacherId);
+        Set<String> hwIds = hws.stream().map(MobileExpHomework::getHomeworkId).collect(Collectors.toSet());
+        return (int) homeworkStudentRepository.findAll().stream()
+                .filter(hs -> hwIds.contains(hs.getHomeworkId()))
+                .filter(hs -> hs.getMarkTime() == null)
+                .filter(hs -> StringUtils.hasText(hs.getStudentSubmitDate()))
+                .count();
     }
 
     @Transactional(readOnly = true)
@@ -74,52 +94,44 @@ public class MobileTeacherService {
             }
         }
 
-        List<MbTask> teacherTasks = taskRepository.findByTeacherUserIdAndStatusOrderByCreateTimeDesc(teacherId, "y");
-        dto.setAssigned(teacherTasks.size());
+        List<MobileExpHomework> hws = homeworkRepository
+                .findByTearcherUserIdAndCreateTimeIsNotNullOrderByCreateTimeDesc(teacherId);
+        dto.setAssigned(hws.size());
 
-        Set<String> teacherClassOrgIds = resolveTeacherClassOrgIds(teacher, teacherTasks);
-        Map<String, MbTask> taskById = teacherTasks.stream()
-                .collect(Collectors.toMap(MbTask::getTaskId, t -> t, (a, b) -> a));
+        Set<String> hwIds = hws.stream().map(MobileExpHomework::getHomeworkId).collect(Collectors.toSet());
+        List<MobileExpHomeworkStudent> allRecords = homeworkStudentRepository.findAll();
 
-        List<MbWork> pendingWorks = workRepository.findByStatusOrderByCreateTimeDesc("y").stream()
-                .filter(w -> "pending".equalsIgnoreCase(safe(w.getReviewStatus())))
-                .filter(w -> "homework".equalsIgnoreCase(safe(w.getWorkType())) || !StringUtils.hasText(w.getWorkType()))
-                .filter(w -> isWorkForTeacher(teacherId, w, teacherClassOrgIds, taskById))
-                .collect(Collectors.toList());
-        dto.setPendingReview(pendingWorks.size());
+        long submitted = allRecords.stream()
+                .filter(hs -> hwIds.contains(hs.getHomeworkId()))
+                .filter(hs -> StringUtils.hasText(hs.getStudentSubmitDate()))
+                .count();
 
-        if (!teacherTasks.isEmpty()) {
-            MbTask latest = teacherTasks.get(0);
-            dto.setLatestTaskId(latest.getTaskId());
-            dto.setLatestTaskTitle(latest.getTitle());
-        }
+        long pending = allRecords.stream()
+                .filter(hs -> hwIds.contains(hs.getHomeworkId()))
+                .filter(hs -> hs.getMarkTime() == null && StringUtils.hasText(hs.getStudentSubmitDate()))
+                .count();
 
-        int submitted = 0;
-        int totalSlots = 0;
-        String classOrgId = resolvePrimaryClassOrgId(teacher, teacherTasks);
+        dto.setPendingReview((int) pending);
+        dto.setSubmitted((int) submitted);
+
+        MobileExpHomework firstHw = hws.stream()
+                .filter(hw -> StringUtils.hasText(hw.getClassId()))
+                .findFirst().orElse(null);
+        String classOrgId = firstHw != null ? firstHw.getClassId() : null;
+        if (classOrgId == null && teacher != null) classOrgId = teacher.getUserOrgId();
         List<SysUser> classStudents = listStudentsInClass(classOrgId);
         dto.setStudents(classStudents.size());
 
-        for (MbTask task : teacherTasks) {
-            List<MbTaskSubmission> subs = submissionRepository.findByTaskId(task.getTaskId());
-            for (MbTaskSubmission sub : subs) {
-                totalSlots++;
-                if (isDoneState(sub.getState())) {
-                    submitted++;
-                }
-            }
+        int totalSlots = Math.max(classStudents.size(), 1) * Math.max(hws.size(), 1);
+        dto.setSubmitRate((int) (submitted * 100 / totalSlots));
+        dto.setUnsubmitted(Math.max(0, totalSlots - (int) submitted));
+
+        if (!hws.isEmpty()) {
+            dto.setLatestTaskId(hws.get(0).getHomeworkId());
+            dto.setLatestTaskTitle(resolveExpName(hws.get(0).getTeacherExpId()));
         }
-        if (totalSlots == 0 && !classStudents.isEmpty() && !teacherTasks.isEmpty()) {
-            totalSlots = classStudents.size() * teacherTasks.size();
-            for (MbTask task : teacherTasks) {
-                submitted += (int) submissionRepository.findByTaskId(task.getTaskId()).stream()
-                        .filter(s -> isDoneState(s.getState())).count();
-            }
-        }
-        dto.setSubmitted(submitted);
-        dto.setSubmitRate(totalSlots > 0 ? (submitted * 100 / totalSlots) : 0);
-        dto.setUnsubmitted(Math.max(0, totalSlots - submitted));
-        fillWeeklyTrend(dto, teacherTasks);
+
+        fillWeeklyTrend(dto, hws);
         dto.setPendingParentBinds(parentBindService.countPending(userId));
         return dto;
     }
@@ -127,43 +139,49 @@ public class MobileTeacherService {
     @Transactional(readOnly = true)
     public PageResult<TeacherReviewQueueItemDto> listReviewQueue(String userId, int page, int size) {
         String teacherId = MobileUserContext.resolveTeacherId(userId);
-        SysUser teacher = sysUserRepository.findById(teacherId).orElse(null);
-        List<MbTask> teacherTasks = taskRepository.findByTeacherUserIdAndStatusOrderByCreateTimeDesc(teacherId, "y");
-        Set<String> teacherClassOrgIds = resolveTeacherClassOrgIds(teacher, teacherTasks);
-        Map<String, MbTask> taskById = teacherTasks.stream()
-                .collect(Collectors.toMap(MbTask::getTaskId, t -> t, (a, b) -> a));
+        List<MobileExpHomework> hws = homeworkRepository
+                .findByTearcherUserIdAndCreateTimeIsNotNullOrderByCreateTimeDesc(teacherId);
+        Set<String> hwIds = hws.stream().map(MobileExpHomework::getHomeworkId).collect(Collectors.toSet());
 
-        List<TeacherReviewQueueItemDto> items = workRepository.findByStatusOrderByCreateTimeDesc("y").stream()
-                .filter(w -> "pending".equalsIgnoreCase(safe(w.getReviewStatus())))
-                .filter(w -> "homework".equalsIgnoreCase(safe(w.getWorkType())) || !StringUtils.hasText(w.getWorkType()))
-                .filter(w -> isWorkForTeacher(teacherId, w, teacherClassOrgIds, taskById))
+        List<MobileExpHomeworkStudent> pendingRecords = homeworkStudentRepository.findAll().stream()
+                .filter(hs -> hwIds.contains(hs.getHomeworkId()))
+                .filter(hs -> hs.getMarkTime() == null)
+                .filter(hs -> StringUtils.hasText(hs.getStudentSubmitDate()))
+                .sorted((a, b) -> {
+                    // 给 StudentSubmitDate 不为空的优先排前
+                    return 0;
+                })
+                .collect(Collectors.toList());
+
+        List<TeacherReviewQueueItemDto> items = pendingRecords.stream()
                 .map(this::toReviewItem)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         return paginate(items, page, size);
     }
 
     @Transactional(readOnly = true)
     public List<TeacherTaskSummaryDto> listTeacherTasks(String userId) {
+        return listTeacherTasks(userId, "active");
+    }
+
+    @Transactional(readOnly = true)
+    public List<TeacherTaskSummaryDto> listTeacherTasks(String userId, String scope) {
         String teacherId = MobileUserContext.resolveTeacherId(userId);
-        return taskRepository.findByTeacherUserIdAndStatusOrderByCreateTimeDesc(teacherId, "y").stream()
-                .map(task -> {
-                    TeacherTaskSummaryDto item = new TeacherTaskSummaryDto();
-                    item.setTaskId(task.getTaskId());
-                    item.setTitle(task.getTitle());
-                    item.setClassName(resolveOrgName(task.getClassOrgId()));
-                    return item;
-                })
+        List<MobileExpHomework> hws = homeworkRepository
+                .findByTearcherUserIdAndCreateTimeIsNotNullOrderByCreateTimeDesc(teacherId);
+        return hws.stream()
+                .map(this::buildTaskSummary)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public TeacherRemindResultDto remindUnsubmitted(String userId, String taskId) {
-        if (!StringUtils.hasText(taskId)) {
-            throw new IllegalArgumentException("请选择任务");
-        }
-        MbTask task = taskRepository.findById(taskId.trim())
-                .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
-        TeacherTaskBoardDto board = getTaskBoard(userId, taskId);
+    public TeacherRemindResultDto remindUnsubmitted(String userId, String homeworkId) {
+        if (!StringUtils.hasText(homeworkId)) throw new IllegalArgumentException("请选择作业");
+        MobileExpHomework hw = homeworkRepository.findById(homeworkId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("作业不存在"));
+
+        TeacherTaskBoardDto board = getTaskBoard(userId, homeworkId);
         String teacherId = MobileUserContext.resolveTeacherId(userId);
 
         List<String> unsubmittedIds = board.getStudents().stream()
@@ -172,72 +190,119 @@ public class MobileTeacherService {
                 .filter(StringUtils::hasText)
                 .collect(Collectors.toList());
 
-        if (unsubmittedIds.isEmpty()) {
-            return new TeacherRemindResultDto(0, "当前无未提交学生");
-        }
+        if (unsubmittedIds.isEmpty()) return new TeacherRemindResultDto(0, "当前无未提交学生");
 
-        int notified = notificationService.sendTaskReminders(teacherId, task, unsubmittedIds);
-        if (notified <= 0) {
-            return new TeacherRemindResultDto(0, "未提交学生均已关闭任务通知，未发送提醒");
-        }
+        int notified = notificationService.sendTaskReminders(teacherId, hw, unsubmittedIds);
+        if (notified <= 0) return new TeacherRemindResultDto(0, "未提交学生均已关闭任务通知，未发送提醒");
         return new TeacherRemindResultDto(notified, "已向 " + notified + " 名未提交学生发送提醒");
     }
 
     @Transactional
+    public TeacherTaskCancelResultDto cancelTask(String userId, String taskId, TeacherTaskCancelRequest request) {
+        // exp_homework 表无 status 列，暂不支持取消
+        throw new IllegalArgumentException("当前版本不支持取消作业");
+    }
+
+    @Transactional
     public void submitReview(String teacherUserId, String workId, TeacherReviewRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("请求不能为空");
+        if (request == null) throw new IllegalArgumentException("请求不能为空");
+        ExpMsg msg = expMsgRepository.findById(workId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("作品不存在"));
+
+        String rating = request.getRating();
+        String comment = request.getComment();
+
+        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByStudentExpId(msg.getExpId());
+        if (records.isEmpty()) {
+            throw new IllegalArgumentException("该作品没有关联的作业记录");
         }
-        workService.reviewWork(teacherUserId, workId, request.getRating(), request.getComment(), request.getFeatured());
+        for (MobileExpHomeworkStudent hs : records) {
+            hs.setMarkUserId(teacherUserId);
+            hs.setMarkTime(new Date());
+            hs.setMarkComments(StringUtils.hasText(comment) ? comment.trim() : null);
+            hs.setMarkResult(StringUtils.hasText(rating) ? rating.trim().toLowerCase() : "pass");
+            homeworkStudentRepository.save(hs);
+        }
+
+        notificationService.sendWorkReviewedToStudent(teacherUserId, msg, rating, comment);
     }
 
     @Transactional(readOnly = true)
-    public TeacherTaskBoardDto getTaskBoard(String userId, String taskId) {
-        if (!StringUtils.hasText(taskId)) {
-            throw new IllegalArgumentException("请选择任务");
-        }
-        MbTask task = taskRepository.findById(taskId.trim())
-                .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
+    public TeacherTaskBoardDto getTaskBoard(String userId, String homeworkId) {
+        if (!StringUtils.hasText(homeworkId)) throw new IllegalArgumentException("请选择作业");
+        MobileExpHomework hw = homeworkRepository.findById(homeworkId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("作业不存在"));
         String teacherId = MobileUserContext.resolveTeacherId(userId);
-        if (!teacherId.equals(safe(task.getTeacherUserId()))) {
-            throw new IllegalArgumentException("无权查看该任务看板");
+        if (!teacherId.equals(safe(hw.getTearcherUserId()))) {
+            throw new IllegalArgumentException("无权查看该作业看板");
         }
 
-        String classOrgId = task.getClassOrgId();
+        String classOrgId = hw.getClassId();
         String className = resolveOrgName(classOrgId);
         List<SysUser> students = listStudentsInClass(classOrgId);
-        Map<String, MbTaskSubmission> subByStudent = submissionRepository.findByTaskId(task.getTaskId()).stream()
-                .collect(Collectors.toMap(MbTaskSubmission::getStudentUserId, s -> s, (a, b) -> a));
-        Map<String, String> workByStudent = workRepository.findByTaskId(task.getTaskId()).stream()
-                .filter(w -> StringUtils.hasText(w.getStudentUserId()))
-                .collect(Collectors.toMap(MbWork::getStudentUserId, MbWork::getWorkId, (a, b) -> a));
+        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByHomeworkId(hw.getHomeworkId());
+
+        // 通过 student_exp_id → exp_msg → createUserId 建立学生映射
+        Map<String, MobileExpHomeworkStudent> subByStudent = new HashMap<>();
+        for (MobileExpHomeworkStudent hs : records) {
+            if (!StringUtils.hasText(hs.getStudentExpId())) continue;
+            expMsgRepository.findById(hs.getStudentExpId()).ifPresent(msg -> {
+                String uid = msg.getCreateUserId();
+                if (StringUtils.hasText(uid)) subByStudent.put(uid, hs);
+            });
+        }
 
         List<TeacherTaskBoardDto.StudentRow> rows = new ArrayList<>();
-        int submitted = 0;
+        int submittedCount = 0;
+        int pendingReview = 0;
         for (SysUser student : students) {
             TeacherTaskBoardDto.StudentRow row = new TeacherTaskBoardDto.StudentRow();
             row.setUserId(student.getUserId());
             row.setName(displayName(student));
             row.setInitial(initialOf(row.getName()));
-            MbTaskSubmission sub = subByStudent.get(student.getUserId());
-            boolean done = sub != null && isDoneState(sub.getState());
+            row.setAvatarUrl(MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, student));
+
+            MobileExpHomeworkStudent hs = subByStudent.get(student.getUserId());
+            boolean done = hs != null && StringUtils.hasText(hs.getStudentSubmitDate());
             row.setDone(done);
             if (done) {
-                submitted++;
-                row.setWorkId(workByStudent.get(student.getUserId()));
+                submittedCount++;
+                row.setWorkId(hs.getStudentExpId());
+                if (hs.getMarkTime() != null) {
+                    row.setReviewStatus("reviewed");
+                    row.setReviewStatusLabel("已批阅");
+                    row.setGrade(hs.getMarkResult());
+                } else {
+                    row.setReviewStatus("pending");
+                    row.setReviewStatusLabel("待批阅");
+                    pendingReview++;
+                }
+            } else {
+                row.setReviewStatus("not_submitted");
+                row.setReviewStatusLabel("未提交");
             }
             rows.add(row);
         }
 
         TeacherTaskBoardDto dto = new TeacherTaskBoardDto();
-        dto.setTaskId(task.getTaskId());
-        dto.setTaskTitle(task.getTitle());
+        dto.setTaskId(hw.getHomeworkId());
+        dto.setTaskTitle(resolveExpName(hw.getTeacherExpId()));
         dto.setClassName(StringUtils.hasText(className) ? className : "未指定班级");
-        dto.setSubmitted(submitted);
-        dto.setUnsubmitted(Math.max(0, students.size() - submitted));
-        dto.setSubmitRate(students.isEmpty() ? 0 : (submitted * 100 / students.size()));
+        dto.setSubmitted(submittedCount);
+        dto.setUnsubmitted(Math.max(0, students.size() - submittedCount));
+        dto.setSubmitRate(students.isEmpty() ? 0 : (submittedCount * 100 / students.size()));
+        dto.setPendingReview(pendingReview);
         dto.setStudents(rows);
+        dto.setCancelled(false);
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public MobileWorkDetailDto getWorkForReview(String userId, String workId) {
+        if (!StringUtils.hasText(workId)) throw new IllegalArgumentException("作品 id 不能为空");
+        ExpMsg msg = expMsgRepository.findById(workId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("作品不存在"));
+        return workService.getDetailForTeacher(msg);
     }
 
     @Transactional(readOnly = true)
@@ -251,200 +316,72 @@ public class MobileTeacherService {
         return dto;
     }
 
-    private List<TeacherAssignOptionsDto.OptionItem> listClassesForTeacher(SysUser teacher) {
-        if (teacher == null) {
-            return Collections.emptyList();
-        }
-        List<SysOrg> all = sysOrgRepository.findAll().stream()
-                .filter(o -> "y".equalsIgnoreCase(safe(o.getStatus())))
-                .collect(Collectors.toList());
-        Map<String, List<SysOrg>> byParent = new HashMap<>();
-        for (SysOrg org : all) {
-            String parent = org.getParentOrgId() != null ? org.getParentOrgId() : "";
-            byParent.computeIfAbsent(parent, k -> new ArrayList<>()).add(org);
-        }
+    /* ════════════════════════════════════════
+       内部方法
+       ════════════════════════════════════════ */
 
-        List<TeacherAssignOptionsDto.OptionItem> result = new ArrayList<>();
-        String rootId = teacher.getRootOrgId();
-        if (StringUtils.hasText(rootId)) {
-            collectClassOptions(rootId, byParent, result, 0);
-        }
-        if (result.isEmpty() && StringUtils.hasText(teacher.getUserOrgId())) {
-            sysOrgRepository.findById(teacher.getUserOrgId()).ifPresent(org -> {
-                if (CLASS_ORG_TYPE.equals(org.getOrgTypeId())) {
-                    int count = listStudentsInClass(org.getOrgId()).size();
-                    result.add(new TeacherAssignOptionsDto.OptionItem(org.getOrgId(), org.getOrgName(), count));
-                }
-            });
-        }
-        result.sort(Comparator.comparing(TeacherAssignOptionsDto.OptionItem::getLabel, Comparator.nullsLast(String::compareTo)));
-        return result;
-    }
+    private TeacherReviewQueueItemDto toReviewItem(MobileExpHomeworkStudent hs) {
+        if (!StringUtils.hasText(hs.getStudentExpId())) return null;
+        Optional<ExpMsg> msgOpt = expMsgRepository.findById(hs.getStudentExpId());
+        if (!msgOpt.isPresent()) return null;
+        ExpMsg msg = msgOpt.get();
 
-    private void collectClassOptions(String orgId, Map<String, List<SysOrg>> byParent,
-                                     List<TeacherAssignOptionsDto.OptionItem> result, int depth) {
-        if (depth > 8 || !StringUtils.hasText(orgId)) {
-            return;
-        }
-        List<SysOrg> children = byParent.getOrDefault(orgId, Collections.emptyList());
-        for (SysOrg child : children) {
-            if (CLASS_ORG_TYPE.equals(child.getOrgTypeId())) {
-                int count = listStudentsInClass(child.getOrgId()).size();
-                result.add(new TeacherAssignOptionsDto.OptionItem(child.getOrgId(), child.getOrgName(), count));
-            }
-            collectClassOptions(child.getOrgId(), byParent, result, depth + 1);
-        }
-    }
-
-    private List<TeacherAssignOptionsDto.OptionItem> listExperimentOptions() {
-        try {
-            PageResult<HomeFeedItem> feed = homeService.getFeed(null, 1, 50);
-            if (feed == null || feed.getRecords() == null) {
-                return Collections.emptyList();
-            }
-            List<TeacherAssignOptionsDto.OptionItem> items = new ArrayList<>();
-            Set<String> seen = new HashSet<>();
-            for (HomeFeedItem item : feed.getRecords()) {
-                if (item == null || !StringUtils.hasText(item.getTitle())) {
-                    continue;
-                }
-                String id = StringUtils.hasText(item.getId()) ? item.getId() : item.getTitle();
-                if (seen.add(id)) {
-                    items.add(new TeacherAssignOptionsDto.OptionItem(id, item.getTitle()));
-                }
-            }
-            return items;
-        } catch (Exception e) {
-            return Collections.emptyList();
-        }
-    }
-
-    private TeacherReviewQueueItemDto toReviewItem(MbWork work) {
         TeacherReviewQueueItemDto item = new TeacherReviewQueueItemDto();
-        item.setId(work.getWorkId());
-        String studentName = resolveStudentName(work.getStudentUserId());
+        item.setId(msg.getExpId());
+        String studentName = resolveStudentName(msg.getCreateUserId());
         item.setStudent(studentName);
         item.setStudentInitial(initialOf(studentName));
-        item.setTitle(work.getTitle());
-        item.setTime(work.getCreateTime() != null ? TIME_FMT.format(work.getCreateTime()) : "");
+        String avatar = resolveStudentAvatar(msg.getCreateUserId());
+        if (StringUtils.hasText(avatar)) item.setStudentAvatarUrl(avatar);
+        item.setTitle(msg.getExpName());
+        item.setTime(msg.getCreateTime() != null ? TIME_FMT.format(msg.getCreateTime()) : "");
         item.setAvatarClass("avatar-grad-warm");
+
+        String et = msg.getExpTaskType();
+        if ("tk".equals(et)) {
+            item.setWorkType("remix");
+            item.setWorkTypeLabel("拍同款");
+        } else if ("self".equals(et)) {
+            item.setWorkType("creative");
+            item.setWorkTypeLabel("创意实验");
+        } else {
+            item.setWorkType("homework");
+            item.setWorkTypeLabel("作业");
+        }
         return item;
     }
 
-    private String resolveStudentName(String userId) {
-        if (!StringUtils.hasText(userId)) {
-            return "同学";
-        }
-        return sysUserRepository.findById(userId)
-                .map(this::displayName)
-                .orElse("同学");
+    private TeacherTaskSummaryDto buildTaskSummary(MobileExpHomework hw) {
+        TeacherTaskSummaryDto item = new TeacherTaskSummaryDto();
+        item.setTaskId(hw.getHomeworkId());
+        item.setTitle(resolveExpName(hw.getTeacherExpId()));
+        item.setClassName(resolveOrgName(hw.getClassId()));
+        List<SysUser> students = listStudentsInClass(hw.getClassId());
+        item.setTotalStudents(students.size());
+
+        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByHomeworkId(hw.getHomeworkId());
+        int submitted = (int) records.stream().filter(r -> StringUtils.hasText(r.getStudentSubmitDate())).count();
+        int reviewed = (int) records.stream().filter(r -> r.getMarkTime() != null).count();
+        item.setSubmitted(submitted);
+        item.setPendingReview(submitted - reviewed);
+        item.setSubmitRate(students.isEmpty() ? 0 : (submitted * 100 / students.size()));
+        item.setCancelled(false);
+        if (hw.getCreateTime() != null) item.setSortTime(hw.getCreateTime().getTime());
+        return item;
     }
 
-    private String displayName(SysUser user) {
-        if (StringUtils.hasText(user.getUserNickName())) {
-            return user.getUserNickName();
-        }
-        return user.getUserName() != null ? user.getUserName() : "用户";
+    private String resolveExpName(String expId) {
+        if (!StringUtils.hasText(expId)) return "实验作业";
+        return expMsgRepository.findById(expId)
+                .map(ExpMsg::getExpName)
+                .filter(StringUtils::hasText)
+                .orElse("实验作业");
     }
 
-    private String initialOf(String name) {
-        return StringUtils.hasText(name) ? name.substring(0, 1) : "同";
-    }
-
-    private List<SysUser> listStudentsInClass(String classOrgId) {
-        if (!StringUtils.hasText(classOrgId)) {
-            return Collections.emptyList();
-        }
-        List<SysUser> result = new ArrayList<>();
-        for (SysUser user : sysUserRepository.findAll()) {
-            if (!STUDENT_ROLE.equals(user.getUserRoleId())) {
-                continue;
-            }
-            if (!"y".equalsIgnoreCase(safe(user.getStatus()))) {
-                continue;
-            }
-            if (classOrgId.equals(user.getUserOrgId())) {
-                result.add(user);
-            }
-        }
-        result.sort(Comparator.comparing(this::displayName, Comparator.nullsLast(String::compareTo)));
-        return result;
-    }
-
-    private String resolvePrimaryClassOrgId(SysUser teacher, List<MbTask> tasks) {
-        for (MbTask task : tasks) {
-            if (StringUtils.hasText(task.getClassOrgId())) {
-                Optional<SysOrg> org = sysOrgRepository.findById(task.getClassOrgId());
-                if (org.isPresent() && CLASS_ORG_TYPE.equals(org.get().getOrgTypeId())) {
-                    return task.getClassOrgId();
-                }
-            }
-        }
-        if (teacher != null && StringUtils.hasText(teacher.getUserOrgId())) {
-            return teacher.getUserOrgId();
-        }
-        return null;
-    }
-
-    private String resolveOrgName(String orgId) {
-        if (!StringUtils.hasText(orgId)) {
-            return null;
-        }
-        return sysOrgRepository.findById(orgId).map(SysOrg::getOrgName).orElse(orgId);
-    }
-
-    private boolean isDoneState(String state) {
-        return DONE_STATES.contains(safe(state).toLowerCase());
-    }
-
-    private String safe(String value) {
-        return value != null ? value.trim() : "";
-    }
-
-    private <T> PageResult<T> paginate(List<T> all, int page, int size) {
-        int safeSize = Math.max(size, 1);
-        int from = Math.max(page - 1, 0) * safeSize;
-        if (from >= all.size()) {
-            return new PageResult<>(all.size(), new ArrayList<T>());
-        }
-        int to = Math.min(from + safeSize, all.size());
-        return new PageResult<>(all.size(), all.subList(from, to));
-    }
-
-    private Set<String> resolveTeacherClassOrgIds(SysUser teacher, List<MbTask> teacherTasks) {
-        Set<String> ids = new LinkedHashSet<>();
-        if (teacher != null && StringUtils.hasText(teacher.getUserOrgId())) {
-            ids.add(teacher.getUserOrgId().trim());
-        }
-        if (teacherTasks != null) {
-            for (MbTask task : teacherTasks) {
-                if (StringUtils.hasText(task.getClassOrgId())) {
-                    ids.add(task.getClassOrgId().trim());
-                }
-            }
-        }
-        return ids;
-    }
-
-    private boolean isWorkForTeacher(String teacherId, MbWork work, Set<String> classOrgIds,
-                                     Map<String, MbTask> taskById) {
-        if (work == null) {
-            return false;
-        }
-        if (StringUtils.hasText(work.getTaskId()) && taskById.containsKey(work.getTaskId())) {
-            return true;
-        }
-        if (StringUtils.hasText(work.getStudentUserId())) {
-            return sysUserRepository.findById(work.getStudentUserId())
-                    .map(u -> classOrgIds.contains(safe(u.getUserOrgId())))
-                    .orElse(false);
-        }
-        return false;
-    }
-
-    private void fillWeeklyTrend(TeacherDashboardDto dto, List<MbTask> teacherTasks) {
+    private void fillWeeklyTrend(TeacherDashboardDto dto, List<MobileExpHomework> hws) {
         int[] buckets = new int[5];
-        Set<String> taskIds = teacherTasks.stream().map(MbTask::getTaskId).collect(Collectors.toSet());
+        Set<String> hwIds = hws.stream().map(MobileExpHomework::getHomeworkId).collect(Collectors.toSet());
+
         Calendar weekStart = Calendar.getInstance();
         weekStart.set(Calendar.HOUR_OF_DAY, 0);
         weekStart.set(Calendar.MINUTE, 0);
@@ -458,43 +395,33 @@ public class MobileTeacherService {
         prevWeekStart.add(Calendar.DAY_OF_MONTH, -7);
         int prevTotal = 0;
 
-        for (MbTaskSubmission sub : submissionRepository.findAll()) {
-            if (!taskIds.contains(sub.getTaskId()) || !isDoneState(sub.getState())) {
-                continue;
-            }
-            Date time = sub.getSubmitTime() != null ? sub.getSubmitTime()
-                    : (sub.getUpdateTime() != null ? sub.getUpdateTime() : sub.getCreateTime());
-            if (time == null) {
-                continue;
-            }
+        for (MobileExpHomeworkStudent hs : homeworkStudentRepository.findAll()) {
+            if (!hwIds.contains(hs.getHomeworkId()) || !StringUtils.hasText(hs.getStudentSubmitDate())) continue;
+            Date submitDate = parseSubmitDate(hs.getStudentSubmitDate());
+            if (submitDate == null) continue;
             Calendar cal = Calendar.getInstance();
-            cal.setTime(time);
+            cal.setTime(submitDate);
             if (!cal.before(weekStart) && cal.before(nextWeek(weekStart))) {
                 int idx = weekdayIndex(cal);
-                if (idx >= 0 && idx < 5) {
-                    buckets[idx]++;
-                }
+                if (idx >= 0 && idx < 5) buckets[idx]++;
             }
-            if (!cal.before(prevWeekStart) && cal.before(weekStart)) {
-                prevTotal++;
-            }
+            if (!cal.before(prevWeekStart) && cal.before(weekStart)) prevTotal++;
         }
 
         List<Integer> trend = new ArrayList<>();
         int total = 0;
-        for (int count : buckets) {
-            trend.add(count);
-            total += count;
-        }
+        for (int count : buckets) { trend.add(count); total += count; }
         dto.setWeeklyTrend(trend);
         dto.setTrendTotal(total);
-        if (prevTotal > 0) {
-            dto.setTrendDeltaPercent((total - prevTotal) * 100 / prevTotal);
-        } else if (total > 0) {
-            dto.setTrendDeltaPercent(100);
-        } else {
-            dto.setTrendDeltaPercent(0);
-        }
+        if (prevTotal > 0) dto.setTrendDeltaPercent((total - prevTotal) * 100 / prevTotal);
+        else if (total > 0) dto.setTrendDeltaPercent(100);
+        else dto.setTrendDeltaPercent(0);
+    }
+
+    private Date parseSubmitDate(String dateStr) {
+        if (!StringUtils.hasText(dateStr)) return null;
+        try { return TIME_FMT.parse(dateStr.trim()); }
+        catch (Exception e) { return null; }
     }
 
     private Calendar nextWeek(Calendar weekStart) {
@@ -512,5 +439,114 @@ public class MobileTeacherService {
             case Calendar.FRIDAY: return 4;
             default: return -1;
         }
+    }
+
+    private List<TeacherAssignOptionsDto.OptionItem> listClassesForTeacher(SysUser teacher) {
+        if (teacher == null) return Collections.emptyList();
+        List<SysOrg> all = sysOrgRepository.findAll().stream()
+                .filter(o -> "y".equalsIgnoreCase(safe(o.getStatus())))
+                .collect(Collectors.toList());
+        Map<String, List<SysOrg>> byParent = new HashMap<>();
+        for (SysOrg org : all) {
+            String parent = org.getParentOrgId() != null ? org.getParentOrgId() : "";
+            byParent.computeIfAbsent(parent, k -> new ArrayList<>()).add(org);
+        }
+        List<TeacherAssignOptionsDto.OptionItem> result = new ArrayList<>();
+        String rootId = teacher.getRootOrgId();
+        if (StringUtils.hasText(rootId)) collectClassOptions(rootId, byParent, result, 0);
+        if (result.isEmpty() && StringUtils.hasText(teacher.getUserOrgId())) {
+            sysOrgRepository.findById(teacher.getUserOrgId()).ifPresent(org -> {
+                if (CLASS_ORG_TYPE.equals(org.getOrgTypeId())) {
+                    int count = listStudentsInClass(org.getOrgId()).size();
+                    result.add(new TeacherAssignOptionsDto.OptionItem(org.getOrgId(), org.getOrgName(), count));
+                }
+            });
+        }
+        result.sort(Comparator.comparing(TeacherAssignOptionsDto.OptionItem::getLabel, Comparator.nullsLast(String::compareTo)));
+        return result;
+    }
+
+    private void collectClassOptions(String orgId, Map<String, List<SysOrg>> byParent,
+                                     List<TeacherAssignOptionsDto.OptionItem> result, int depth) {
+        if (depth > 8 || !StringUtils.hasText(orgId)) return;
+        for (SysOrg child : byParent.getOrDefault(orgId, Collections.emptyList())) {
+            if (CLASS_ORG_TYPE.equals(child.getOrgTypeId())) {
+                int count = listStudentsInClass(child.getOrgId()).size();
+                result.add(new TeacherAssignOptionsDto.OptionItem(child.getOrgId(), child.getOrgName(), count));
+            }
+            collectClassOptions(child.getOrgId(), byParent, result, depth + 1);
+        }
+    }
+
+    private List<TeacherAssignOptionsDto.OptionItem> listExperimentOptions() {
+        List<ExpMsg> exps = expMsgRepository.findAll().stream()
+                .filter(e -> "y".equals(e.getStatus()))
+                .filter(e -> "exp".equals(e.getExpType()) || StringUtils.hasText(e.getSimulatorId()))
+                .limit(50)
+                .collect(Collectors.toList());
+        List<TeacherAssignOptionsDto.OptionItem> items = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (ExpMsg e : exps) {
+            if (e == null || !StringUtils.hasText(e.getExpName()) || !seen.add(e.getExpId())) continue;
+            TeacherAssignOptionsDto.OptionItem option = new TeacherAssignOptionsDto.OptionItem();
+            option.setId(e.getExpId());
+            option.setLabel(e.getExpName());
+            if (StringUtils.hasText(e.getSimulatorId())) {
+                option.setSourceType("simulator");
+                option.setSimulatorId(e.getSimulatorId());
+            } else {
+                option.setSourceType("experiment");
+            }
+            items.add(option);
+        }
+        return items;
+    }
+
+    private String resolveStudentName(String userId) {
+        if (!StringUtils.hasText(userId)) return "同学";
+        return sysUserRepository.findById(userId).map(this::displayName).orElse("同学");
+    }
+
+    private String resolveStudentAvatar(String userId) {
+        if (!StringUtils.hasText(userId)) return null;
+        return sysUserRepository.findById(userId)
+                .map(u -> MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, u))
+                .orElse(null);
+    }
+
+    private String displayName(SysUser user) {
+        if (StringUtils.hasText(user.getUserNickName())) return user.getUserNickName();
+        return user.getUserName() != null ? user.getUserName() : "用户";
+    }
+
+    private String initialOf(String name) {
+        return StringUtils.hasText(name) ? name.substring(0, 1) : "同";
+    }
+
+    private List<SysUser> listStudentsInClass(String classOrgId) {
+        if (!StringUtils.hasText(classOrgId)) return Collections.emptyList();
+        return sysUserRepository.findAll().stream()
+                .filter(u -> STUDENT_ROLE.equals(u.getUserRoleId()))
+                .filter(u -> "y".equalsIgnoreCase(safe(u.getStatus())))
+                .filter(u -> classOrgId.equals(u.getUserOrgId()))
+                .sorted(Comparator.comparing(this::displayName, Comparator.nullsLast(String::compareTo)))
+                .collect(Collectors.toList());
+    }
+
+    private String resolveOrgName(String orgId) {
+        if (!StringUtils.hasText(orgId)) return null;
+        return sysOrgRepository.findById(orgId).map(SysOrg::getOrgName).orElse(orgId);
+    }
+
+    private static String safe(String value) {
+        return value != null ? value.trim() : "";
+    }
+
+    private <T> PageResult<T> paginate(List<T> all, int page, int size) {
+        int safeSize = Math.max(size, 1);
+        int from = Math.max(page - 1, 0) * safeSize;
+        if (from >= all.size()) return new PageResult<>(all.size(), new ArrayList<>());
+        int to = Math.min(from + safeSize, all.size());
+        return new PageResult<>(all.size(), all.subList(from, to));
     }
 }

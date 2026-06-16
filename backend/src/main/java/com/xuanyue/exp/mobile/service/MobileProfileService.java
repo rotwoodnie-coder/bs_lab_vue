@@ -1,6 +1,9 @@
 package com.xuanyue.exp.mobile.service;
 
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 import com.xuanyue.exp.data.service.DataDictService;
+import com.xuanyue.exp.mobile.support.MobileMediaUrlSupport;
+import com.xuanyue.exp.mobile.support.MobileMinioKeySupport;
 import com.xuanyue.exp.mobile.dto.MobileProfileDto;
 import com.xuanyue.exp.system.entity.SysOrg;
 import com.xuanyue.exp.system.entity.SysUser;
@@ -27,13 +30,16 @@ public class MobileProfileService {
     private final SysUserRepository sysUserRepository;
     private final SysOrgRepository sysOrgRepository;
     private final DataDictService dataDictService;
+    private final MinioStorageService minioStorageService;
 
     public MobileProfileService(SysUserRepository sysUserRepository,
                                 SysOrgRepository sysOrgRepository,
-                                DataDictService dataDictService) {
+                                DataDictService dataDictService,
+                                MinioStorageService minioStorageService) {
         this.sysUserRepository = sysUserRepository;
         this.sysOrgRepository = sysOrgRepository;
         this.dataDictService = dataDictService;
+        this.minioStorageService = minioStorageService;
     }
 
     /**
@@ -50,7 +56,14 @@ public class MobileProfileService {
         dto.setUserNickName(user.getUserNickName());
         dto.setUserPhone(user.getUserPhone());
         dto.setUserEmail(user.getUserEmail());
-        dto.setUserLogo(user.getUserLogo());
+        if (StringUtils.hasText(user.getUserLogo())) {
+            try {
+                dto.setUserLogo(MobileMediaUrlSupport.resolve(minioStorageService, user.getUserLogo()));
+            } catch (Exception e) {
+                log.warn("解析头像 URL 失败 userId={}", user.getUserId(), e);
+                dto.setUserLogo(user.getUserLogo());
+            }
+        }
         dto.setRootOrgId(user.getRootOrgId());
         dto.setUserRoleId(user.getUserRoleId());
         dto.setPerResume(user.getPerResume());
@@ -133,7 +146,12 @@ public class MobileProfileService {
             user.setPerResume((String) payload.get("perResume"));
         }
         if (payload.containsKey("userLogo")) {
-            user.setUserLogo((String) payload.get("userLogo"));
+            String logo = payload.get("userLogo") != null ? payload.get("userLogo").toString().trim() : null;
+            if (!StringUtils.hasText(logo)) {
+                user.setUserLogo(null);
+            } else {
+                user.setUserLogo(MobileMinioKeySupport.requireStorageKey(minioStorageService, logo));
+            }
         }
 
         sysUserRepository.save(user);

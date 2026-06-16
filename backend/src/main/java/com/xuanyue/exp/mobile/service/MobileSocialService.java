@@ -1,5 +1,6 @@
 package com.xuanyue.exp.mobile.service;
 
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 import com.xuanyue.exp.exp.repository.ExpMsgRepository;
 import com.xuanyue.exp.mobile.dto.CreateCommentRequest;
 import com.xuanyue.exp.mobile.dto.MobileCommentDto;
@@ -10,6 +11,7 @@ import com.xuanyue.exp.mobile.entity.MbUserReaction;
 import com.xuanyue.exp.mobile.repository.MbCommentRepository;
 import com.xuanyue.exp.mobile.repository.MbUserReactionRepository;
 import com.xuanyue.exp.mobile.repository.MbWorkRepository;
+import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileIds;
 import com.xuanyue.exp.mobile.support.MobileUserContext;
 import com.xuanyue.exp.system.entity.SysUser;
@@ -40,17 +42,20 @@ public class MobileSocialService {
     private final MbWorkRepository workRepository;
     private final ExpMsgRepository expMsgRepository;
     private final SysUserRepository sysUserRepository;
+    private final MinioStorageService minioStorageService;
 
     public MobileSocialService(MbCommentRepository commentRepository,
                                MbUserReactionRepository reactionRepository,
                                MbWorkRepository workRepository,
                                ExpMsgRepository expMsgRepository,
-                               SysUserRepository sysUserRepository) {
+                               SysUserRepository sysUserRepository,
+                               MinioStorageService minioStorageService) {
         this.commentRepository = commentRepository;
         this.reactionRepository = reactionRepository;
         this.workRepository = workRepository;
         this.expMsgRepository = expMsgRepository;
         this.sysUserRepository = sysUserRepository;
+        this.minioStorageService = minioStorageService;
     }
 
     public List<MobileCommentDto> listComments(String userId, String targetType, String targetId) {
@@ -209,6 +214,7 @@ public class MobileSocialService {
         dto.setId(comment.getCommentId());
         dto.setUserName(comment.getUserName());
         dto.setUserInitial(initialOf(comment.getUserName()));
+        dto.setUserAvatarUrl(resolveCommentAvatarUrl(comment.getUserId()));
         dto.setUserRoleTag(comment.getUserRoleTag());
         dto.setContent(comment.getContent());
         dto.setLikeCount(comment.getLikeCount() != null ? comment.getLikeCount() : 0);
@@ -279,9 +285,14 @@ public class MobileSocialService {
     }
 
     private String initialOf(String name) {
-        if (!StringUtils.hasText(name)) {
-            return "用";
+        return MobileAvatarSupport.initialOf(name, "用");
+    }
+
+    private String resolveCommentAvatarUrl(String userId) {
+        if (!StringUtils.hasText(userId)) {
+            return null;
         }
-        return name.substring(0, 1);
+        Optional<SysUser> user = sysUserRepository.findById(userId);
+        return user.map(u -> MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, u)).orElse(null);
     }
 }

@@ -32,7 +32,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { resolveFileUrl } from '@/utils/fileUrl'
+import { resolveMediaUrl } from '@/utils/fileUrl'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -40,7 +40,7 @@ const props = defineProps({
 })
 
 const coverFailed = ref(false)
-const coverSrc = computed(() => resolveFileUrl(props.item.coverImageUrl))
+const coverSrc = computed(() => resolveMediaUrl(props.item, 'coverImageUrl'))
 
 watch(() => props.item.coverImageUrl, () => {
   coverFailed.value = false

@@ -27,10 +27,15 @@
       <div v-for="item in pending" :key="item.id" class="work-card card">
         <div class="card-body stack-3">
           <div class="row items-center gap-3">
-            <div class="avatar" :class="item.avatarClass">{{ item.studentInitial }}</div>
+            <UserAvatar
+              size="sm"
+              :name="item.student"
+              :src="item.studentAvatarUrl"
+              role="student"
+            />
             <div class="flex-1">
               <div class="text-base font-bold">{{ item.student }} · {{ item.title }}</div>
-              <div class="text-xs muted">提交于 {{ item.time }}</div>
+              <div class="text-xs muted">提交于 {{ item.time }}<span v-if="item.workTypeLabel"> · {{ item.workTypeLabel }}</span></div>
             </div>
             <span class="badge badge-warning text-xs">待批阅</span>
           </div>
@@ -78,6 +83,8 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { fetchTeacherReviewQueue, submitTeacherReview } from '@/api/teacher'
 import PageBackButton from '@/components/PageBackButton.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const ratings = [
   { key: 'excellent', label: '优秀' },
@@ -90,11 +97,7 @@ const loading = ref(true)
 const loadError = ref('')
 const pending = ref([])
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 async function loadQueue() {
   loading.value = true

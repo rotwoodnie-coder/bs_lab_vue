@@ -29,6 +29,7 @@ function mapDashboard(data) {
       id: String(c.id),
       name: c.name,
       avatar: c.avatar || (c.name ? c.name.charAt(0) : '孩'),
+      avatarUrl: c.avatarUrl || '',
       pending: c.pending ?? 0,
       completed: c.completed ?? 0
     })),

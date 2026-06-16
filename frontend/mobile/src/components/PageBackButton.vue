@@ -8,6 +8,7 @@
 import { nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { goBack } from '@/utils/navBack'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const props = defineProps({
   fallback: { type: String, default: '/home' }
@@ -19,11 +20,7 @@ function handleBack() {
   goBack(router, props.fallback)
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(initIcons)
 </script>

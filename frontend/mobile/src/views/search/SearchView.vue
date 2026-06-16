@@ -86,6 +86,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 import FeedCard from '@/components/FeedCard.vue'
 import { fetchHomeSearch, fetchHotKeywords } from '@/api/home'
 import {
@@ -106,13 +107,7 @@ const hotKeywords = ref([])
 const showResults = computed(() => hasSearched.value && query.value.trim().length > 0)
 let debounceTimer = null
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 function refreshRecent() {
   recentList.value = loadHomeSearchRecent()

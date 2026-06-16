@@ -2,7 +2,7 @@
 export function getDingTalkRedirectBase() {
   if (typeof window === 'undefined') return ''
   const { origin, pathname, port } = window.location
-  if (port === '8011' && pathname.startsWith('/m')) {
+  if (port === '8010' && pathname.startsWith('/m')) {
     const basePath = pathname.replace(/\/$/, '') || '/m'
     return `${origin}${basePath}`
   }

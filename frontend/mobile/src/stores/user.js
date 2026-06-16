@@ -13,6 +13,7 @@ import { clearAuthAndRedirectLogin } from '@/bootstrap/auth'
 import { getDeviceId } from '@/utils/deviceId'
 import { rawAuthClient } from '@/bootstrap/auth'
 import { getApiBaseURL } from '@/api/config'
+import { useProfileStore } from '@/stores/profile'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(getAccessToken())
@@ -59,6 +60,11 @@ export const useUserStore = defineStore('user', () => {
     refreshToken.value = ''
     userInfo.value = {}
     clearAuthSession()
+    try {
+      useProfileStore().reset()
+    } catch {
+      // pinia may not be ready
+    }
   }
 
   function logoutAndRedirect() {

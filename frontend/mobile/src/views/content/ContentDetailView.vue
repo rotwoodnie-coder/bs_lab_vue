@@ -65,7 +65,7 @@
           </div>
           <div v-else class="lab-detail__media-empty px-4 py-8 text-center muted-2">
             <i data-lucide="image-off" class="icon icon-xl"></i>
-            <p class="mt-2 text-sm">暂无视频或图片</p>
+            <p class="mt-2 text-sm">暂无视频</p>
           </div>
 
           <div class="lab-watch__summary">
@@ -78,7 +78,12 @@
 
               <div class="lab-watch__toolbar">
                 <div class="lab-watch__uploader">
-                  <span v-if="authorInitial" class="avatar avatar-sm avatar-grad-ocean">{{ authorInitial }}</span>
+                  <UserAvatar
+                    v-if="authorInitial"
+                    size="sm"
+                    :name="detail.createUserName"
+                    role="teacher"
+                  />
                   <div class="min-w-0">
                     <div v-if="detail.createUserName" class="text-sm font-bold">{{ detail.createUserName }}老师</div>
                     <div v-if="detail.createUserSchoolName" class="text-xs muted">{{ detail.createUserSchoolName }}</div>
@@ -131,13 +136,19 @@
                 <button type="button" class="text-xs text-brand font-medium">最热</button>
               </div>
               <form class="comment-compose" @submit.prevent="submitComment">
-                <span class="avatar avatar-sm avatar-grad-warm shrink-0">{{ userInitial }}</span>
+                <UserAvatar size="sm" shrink />
                 <input v-model="commentText" type="text" class="comment-compose__input" placeholder="写下你的实验心得或疑问…" aria-label="发表留言">
                 <button type="submit" class="btn btn-sm btn-gradient shrink-0">发送</button>
               </form>
               <ul v-if="commentList.length" class="comment-list">
                 <li v-for="c in commentList" :key="c.id || c.text" class="comment-item">
-                  <span class="avatar avatar-sm shrink-0" :class="c.avatarClass">{{ c.initial }}</span>
+                  <UserAvatar
+                    size="sm"
+                    shrink
+                    :name="c.author"
+                    :src="c.avatarUrl"
+                    :role="c.isTeacher ? 'teacher' : 'student'"
+                  />
                   <div class="comment-item__body">
                     <div class="comment-item__head">
                       <span class="text-xs font-bold">{{ c.author }}</span>
@@ -328,14 +339,15 @@ import {
   fetchExpScientists
 } from '@/api/experiment'
 import { startRemix } from '@/api/remix'
-import { fetchProfile } from '@/api/profile'
 import { fetchSocialSummary, fetchComments, createComment, toggleReaction, toggleCommentLike as apiToggleCommentLike } from '@/api/social'
 import { sharePage } from '@/utils/share'
 import { ensureSocialOk, parseSocialSummary, parseCommentReaction } from '@/utils/socialFeedback'
 import FormattedText from '@/components/FormattedText.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { FORMAT_EXP_LONG, FORMAT_EXP_STEP, hasRichContent } from '@/utils/richText'
 import { metaChipItems, curriculumRows as buildCurriculumRows } from '@/utils/expDisplay'
-import { resolveFileUrl } from '@/utils/fileUrl'
+import { resolveMediaUrl } from '@/utils/fileUrl'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
 const router = useRouter()
@@ -357,7 +369,6 @@ const starred = ref(false)
 const commentText = ref('')
 const commentsSection = ref(null)
 const commentList = ref([])
-const userInitial = ref('我')
 const socialLikeNum = ref(0)
 const socialCollectNum = ref(0)
 const socialLoaded = ref(false)
@@ -378,7 +389,7 @@ function mapComment(c) {
     text: c.content,
     time: c.timeLabel || '',
     isTeacher: c.userRoleTag === 'teacher',
-    avatarClass: c.userRoleTag === 'teacher' ? 'avatar-grad-ocean' : 'avatar-grad-warm',
+    avatarUrl: c.userAvatarUrl || '',
     likes: c.likeCount || 0,
     liked: !!c.liked || !!c.isLiked
   }
@@ -545,12 +556,8 @@ const railHeadSub = computed(() => {
 const mediaSlides = computed(() => {
   const slides = []
   videos.value.forEach((v) => {
-    const url = resolveFileUrl(v.videoUrl)
+    const url = resolveMediaUrl(v, 'videoUrl')
     if (url) slides.push({ type: 'video', url })
-  })
-  materials.value.forEach((m) => {
-    const url = materialPic(m)
-    if (url) slides.push({ type: 'image', url, caption: m.materialName || '' })
   })
   return slides
 })
@@ -560,16 +567,10 @@ const trackStyle = computed(() => ({
 }))
 
 function materialPic(item) {
-  return resolveFileUrl(item?.mainPicUrl)
+  return resolveMediaUrl(item, 'mainPicUrl')
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 function formatDate(value) {
   if (!value) return ''
@@ -602,15 +603,14 @@ async function loadDetail() {
   loading.value = true
   error.value = ''
   try {
-    const [detailRes, videoRes, stepRes, matRes, resultRes, refRes, sciRes, profileRes] = await Promise.all([
+    const [detailRes, videoRes, stepRes, matRes, resultRes, refRes, sciRes] = await Promise.all([
       fetchExpDetail(expId.value),
       fetchExpVideos(expId.value),
       fetchExpSteps(expId.value),
       fetchExpMaterials(expId.value),
       fetchExpResults(expId.value),
       fetchExpReferences(expId.value),
-      fetchExpScientists(expId.value),
-      fetchProfile().catch(() => null)
+      fetchExpScientists(expId.value)
     ])
 
     if (!detailRes || detailRes.code !== 200 || !detailRes.data) {
@@ -619,10 +619,6 @@ async function loadDetail() {
     }
 
     detail.value = detailRes.data
-    if (profileRes?.code === 200 && profileRes.data) {
-      const name = profileRes.data.userNickName || profileRes.data.userName || '我'
-      userInitial.value = name.charAt(0) || '我'
-    }
     videos.value = pickList(videoRes)
     steps.value = pickList(stepRes)
     materials.value = pickList(matRes)

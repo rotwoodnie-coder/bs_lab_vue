@@ -19,7 +19,7 @@ public final class MobileWorkReviewSupport {
             return false;
         }
         String rs = safe(reviewStatus);
-        return "reviewed".equals(rs) || "published".equals(rs) || "approved".equals(rs);
+        return "reviewed".equals(rs) || "approved".equals(rs);
     }
 
     public static boolean matchesReviewFilter(String recordStatus, String reviewStatus, String filter) {
@@ -47,7 +47,7 @@ public final class MobileWorkReviewSupport {
             return "draft";
         }
         String rs = safe(reviewStatus);
-        if ("reviewed".equals(rs) || "published".equals(rs) || "approved".equals(rs)) {
+        if ("reviewed".equals(rs) || "approved".equals(rs)) {
             return "approved";
         }
         if ("rejected".equals(rs)) {

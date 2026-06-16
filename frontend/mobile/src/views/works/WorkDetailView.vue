@@ -16,27 +16,15 @@
 
       <div class="watch-main">
 
-        <div class="card-media media-wide card-media-grad-amber-rose">
-
-          <i data-lucide="image" class="icon-xl"></i>
-
-          <div class="pill anim-pulse">
-
-            <i data-lucide="play" class="icon-lg"></i>
-
-          </div>
-
-        </div>
-
-
+        <WorkMediaViewer :files="work.files || []" />
 
         <div class="px-4 py-4 stack-2">
 
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-2">
 
             <h2 class="text-lg font-bold">{{ work.title }}</h2>
 
-            <span class="badge badge-success">{{ work.grade }}</span>
+            <span v-if="gradeBadge" class="badge shrink-0" :class="gradeBadge.class">{{ gradeBadge.label }}</span>
 
           </div>
 
@@ -50,7 +38,7 @@
 
           </div>
 
-          <p class="text-sm leading-tight">{{ work.desc }}</p>
+          <p v-if="work.desc" class="text-sm leading-tight">{{ work.desc }}</p>
 
           <div class="lab-watch__actions row gap-2">
 
@@ -166,7 +154,7 @@
 
           <form class="comment-compose" @submit.prevent="submitComment">
 
-            <span class="avatar avatar-sm avatar-grad-warm shrink-0">{{ userInitial }}</span>
+            <UserAvatar size="sm" shrink />
 
             <input v-model="commentText" type="text" class="comment-compose__input" placeholder="写下你的看法或提问…" aria-label="发表评论">
 
@@ -177,7 +165,13 @@
           <ul v-if="comments.length" class="comment-list">
             <li v-for="c in comments" :key="c.id || c.text" class="comment-item">
 
-              <span class="avatar avatar-sm shrink-0" :class="c.avatarClass">{{ c.initial }}</span>
+              <UserAvatar
+                size="sm"
+                shrink
+                :name="c.author"
+                :src="c.avatarUrl"
+                :role="c.isTeacher ? 'teacher' : 'student'"
+              />
 
               <div class="comment-item__body">
 
@@ -241,13 +235,15 @@ import { useRoute, useRouter } from 'vue-router'
 
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
+import WorkMediaViewer from '@/components/works/WorkMediaViewer.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 import { fetchWorkDetail } from '@/api/work'
-import { fetchProfile } from '@/api/profile'
 import { startRemix } from '@/api/remix'
 import { fetchSocialSummary, fetchComments, createComment, toggleReaction, toggleCommentLike as apiToggleCommentLike } from '@/api/social'
 import { sharePage } from '@/utils/share'
 import { ensureSocialOk, parseSocialSummary, parseCommentReaction } from '@/utils/socialFeedback'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
 const router = useRouter()
@@ -262,7 +258,6 @@ const dislikeCount = ref(0)
 const commentText = ref('')
 const comments = ref([])
 const commentsSection = ref(null)
-const userInitial = ref('我')
 const socialLikeNum = ref(0)
 const socialCommentNum = ref(0)
 const socialCollectNum = ref(0)
@@ -277,6 +272,28 @@ const likeCount = computed(() => {
 const displayCollectNum = computed(() => socialCollectNum.value || 0)
 const commentCount = computed(() => socialCommentNum.value || work.value?.comments || comments.value.length)
 
+const gradeBadge = computed(() => {
+  const grade = work.value?.grade
+  if (grade) {
+    const map = {
+      excellent: { label: '优秀', class: 'badge-success' },
+      good: { label: '良好', class: 'badge-success' },
+      pass: { label: '合格', class: 'badge-info' },
+      fail: { label: '不合格', class: 'badge-danger' }
+    }
+    return map[grade] || { label: grade, class: 'badge-info' }
+  }
+  if (work.value?.reviewStatusLabel) {
+    const cls = work.value.reviewStatus === 'approved'
+      ? 'badge-success'
+      : work.value.reviewStatus === 'rejected'
+        ? 'badge-danger'
+        : 'badge-warning'
+    return { label: work.value.reviewStatusLabel, class: cls }
+  }
+  return null
+})
+
 function mapComment(c) {
   return {
     id: c.id,
@@ -286,7 +303,7 @@ function mapComment(c) {
     time: c.timeLabel || '',
     isAuthor: !!c.mine,
     isTeacher: c.userRoleTag === 'teacher',
-    avatarClass: c.userRoleTag === 'teacher' ? 'avatar-grad-ocean' : 'avatar-grad-warm',
+    avatarUrl: c.userAvatarUrl || '',
     likes: c.likeCount || 0,
     liked: !!c.liked || !!c.isLiked
   }
@@ -426,15 +443,7 @@ async function onRemixClick() {
   }
 }
 
-function initIcons() {
-
-  nextTick(() => {
-
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-
-  })
-
-}
+const { initIcons } = useLucideIcons()
 
 
 
@@ -443,13 +452,6 @@ onMounted(async () => {
     const res = await fetchWorkDetail(route.params.id)
     if (res?.code === 200 && res.data) {
       work.value = res.data || {}
-    }
-  } catch { /* ignore */ }
-  try {
-    const pRes = await fetchProfile()
-    if (pRes?.code === 200 && pRes.data) {
-      const name = pRes.data.userNickName || pRes.data.userName || '我'
-      userInitial.value = name.charAt(0) || '我'
     }
   } catch { /* ignore */ }
   await loadSocial()

@@ -57,7 +57,13 @@
               </div>
 
               <div class="row items-center gap-3 surface-2 rounded-xl p-3">
-                <div class="avatar avatar-sm avatar-grad-warm">{{ childInitial(item.childName) }}</div>
+                <UserAvatar
+                  size="sm"
+                  shrink
+                  :name="item.childName"
+                  :src="item.childAvatarUrl"
+                  role="student"
+                />
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-bold">{{ item.childName || '学生' }}</div>
                   <div class="text-xs muted mt-1">{{ classLabel(item) }}</div>
@@ -111,6 +117,8 @@ import { ref, computed, onMounted, onActivated, nextTick } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { fetchTeacherParentBinds, auditTeacherParentBind } from '@/api/teacher'
 import PageBackButton from '@/components/PageBackButton.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const appStore = useAppStore()
 appStore.setActiveTab('profile')
@@ -137,10 +145,6 @@ const emptyLabel = computed(() => {
 
 function classLabel(item) {
   return [item.schoolName, item.gradeName, item.className].filter(Boolean).join(' · ') || '班级待确认'
-}
-
-function childInitial(name) {
-  return (name || '学').charAt(0)
 }
 
 function statusLabel(status) {
@@ -228,11 +232,7 @@ async function confirmReject() {
   }
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(loadList)
 onActivated(loadList)

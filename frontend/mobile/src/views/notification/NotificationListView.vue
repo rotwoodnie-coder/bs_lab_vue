@@ -67,10 +67,11 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
-import { fetchMessages, fetchUnreadCount, markMessageRead } from '@/api/notification'
+import { fetchMessages, fetchUnreadCount, markMessageRead, markAllMessagesRead } from '@/api/notification'
 import { fetchLatestNotice } from '@/api/home'
 import { mapMessageItem, isNoticeRead, markNoticeRead, ensureNoticeReadState } from '@/utils/notificationDisplay'
 import { useAppStore } from '@/stores/app'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const appStore = useAppStore()
 appStore.setActiveTab('home')
@@ -99,18 +100,15 @@ const filteredItems = computed(() => {
   return list.filter((i) => i.tab === activeTab.value)
 })
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 function itemLink(item) {
   if (item.kind === 'notice') return `/notifications/notice/${item.id}`
   if (item.linkRoute) return item.linkRoute
-  if ((item.type || '').toLowerCase() === 'bind') return '/parent-binds'
+  const type = (item.type || '').toLowerCase()
+  if (type === 'bind') return '/parent-binds'
+  if (type === 'grade' && item.linkId) return `/works/${item.linkId}`
+  if (type === 'task' && item.linkId) return `/tasks/${item.linkId}`
   return `/notifications/${item.id}`
 }
 
@@ -131,12 +129,17 @@ async function onItemClick(item) {
 }
 
 async function markAllRead() {
-  const unread = items.value.filter((i) => i.unread && i.kind === 'msg')
-  for (const item of unread) {
-    try {
-      await markMessageRead(item.id)
-      item.unread = false
-    } catch { /* ignore */ }
+  try {
+    await markAllMessagesRead()
+    items.value.forEach((i) => { if (i.kind === 'msg') i.unread = false })
+  } catch {
+    const unread = items.value.filter((i) => i.unread && i.kind === 'msg')
+    for (const item of unread) {
+      try {
+        await markMessageRead(item.id)
+        item.unread = false
+      } catch { /* ignore */ }
+    }
   }
   if (noticeItem.value?.unread) {
     await markNoticeRead(noticeItem.value.id)

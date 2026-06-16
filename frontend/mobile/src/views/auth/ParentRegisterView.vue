@@ -260,6 +260,7 @@ import { apiMessage, mapFieldErrors } from '@/utils/apiError'
 import { PASSWORD_HINT, validatePassword } from '@/utils/passwordRules'
 import { buildBindSuccessQuery, persistBindSuccessSnapshot } from '@/utils/bindSuccessNav'
 import StudentMatchConfirm from '@/components/parent/StudentMatchConfirm.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const REGISTER_FIELD_MAP = {
   loginName: 'phone',
@@ -599,11 +600,7 @@ async function submitRegister() {
   }
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 watch(currentStep, (step, prev) => {
   initIcons()

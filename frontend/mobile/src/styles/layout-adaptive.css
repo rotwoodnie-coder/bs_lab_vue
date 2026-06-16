@@ -67,6 +67,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher {
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .teacher-tasks-mobile-head {
+    flex-shrink: 0;
+  }
+
   .pad-shell[data-layout="login-split"] .pad-login {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -178,6 +187,40 @@
     border-right: 1px solid var(--color-border-soft);
     padding-right: var(--space-4);
   }
+
+  /* 手机横屏：启用 workbench 顶栏（含返回），避免仅 mobile-head 的页面无返回键 */
+  .pad-shell[data-layout="list-workbench"] .pad-workbench__mobile-head,
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__mobile-head {
+    display: none !important;
+  }
+
+  .pad-shell[data-layout="list-workbench"] .pad-workbench__topbar,
+  .pad-shell[data-layout="list-workbench"] .pad-workbench__filters,
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__topbar {
+    display: flex !important;
+  }
+
+  .pad-shell[data-layout="list-workbench"] .pad-workbench__body,
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__body {
+    display: flex !important;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .pad-shell[data-layout="teacher-form"] .pad-form__mobile-only > .topbar {
+    display: none !important;
+  }
+
+  .pad-shell[data-layout="teacher-form"] .pad-workbench__topbar {
+    display: flex !important;
+  }
+
+  .pad-shell[data-layout="teacher-form"] .pad-form__mobile-only {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
 }
 
 /* ── 平板竖屏：启用 workbench + 按宽度减少列数 ── */
@@ -199,7 +242,8 @@
   .pad-shell[data-layout="login-split"],
   .pad-shell[data-layout="explore-home"],
   .pad-shell[data-layout="explore"],
-  .pad-shell[data-layout="badge-wall"] {
+  .pad-shell[data-layout="badge-wall"],
+  .pad-shell[data-layout="upload-split"] {
     width: 100%;
     max-width: none;
     min-height: 100dvh;
@@ -335,15 +379,15 @@
     display: none !important;
   }
 
-  .pad-shell[data-layout="badge-wall"] .pad-main.pad-badges,
-  .pad-shell[data-layout="badge-wall"] .pad-badges__body {
+  .pad-shell[data-layout="badge-wall"] .pad-main.pad-badges {
     display: flex !important;
+    flex-direction: column !important;
   }
 
-  .pad-shell[data-layout="badge-wall"] .pad-badges__grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
+  .pad-shell[data-layout="badge-wall"] .pad-badges__split {
+    display: flex !important;
+    flex: 1;
+    min-height: 0;
   }
 
   .pad-shell[data-layout="explore"] .pad-explore__mobile-head {
@@ -440,13 +484,14 @@
   }
 
   .pad-shell[data-layout="upload-split"] .pad-upload__mobile-only {
-    display: none !important;
+    display: block !important;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .pad-shell[data-layout="upload-split"] .pad-upload {
-    display: flex !important;
-    flex: 1;
-    min-height: 0;
+    display: none !important;
   }
 
   .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only {

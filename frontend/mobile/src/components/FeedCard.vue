@@ -12,15 +12,35 @@
 
   >
 
-    <div class="video-card__media" :class="[item.gradientClass || 'card-media-grad-warm', 'video-card__media--scene']">
+    <div
+      ref="mediaRef"
+      class="video-card__media"
+      :class="[item.gradientClass || 'card-media-grad-warm', 'video-card__media--scene']"
+    >
 
-      <video
+      <img
 
-        v-if="videoSrc && !videoFailed"
+        v-if="thumbnailSrc && !thumbFailed"
 
         class="video-card__preview-video"
 
-        :src="videoSrc"
+        :src="thumbnailSrc"
+
+        :alt="item.title"
+
+        loading="lazy"
+
+        @error="thumbFailed = true"
+
+      />
+
+      <video
+
+        v-else-if="posterVideoSrc && !posterFailed"
+
+        class="video-card__preview-video"
+
+        :src="posterVideoSrc"
 
         playsinline
 
@@ -28,25 +48,11 @@
 
         preload="metadata"
 
-        @error="videoFailed = true"
+        @error="posterFailed = true"
 
       ></video>
 
-      <img
-
-        v-else-if="coverSrc && !coverFailed"
-
-        :src="coverSrc"
-
-        :alt="item.title"
-
-        loading="lazy"
-
-        @error="coverFailed = true"
-
-      />
-
-      <span v-if="!hasMedia || (videoFailed && coverFailed)" class="video-card__scene-icon">
+      <span v-if="!hasMedia || (thumbFailed && posterFailed)" class="video-card__scene-icon">
 
         <i :data-lucide="sceneIcon(item)" class="icon"></i>
 
@@ -134,45 +140,42 @@ const props = defineProps({
 
 
 
-const coverFailed = ref(false)
+const thumbFailed = ref(false)
 
-const videoFailed = ref(false)
+const posterFailed = ref(false)
+
+const mediaRef = ref(null)
 
 
 
 const to = computed(() => detailRoute(props.item))
 
-const showPlay = computed(() => props.item.tagType === 'video' || props.item.tagType === 'exp' || !!videoSrc.value)
+const showPlay = computed(() =>
+  props.item.tagType === 'video'
+  || props.item.tagType === 'exp'
+  || props.item.type === 'work'
+  || isVideoMediaUrl(props.item.videoUrl)
+)
 
+/** 首页卡片优先展示图片缩略图 */
+const thumbnailSrc = computed(() => {
+  const cover = props.item.coverUrl
+  if (!cover || isVideoMediaUrl(cover)) return ''
+  return resolveFileUrl(cover)
+})
 
-
-const videoSrc = computed(() => {
-
-  const raw = props.item.videoUrl || props.item.coverUrl
-
-  if (!raw || !isVideoMediaUrl(raw)) return ''
-
-  return resolveFileUrl(raw)
-
+/** 无独立缩略图时，用视频首帧（preload=metadata）作封面 */
+const posterVideoSrc = computed(() => {
+  if (thumbnailSrc.value) return ''
+  const url = props.item.videoUrl
+    || (isVideoMediaUrl(props.item.coverUrl) ? props.item.coverUrl : '')
+  if (!url || !isVideoMediaUrl(url)) return ''
+  return resolveFileUrl(url)
 })
 
 
 
-const coverSrc = computed(() => {
-
-  if (videoSrc.value) return ''
-
-  const raw = props.item.coverUrl
-
-  if (!raw || isVideoMediaUrl(raw)) return ''
-
-  return resolveFileUrl(raw)
-
-})
-
-
-
-const hasMedia = computed(() => !!(videoSrc.value || coverSrc.value))
+const hasMedia = computed(() => !!(thumbnailSrc.value || posterVideoSrc.value))
 
 
 
@@ -182,14 +185,12 @@ watch(
 
   () => {
 
-    coverFailed.value = false
+    thumbFailed.value = false
 
-    videoFailed.value = false
+    posterFailed.value = false
 
   }
 
 )
 
 </script>
-
-
