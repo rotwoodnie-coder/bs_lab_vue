@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.StatObjectArgs;
 import io.minio.http.Method;
 
 import java.time.LocalDate;
@@ -62,12 +63,8 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
             }
             throw new RuntimeException("MinIO上传失败", e);
         }
-        System.out.println("objectName: " + objectName);
         String fileUrl = buildFileUrl(objectName);
         String previewUrl = buildPreviewUrl(objectName);
-        System.out.println("objectName: " + objectName);
-        System.out.println("fileUrl: " + fileUrl);
-        System.out.println("previewUrl: " + previewUrl);
         Map<String, Object> result = new HashMap<String, Object>();
         result.put("fileUrl", fileUrl);
         result.put("previewUrl", previewUrl);
@@ -121,18 +118,25 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
 
     
     private String buildFileUrl(String objectName) {
-        String prefix = "/";//normalizeUrlPrefix(properties.getUrlPrefix());
-        if (!StringUtils.hasText(prefix)) {
+        if (!StringUtils.hasText(objectName)) {
             return objectName;
         }
-        if (prefix.endsWith("/")) {
-            return prefix + objectName;
-        }
-        return prefix + "/" + objectName;
+        return objectName.startsWith("/") ? objectName : "/" + objectName;
     }
 
     @Override
-    public String buildPreviewUrl(String objectName) {
+    public String buildPreviewUrl(String fileUrlOrObjectName) {
+        if (!StringUtils.hasText(fileUrlOrObjectName)) {
+            return fileUrlOrObjectName;
+        }
+        String trimmed = fileUrlOrObjectName.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+        String objectName = resolveObjectName(trimmed);
+        if (!StringUtils.hasText(objectName)) {
+            return trimmed;
+        }
         try {
             return minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
@@ -143,8 +147,56 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
                             .build()
             );
         } catch (Exception e) {
-            return buildFileUrl(objectName);
+            return joinPublicUrl(normalizeUrlPrefix(properties.getUrlPrefix()), objectName);
         }
+    }
+
+    @Override
+    public String resolveAccessibleUrl(String fileUrl) {
+        if (!StringUtils.hasText(fileUrl)) {
+            return fileUrl;
+        }
+        String trimmed = fileUrl.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+        String objectName = resolveObjectName(trimmed);
+        if (objectExists(objectName)) {
+            String presigned = buildPreviewUrl(objectName);
+            if (StringUtils.hasText(presigned)
+                    && (presigned.startsWith("http://") || presigned.startsWith("https://"))) {
+                return presigned;
+            }
+        }
+        return joinPublicUrl(normalizeUrlPrefix(properties.getUrlPrefix()), objectName);
+    }
+
+    private boolean objectExists(String objectName) {
+        try {
+            minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(properties.getBucket())
+                    .object(objectName)
+                    .build());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String joinPublicUrl(String prefix, String path) {
+        if (!StringUtils.hasText(path)) {
+            return path;
+        }
+        if (!StringUtils.hasText(prefix)) {
+            return path;
+        }
+        String normalizedPath = path.startsWith("/") ? path : "/" + path;
+        return prefix + normalizedPath;
+    }
+
+    @Override
+    public String normalizeStorageKey(String fileUrl) {
+        return resolveObjectName(fileUrl);
     }
 
     private String resolveObjectName(String fileUrl) {

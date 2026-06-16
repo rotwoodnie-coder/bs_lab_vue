@@ -6,6 +6,7 @@ import com.xuanyue.exp.mobile.dto.CreateWorkRequest;
 import com.xuanyue.exp.mobile.dto.MobileWorkDetailDto;
 import com.xuanyue.exp.mobile.dto.MobileWorkItemDto;
 import com.xuanyue.exp.mobile.service.MobileWorkService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,8 +39,10 @@ public class MobileWorkController {
     }
 
     @GetMapping("/{workId}")
-    public ApiResponse<MobileWorkDetailDto> get(@PathVariable String workId) {
-        MobileWorkDetailDto detail = workService.getDetail(workId);
+    public ApiResponse<MobileWorkDetailDto> get(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @PathVariable String workId) {
+        MobileWorkDetailDto detail = workService.getDetail(workId, userId);
         if (detail == null) {
             return ApiResponse.fail(404, "作品不存在");
         }
@@ -54,6 +57,8 @@ public class MobileWorkController {
             return ApiResponse.success(workService.createWork(userId, request));
         } catch (IllegalArgumentException e) {
             return ApiResponse.fail(400, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            return ApiResponse.fail(400, "提交失败：数据约束冲突，请稍后重试或联系管理员");
         }
     }
 }

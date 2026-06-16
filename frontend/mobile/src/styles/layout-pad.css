@@ -71,6 +71,13 @@
   padding-bottom: 0;
 }
 
+/* 实验详情全屏显示（覆盖 prototype-container 的 480px 限制）*/
+.pad-shell[data-layout="lab-bench"] {
+  max-width: none;
+  width: 100%;
+  box-shadow: none;
+}
+
 .prototype-container[data-layout="detail"] .pb-28,
 .pad-shell[data-layout="detail"] .pb-28,
 .pad-shell[data-layout="detail"] .watch-layout.pb-28 {
@@ -89,7 +96,7 @@
 @media (min-width: 768px) and (orientation: landscape),
        (max-width: 767px) and (orientation: landscape),
        (min-width: 768px) and (orientation: portrait) {
-  .pad-shell:not([data-layout="lab-bench"]):not([data-layout="detail"]):not([data-layout="upload-split"]):not([data-layout="sim-embed"]):not([data-layout="assistant-chat"]) {
+  .pad-shell:not([data-layout="lab-bench"]):not([data-layout="upload-split"]):not([data-layout="sim-embed"]):not([data-layout="assistant-chat"]) {
     max-width: none;
     width: 100%;
     min-height: 100dvh;
@@ -99,7 +106,7 @@
     padding-bottom: 72px;
   }
 
-  .pad-shell:not([data-layout="lab-bench"]):not([data-layout="detail"]):not([data-layout="upload-split"]):not([data-layout="sim-embed"]) > .bottom-nav {
+  .pad-shell:not([data-layout="lab-bench"]):not([data-layout="upload-split"]):not([data-layout="sim-embed"]) > .bottom-nav {
     position: fixed;
     left: 50%;
     bottom: max(var(--space-3), env(safe-area-inset-bottom, 12px));

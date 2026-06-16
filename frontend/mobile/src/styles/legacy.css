@@ -6,7 +6,7 @@
    重构完成的页面不使用这些 class, 不受影响; 全部重构后可删除本文件。
    ============================================================ */
 
-/* ── 旧版页面容器: 居中手机屏, 高度随内容 ── */
+/* ── 旧版页面容器 ── */
 .prototype-container {
   position: relative;
   width: 100%;
@@ -15,21 +15,13 @@
   background: var(--color-surface);
   box-shadow: var(--shadow-md);
 }
-/* 平板：容器放宽（首页 / 模拟实验 explore-home 除外，需铺满以支持 3～4 列） */
-@media (min-width: 768px) {
-  .prototype-container:not([data-layout="explore-home"]) { max-width: 760px; }
-}
-@media (min-width: 1024px) {
-  .prototype-container:not([data-layout="explore-home"]) { max-width: 900px; }
-}
 
-/* 兜底：explore-home 必须随视口铺满（本文件在 home-elevated 之后加载） */
-@media (min-width: 640px) {
-  .prototype-container.pad-shell[data-layout="explore-home"] {
-    max-width: none;
-    width: 100%;
-    box-shadow: none;
-  }
+/* Pad 体系页面：始终铺满视口，由各 layout 的 layout-pad / layout-adaptive 负责断点重排 */
+.prototype-container.pad-shell {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  box-shadow: none;
 }
 /* 旧页自身已带 .pb-28 / inline padding-bottom 为底栏留白, 不再叠加, 避免空白过高 */
 
@@ -85,12 +77,9 @@
 .bottom-nav .nav-item.active { color: var(--brand); }
 .bottom-nav .nav-item.active .nav-icon { filter: none; }
 
-/* ── 大屏: 底栏放宽 ── */
-@media (min-width: 768px) {
-  .bottom-nav { max-width: 760px; }
-}
-@media (min-width: 1024px) {
-  .bottom-nav { max-width: 900px; }
+/* Pad 页手机竖屏：底栏与容器同宽；平板/横屏浮条样式由 layout-pad.css 覆盖 */
+.pad-shell > .bottom-nav {
+  max-width: none;
 }
 
 /* ── 底部导航预留 padding ── */

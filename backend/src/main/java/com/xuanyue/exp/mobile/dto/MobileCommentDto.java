@@ -7,6 +7,8 @@ public class MobileCommentDto {
     private String id;
     private String userName;
     private String userInitial;
+    /** 评论用户头像可访问 URL */
+    private String userAvatarUrl;
     private String userRoleTag;
     private String content;
     private int likeCount;
@@ -20,6 +22,8 @@ public class MobileCommentDto {
     public void setUserName(String userName) { this.userName = userName; }
     public String getUserInitial() { return userInitial; }
     public void setUserInitial(String userInitial) { this.userInitial = userInitial; }
+    public String getUserAvatarUrl() { return userAvatarUrl; }
+    public void setUserAvatarUrl(String userAvatarUrl) { this.userAvatarUrl = userAvatarUrl; }
     public String getUserRoleTag() { return userRoleTag; }
     public void setUserRoleTag(String userRoleTag) { this.userRoleTag = userRoleTag; }
     public String getContent() { return content; }

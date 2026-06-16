@@ -32,7 +32,7 @@
 | **P6** | 18 | 成长档案 | `/growth` | done | ❌ |
 | **P6** | 19 | 勋章墙 | `/badges` | done | ❌ |
 | **P7** | 20-* | 每日答题(9页) | `/quiz/*` | done | ❌ |
-| **P8** | 21 | 布置作业 | `/assign` | partial | ❌ |
+| **P8** | 21 | 布置实验任务 | `/assign` | partial | ❌ |
 | **P8** | 22 | 审核批阅 | `/review` | done | ❌ |
 | **P8** | 23 | 班级看板 | `/board` | partial | ❌ |
 | **P8** | 24 | 教师 AI | `/teacher-ai` | done | ✅ chat |
@@ -77,7 +77,7 @@
 7. 本地 state 模拟计分（待 `/mobile/quiz/*` API）
 
 ### Phase 4 · 教师工具（2–3 天）
-1. **P21 布置作业** `/assign`
+1. **P21 布置实验任务** `/assign`
 2. **P22 审核批阅** `/review`
 3. **P23 班级看板** `/board`
 4. **P24 教师 AI** `/teacher-ai`（复用 chat + 快捷入口网格）
@@ -127,7 +127,7 @@
 - Service：读库优先，空表时回退 `MobilePrototypeData`
 
 **Step 3 — 写 API（已完成）**
-- `POST /api/mobile/tasks` 布置作业
+- `POST /api/mobile/tasks` 布置实验任务
 - `POST /api/mobile/works` 成果上传
 - `POST /api/mobile/quiz/submit` 答题提交
 - `POST /api/mobile/parent/bind` 绑定孩子

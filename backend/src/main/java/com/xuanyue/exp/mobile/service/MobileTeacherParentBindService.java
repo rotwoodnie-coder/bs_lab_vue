@@ -3,6 +3,7 @@ package com.xuanyue.exp.mobile.service;
 
 
 import com.xuanyue.exp.common.PageResult;
+import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 
 import com.xuanyue.exp.mobile.dto.TeacherParentBindAuditRequest;
 
@@ -16,6 +17,7 @@ import com.xuanyue.exp.mobile.repository.MbParentChildRepository;
 
 import com.xuanyue.exp.mobile.repository.MbTaskRepository;
 
+import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileTeacherClassScope;
 
 import com.xuanyue.exp.mobile.support.MobileUserContext;
@@ -26,6 +28,8 @@ import com.xuanyue.exp.system.repository.SysOrgRepository;
 
 import com.xuanyue.exp.system.repository.SysUserRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +50,7 @@ import java.util.stream.Collectors;
 
 public class MobileTeacherParentBindService {
 
-
+    private static final Logger log = LoggerFactory.getLogger(MobileTeacherParentBindService.class);
 
     private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
@@ -62,6 +66,8 @@ public class MobileTeacherParentBindService {
 
     private final MobileNotificationService notificationService;
 
+    private final MinioStorageService minioStorageService;
+
 
 
     public MobileTeacherParentBindService(MbParentChildRepository parentChildRepository,
@@ -72,7 +78,9 @@ public class MobileTeacherParentBindService {
 
                                           SysOrgRepository sysOrgRepository,
 
-                                          MobileNotificationService notificationService) {
+                                          MobileNotificationService notificationService,
+
+                                          MinioStorageService minioStorageService) {
 
         this.parentChildRepository = parentChildRepository;
 
@@ -83,6 +91,8 @@ public class MobileTeacherParentBindService {
         this.sysOrgRepository = sysOrgRepository;
 
         this.notificationService = notificationService;
+
+        this.minioStorageService = minioStorageService;
 
     }
 
@@ -336,6 +346,10 @@ public class MobileTeacherParentBindService {
         dto.setChildUserId(bind.getChildUserId());
 
         dto.setChildName(displayName(child));
+
+        if (child != null && StringUtils.hasText(child.getUserLogo())) {
+            dto.setChildAvatarUrl(MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, child));
+        }
 
         dto.setStudentNo(child != null ? safe(child.getLoginName()) : "");
 

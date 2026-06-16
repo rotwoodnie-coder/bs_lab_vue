@@ -36,7 +36,11 @@
 
           :display-name="displayName"
 
-          :user-initial="userInitial"
+          :show-user-avatar="!isParentView"
+
+          :user-name="displayName"
+
+          :user-avatar-url="selectedChild?.avatarUrl"
 
           :class-label="classLabel"
 
@@ -84,15 +88,26 @@
 
       <div class="row items-center gap-4 px-4 py-5">
 
-        <div class="avatar avatar-lg avatar-grad-warm">{{ userInitial }}</div>
+        <UserAvatar v-if="!isParentView" size="lg" />
+        <UserAvatar
+          v-else
+          size="lg"
+          :name="displayName"
+          :src="selectedChild?.avatarUrl"
+          role="student"
+        />
 
-        <div>
+        <div class="flex-1 min-w-0">
 
           <div class="text-base font-bold">{{ displayName }}</div>
 
           <div class="text-sm muted mt-1">{{ classLabel }} · 小学</div>
 
-          <span class="badge badge-info mt-2">本期</span>
+          <div class="row items-center gap-2 mt-2 flex-wrap">
+            <span class="badge badge-info">本期</span>
+            <span class="text-xs text-brand font-bold">⭐ +{{ growth.stats.periodPoints ?? 0 }}</span>
+            <span class="text-xs muted">累计 {{ growth.stats.totalPoints ?? growth.stats.points ?? 0 }} 分</span>
+          </div>
 
         </div>
 
@@ -116,7 +131,7 @@
 
       <div class="grid gap-3 px-4 mb-3" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
 
-        <router-link to="/tasks?category=experiment" class="card card-pad text-center tint-amber card-link">
+        <router-link to="/tasks?status=pending&category=experiment" class="card card-pad text-center tint-amber card-link">
 
           <div class="text-2xl font-bold text-warning">{{ growth.stats.experiments ?? 0 }}</div>
 
@@ -147,22 +162,6 @@
           <div class="text-xs muted mt-1">🏅 勋章</div>
 
         </router-link>
-
-      </div>
-
-
-
-      <div class="px-4 mb-3">
-
-        <div class="card card-pad text-center tint-blue">
-
-          <div class="text-2xl font-bold text-brand">+{{ growth.stats.periodPoints ?? 0 }}</div>
-
-          <div class="text-xs muted mt-1">⭐ 本期获得积分</div>
-
-          <div class="text-xs muted mt-1">累计 {{ growth.stats.totalPoints ?? growth.stats.points ?? 0 }} 分</div>
-
-        </div>
 
       </div>
 
@@ -209,15 +208,16 @@ import { RouterLink } from 'vue-router'
 
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
-
-import { fetchProfile } from '@/api/profile'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 import { fetchGrowth } from '@/api/growth'
+import { useProfileStore } from '@/stores/profile'
 import { fetchTodayQuiz } from '@/api/quiz'
 import { sharePage } from '@/utils/share'
 import { useParentContext } from '@/composables/useParentContext'
 import { isParentRole } from '@/utils/role'
 import { useUserStore } from '@/stores/user'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 
 
@@ -291,7 +291,7 @@ const TimelineList = defineComponent({
         return h('div', { class: 'card card-pad text-center text-sm muted py-6' }, [
           h('p', { class: 'mb-3' }, '还没有学习记录，快去完成任务或每日答题吧'),
           h('div', { class: 'row gap-2 justify-center flex-wrap' }, [
-            h(RouterLink, { to: '/tasks?category=experiment', class: 'btn btn-soft btn-sm' }, '去做实验'),
+            h(RouterLink, { to: '/tasks?status=pending&category=experiment', class: 'btn btn-soft btn-sm' }, '去做实验'),
             h(RouterLink, { to: '/quiz', class: 'btn btn-soft btn-sm' }, '每日答题')
           ])
         ])
@@ -318,7 +318,11 @@ const GrowthBody = defineComponent({
 
     displayName: String,
 
-    userInitial: String,
+    showUserAvatar: Boolean,
+
+    userName: String,
+
+    userAvatarUrl: String,
 
     classLabel: String,
 
@@ -342,15 +346,26 @@ const GrowthBody = defineComponent({
 
         h('div', { class: 'flex items-center gap-4' }, [
 
-          h('div', { class: 'avatar avatar-lg avatar-grad-warm' }, props.userInitial),
+          props.showUserAvatar
+            ? h(UserAvatar, { size: 'lg' })
+            : h(UserAvatar, {
+                size: 'lg',
+                name: props.userName,
+                src: props.userAvatarUrl,
+                role: 'student'
+              }),
 
-          h('div', null, [
+          h('div', { class: 'flex-1 min-w-0' }, [
 
             h('div', { class: 'text-base font-bold' }, props.displayName),
 
             h('div', { class: 'text-sm banner-sub' }, `${props.classLabel} · 小学`),
 
-            props.plan?.range ? h('span', { class: 'badge badge-info mt-2' }, props.plan.range) : null
+            h('div', { class: 'flex items-center gap-2 flex-wrap mt-2' }, [
+              props.plan?.range ? h('span', { class: 'badge badge-info' }, props.plan.range) : null,
+              h('span', { class: 'text-xs text-brand font-bold' }, `⭐ +${props.growth.stats.periodPoints ?? 0}`),
+              h('span', { class: 'text-xs banner-sub' }, `累计 ${props.growth.stats.totalPoints ?? props.growth.stats.points ?? 0} 分`)
+            ])
 
           ])
 
@@ -367,7 +382,7 @@ const GrowthBody = defineComponent({
       !props.isRestricted
         ? h('div', { class: 'pad-profile__stats', style: 'grid-template-columns:repeat(4,minmax(0,1fr));' }, [
 
-        h(RouterLink, { to: '/tasks?category=experiment', class: 'card rounded-xl card-pad text-center tint-amber card-link' }, [
+        h(RouterLink, { to: '/tasks?status=pending&category=experiment', class: 'card rounded-xl card-pad text-center tint-amber card-link' }, [
 
           h('div', { class: 'text-2xl font-bold text-warning' }, props.growth.stats.experiments ?? 0),
 
@@ -400,17 +415,6 @@ const GrowthBody = defineComponent({
         ])
 
       ]) : null,
-
-      !props.isRestricted
-        ? h('div', { class: 'card rounded-xl card-pad text-center tint-blue mb-3' }, [
-
-          h('div', { class: 'text-2xl font-bold text-brand' }, `+${props.growth.stats.periodPoints ?? 0}`),
-
-          h('div', { class: 'text-xs muted mt-1' }, `⭐ ${props.plan?.range || '本期'}获得积分`),
-
-          h('div', { class: 'text-xs muted mt-1' }, `累计 ${props.growth.stats.totalPoints ?? props.growth.stats.points ?? 0} 分`)
-
-        ]) : null,
 
       !props.isRestricted ? h('div', { class: 'pad-profile__content', style: 'grid-template-columns:minmax(0,1fr);' }, [
 
@@ -457,7 +461,7 @@ const GrowthBody = defineComponent({
 
 
 
-const profile = ref({})
+const profileStore = useProfileStore()
 
 const quizNudgeText = ref('今日 3 题 · 加载中…')
 
@@ -472,16 +476,14 @@ const displayName = computed(() => {
   if (isParentView.value && selectedChild.value?.name) {
     return selectedChild.value.name
   }
-  return profile.value.userNickName || profile.value.userName || '同学'
+  return profileStore.displayName || '同学'
 })
-
-const userInitial = computed(() => displayName.value.charAt(0) || '同')
 
 const classLabel = computed(() => {
   if (isParentView.value && selectedChild.value?.classLabel) {
     return selectedChild.value.classLabel
   }
-  return profile.value.userOrgName || profile.value.rootOrgName || ''
+  return profileStore.profile.userOrgName || profileStore.profile.rootOrgName || ''
 })
 
 const userStore = useUserStore()
@@ -528,15 +530,7 @@ async function reloadGrowth() {
   } catch { /* ignore */ }
 }
 
-function initIcons() {
-
-  nextTick(() => {
-
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-
-  })
-
-}
+const { initIcons } = useLucideIcons()
 
 
 
@@ -546,11 +540,7 @@ onMounted(async () => {
   }
 
   try {
-
-    const res = await fetchProfile()
-
-    if (res.code === 200 && res.data) profile.value = res.data
-
+    await profileStore.loadProfile(true)
   } catch { /* prototype fallback */ }
 
   await reloadGrowth()

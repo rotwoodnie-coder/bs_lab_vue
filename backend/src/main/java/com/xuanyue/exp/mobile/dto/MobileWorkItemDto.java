@@ -7,6 +7,8 @@ public class MobileWorkItemDto {
     private String title;
     private String author;
     private String authorInitial;
+    /** 作者头像可访问 URL */
+    private String authorAvatarUrl;
     private String className;
     private String school;
     private String tint;
@@ -16,6 +18,9 @@ public class MobileWorkItemDto {
     private String reviewBadgeClass;
     private String timeLabel;
     private boolean canEdit;
+    private String coverUrl;
+    private String coverType;
+    private int fileCount;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -27,6 +32,8 @@ public class MobileWorkItemDto {
     public void setAuthor(String author) { this.author = author; }
     public String getAuthorInitial() { return authorInitial; }
     public void setAuthorInitial(String authorInitial) { this.authorInitial = authorInitial; }
+    public String getAuthorAvatarUrl() { return authorAvatarUrl; }
+    public void setAuthorAvatarUrl(String authorAvatarUrl) { this.authorAvatarUrl = authorAvatarUrl; }
     public String getClassName() { return className; }
     public void setClassName(String className) { this.className = className; }
     public String getSchool() { return school; }
@@ -45,4 +52,10 @@ public class MobileWorkItemDto {
     public void setTimeLabel(String timeLabel) { this.timeLabel = timeLabel; }
     public boolean isCanEdit() { return canEdit; }
     public void setCanEdit(boolean canEdit) { this.canEdit = canEdit; }
+    public String getCoverUrl() { return coverUrl; }
+    public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
+    public String getCoverType() { return coverType; }
+    public void setCoverType(String coverType) { this.coverType = coverType; }
+    public int getFileCount() { return fileCount; }
+    public void setFileCount(int fileCount) { this.fileCount = fileCount; }
 }

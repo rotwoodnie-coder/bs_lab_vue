@@ -218,6 +218,7 @@ import { buildBindSuccessQuery, persistBindSuccessSnapshot } from '@/utils/bindS
 import { usePrototypeStepper } from '@/composables/usePrototypeStepper'
 import { useStudentMatch } from '@/composables/useStudentMatch'
 import StudentMatchConfirm from '@/components/parent/StudentMatchConfirm.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const TOTAL = 5
 const STEP_LABELS = ['选择学校', '选择年级', '选择班级', '填写姓名', '确认学生']
@@ -442,11 +443,7 @@ function submitBind() {
     .finally(() => { submitting.value = false })
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 watch(currentStep, (step, prev) => {
   initIcons()

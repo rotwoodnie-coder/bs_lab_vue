@@ -5,6 +5,7 @@ public class ExpSimulatorPageQuery {
     private String keyword;
     private String status;
     private String subjectId;
+    private String gradeKey;
     private Integer pageNum;
     private Integer pageSize;
 
@@ -18,4 +19,6 @@ public class ExpSimulatorPageQuery {
     public void setPageSize(Integer pageSize) { this.pageSize = pageSize; }
     public String getSubjectId() { return subjectId; }
     public void setSubjectId(String subjectId) { this.subjectId = subjectId; }
+    public String getGradeKey() { return gradeKey; }
+    public void setGradeKey(String gradeKey) { this.gradeKey = gradeKey; }
 }

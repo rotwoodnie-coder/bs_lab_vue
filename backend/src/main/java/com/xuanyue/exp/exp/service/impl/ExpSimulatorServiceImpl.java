@@ -18,10 +18,13 @@ import org.springframework.util.StringUtils;
 import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -45,17 +48,25 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
         String keyword = StringUtils.hasText(query == null ? null : query.getKeyword()) ? query.getKeyword().trim() : null;
         String status = StringUtils.hasText(query == null ? null : query.getStatus()) ? query.getStatus().trim() : null;
         String subjectId = StringUtils.hasText(query == null ? null : query.getSubjectId()) ? query.getSubjectId().trim() : null;
+        String gradeKey = query == null ? null : query.getGradeKey();
+        List<String> gradeIds = resolveGradeIds(gradeKey);
+        Set<String> allowedByGrade = null;
+        if (gradeIds != null && !gradeIds.isEmpty()) {
+            String gradeStatus = StringUtils.hasText(status) ? status : "y";
+            allowedByGrade = new HashSet<>(repository.findIdsByStatusAndGradeIds(gradeStatus, gradeIds));
+        }
 
         List<ExpSimulator> filtered = repository.findAll();
+        final Set<String> gradeAllowed = allowedByGrade;
         filtered = filtered.stream()
                 .filter(item -> !StringUtils.hasText(keyword)
                         || containsTextIgnoreCase(item.getSimulatorName(), keyword)
                         || containsTextIgnoreCase(item.getComments(), keyword))
                 .filter(item -> !StringUtils.hasText(status) || status.equals(item.getStatus()))
                 .filter(item -> !StringUtils.hasText(subjectId) || subjectId.equals(item.getSubjectId()))
+                .filter(item -> gradeAllowed == null || gradeAllowed.contains(item.getSimulatorId()))
                 .sorted(Comparator.comparing(ExpSimulator::getSimulatorName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .collect(Collectors.toList());
-
         Map<String, String> userNameMap = loadUserNameMap(filtered);
         int start = Math.min((pageNum - 1) * pageSize, filtered.size());
         int end = Math.min(start + pageSize, filtered.size());
@@ -143,6 +154,21 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
         return StringUtils.hasText(source) && StringUtils.hasText(keyword) && source.toLowerCase().contains(keyword.toLowerCase());
     }
 
+    private List<String> resolveGradeIds(String gradeKey) {
+        if (!StringUtils.hasText(gradeKey) || "all".equalsIgnoreCase(gradeKey.trim())) {
+            return null;
+        }
+        switch (gradeKey.trim()) {
+            case "g12":
+                return Arrays.asList("g1", "g2");
+            case "g34":
+                return Arrays.asList("g3", "g4");
+            case "g56":
+                return Arrays.asList("g5", "g6");
+            default:
+                return null;
+        }
+    }
     private ExpSimulatorListItem toItem(ExpSimulator simulator, String createUserName) {
         return new ExpSimulatorListItem(simulator.getSimulatorId(), simulator.getSimulatorName(), simulator.getSubjectId(), simulator.getCoverImageUrl(), simulator.getSimulatorUrl(), simulator.getComments(), simulator.getStatus(), createUserName);
     }

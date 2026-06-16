@@ -1,9 +1,7 @@
 <template>
   <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-task-detail>
     <div class="topbar page-topbar safe-top">
-      <router-link to="/tasks" class="icon-btn page-back" aria-label="返回">
-        <i data-lucide="arrow-left" class="icon"></i>
-      </router-link>
+      <PageBackButton fallback="/home" />
       <h1 class="topbar-title">任务详情</h1>
     </div>
 
@@ -32,6 +30,9 @@
         </div>
         <div v-if="task.teacherHint" class="rounded-xl p-3 mt-3 text-xs font-medium surface-2" :class="task.teacherHintClass || 'tint-orange'">
           {{ task.teacherHint }}
+        </div>
+        <div v-if="isCancelled" class="rounded-xl p-3 mt-3 text-xs font-medium tint-slate">
+          该任务已由老师取消。未提交的同学无需再完成；如你已提交，可在「我的作品」中查看成果。
         </div>
       </div>
 
@@ -97,16 +98,22 @@
       </div>
 
       <router-link
-        v-if="task.state !== 'done'"
+        v-if="canUpload"
         :to="uploadLink"
         class="btn btn-gradient btn-block btn-lg"
       >
         {{ uploadButtonLabel }}
       </router-link>
+      <div v-else-if="isCancelled && task.state !== 'submitted' && task.state !== 'reviewed'" class="card card-pad text-center tint-slate">
+        <div class="text-sm font-bold">任务已取消</div>
+        <p class="text-xs muted mt-2">如需帮助，请联系任课老师</p>
+      </div>
       <div v-else class="card card-pad tint-green text-center">
-        <div class="text-sm font-bold text-success">任务已完成</div>
+        <div class="text-sm font-bold text-success">{{ taskCompletedLabel }}</div>
         <p v-if="task.type === 'remix'" class="text-xs muted mt-2">可在作品墙查看你的拍同款作品，或从实验详情再次发起新的拍同款</p>
         <p v-else-if="task.type === 'creative'" class="text-xs muted mt-2">可在作品墙查看你的创意实验作品</p>
+        <p v-else-if="task.state === 'submitted'" class="text-xs muted mt-2">老师将尽快批阅，可在「我的作品」查看成果</p>
+        <p v-else-if="task.state === 'reviewed'" class="text-xs muted mt-2">批阅已完成，可在「我的作品」查看评级与评语</p>
       </div>
 
       <router-link v-if="isTeacherAssigned && task.type === 'homework'" to="/quiz" class="card card-pad card-link quiz-nudge row items-center gap-3 mt-4">
@@ -126,7 +133,9 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import FormattedText from '@/components/FormattedText.vue'
 import { FORMAT_EXP_BRIEF } from '@/utils/richText'
+import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTaskDetail } from '@/api/task'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
 const loading = ref(true)
@@ -137,6 +146,20 @@ const isSimulator = computed(() => task.value?.type === 'simulator')
 const isTeacherAssigned = computed(() => ['homework', 'simulator'].includes(task.value?.type))
 const isCreative = computed(() => task.value?.type === 'creative')
 const isRemix = computed(() => task.value?.type === 'remix')
+const isCancelled = computed(() => Boolean(task.value?.cancelled) || task.value?.state === 'cancelled')
+
+const canUpload = computed(() => {
+  if (isCancelled.value) return false
+  const state = task.value?.state
+  return !state || state === 'pending'
+})
+
+const taskCompletedLabel = computed(() => {
+  const state = task.value?.state
+  if (state === 'submitted') return '成果已提交，等待批阅'
+  if (state === 'reviewed') return '任务已批阅'
+  return '任务已完成'
+})
 
 const displayType = computed(() => {
   const type = task.value?.type
@@ -195,14 +218,11 @@ const uploadLink = computed(() => {
   const id = task.value?.id
   if (id && isRemix.value) return `/upload?type=remix&taskId=${id}`
   if (id && isCreative.value) return `/upload?type=creative&taskId=${id}`
+  if (id) return `/upload?taskId=${id}`
   return '/upload'
 })
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 function taskTypeLabel(type) {
   if (type === 'homework') return '🔬 实验'

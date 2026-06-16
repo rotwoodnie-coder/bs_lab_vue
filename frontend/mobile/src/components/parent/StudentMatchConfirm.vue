@@ -30,7 +30,12 @@
           @click="$emit('pick', item)"
         >
           <span class="row items-center gap-3">
-            <span class="avatar avatar-sm avatar-grad-warm">{{ initialOf(item.userName) }}</span>
+            <UserAvatar
+              size="sm"
+              :name="item.userName"
+              :src="item.avatarUrl"
+              role="student"
+            />
             <span>
               <span class="text-sm font-semibold block">{{ item.userName }}</span>
               <span class="text-xs muted">{{ classLine(item) }}</span>
@@ -45,7 +50,12 @@
       <div class="text-xs font-semibold muted-2 mb-2">确认绑定学生</div>
       <div class="confirm-row">
         <div class="cr-icon cr-icon--avatar">
-          <span class="avatar avatar-sm avatar-grad-warm">{{ initialOf(selected.userName) }}</span>
+          <UserAvatar
+            size="sm"
+            :name="selected.userName"
+            :src="selected.avatarUrl"
+            role="student"
+          />
         </div>
         <div>
           <div class="cr-label">孩子姓名</div>
@@ -71,6 +81,8 @@
 </template>
 
 <script setup>
+import UserAvatar from '@/components/UserAvatar.vue'
+
 const props = defineProps({
   hint: { type: String, default: '请核对以下学生信息，确认无误后提交' },
   searching: { type: Boolean, default: false },
@@ -83,10 +95,6 @@ const props = defineProps({
 })
 
 defineEmits(['pick', 'update:studentNo'])
-
-function initialOf(name) {
-  return (name || '?').charAt(0)
-}
 
 function classLine(item) {
   const grade = item.gradeName || props.gradeName || ''

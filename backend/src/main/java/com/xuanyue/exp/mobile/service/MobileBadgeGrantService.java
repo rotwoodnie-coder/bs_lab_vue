@@ -136,6 +136,15 @@ public class MobileBadgeGrantService {
             progress.setUserId(userId);
             progress.setBadgeId(def.getBadgeId());
         }
+        if (!StringUtils.hasText(progress.getEarned())) {
+            progress.setEarned("n");
+        }
+        if (progress.getProgressCurrent() == null) {
+            progress.setProgressCurrent(0);
+        }
+        if (progress.getProgressTarget() == null) {
+            progress.setProgressTarget(target);
+        }
         boolean wasEarned = "y".equalsIgnoreCase(progress.getEarned());
         progress.setProgressCurrent(Math.min(current, target));
         progress.setProgressTarget(target);

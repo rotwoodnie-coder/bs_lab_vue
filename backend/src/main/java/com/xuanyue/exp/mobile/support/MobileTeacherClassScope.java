@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 import java.util.*;
 
 /**
- * 解析教师可管理的班级组织范围（与布置作业选项一致：rootOrgId 下全部班级 + 任务班级 + 教师直属班级）。
+ * 解析教师可管理的班级组织范围（与布置实验任务选项一致：rootOrgId 下全部班级 + 任务班级 + 教师直属班级）。
  */
 public final class MobileTeacherClassScope {
 

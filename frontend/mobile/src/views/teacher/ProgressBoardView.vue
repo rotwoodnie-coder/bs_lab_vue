@@ -73,7 +73,7 @@
                 class="card card-pad row items-center justify-between"
               >
                 <div class="row items-center gap-2">
-                  <div class="avatar avatar-sm avatar-grad-warm">{{ s.initial }}</div>
+                  <UserAvatar size="sm" :name="s.name" :src="s.avatarUrl" role="student" />
                   <span class="text-sm">{{ s.name }}</span>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline" @click="remindAll">
@@ -91,7 +91,7 @@
                     class="card card-pad row items-center justify-between"
                   >
                     <div class="row items-center gap-2">
-                      <div class="avatar avatar-sm avatar-grad-warm">{{ s.initial }}</div>
+                      <UserAvatar size="sm" :name="s.name" :src="s.avatarUrl" role="student" />
                       <span class="text-sm">{{ s.name }}</span>
                     </div>
                     <button type="button" class="btn btn-sm btn-outline" @click="remindAll">
@@ -115,7 +115,13 @@
                 class="card card-pad row items-center justify-between"
               >
                 <div class="row items-center gap-2">
-                  <div class="avatar avatar-sm avatar-grad-violet-indigo">{{ s.initial }}</div>
+                  <UserAvatar
+                    size="sm"
+                    :name="s.name"
+                    :src="s.avatarUrl"
+                    grad-class="avatar-grad-violet-indigo"
+                    role="student"
+                  />
                   <span class="text-sm">{{ s.name }}</span>
                 </div>
                 <router-link :to="reviewLink(s)" class="btn btn-sm btn-outline text-brand">
@@ -133,7 +139,13 @@
                     class="card card-pad row items-center justify-between"
                   >
                     <div class="row items-center gap-2">
-                      <div class="avatar avatar-sm avatar-grad-violet-indigo">{{ s.initial }}</div>
+                      <UserAvatar
+                    size="sm"
+                    :name="s.name"
+                    :src="s.avatarUrl"
+                    grad-class="avatar-grad-violet-indigo"
+                    role="student"
+                  />
                       <span class="text-sm">{{ s.name }}</span>
                     </div>
                     <router-link :to="reviewLink(s)" class="btn btn-sm btn-outline text-brand">
@@ -159,6 +171,8 @@ import { useAppStore } from '@/stores/app'
 import { fetchTeacherTaskBoard, fetchTeacherTasks, remindTeacherTask } from '@/api/teacher'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
 const appStore = useAppStore()
@@ -260,11 +274,7 @@ async function remindAll() {
   }
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 onMounted(async () => {
   if (route.query.taskId) {

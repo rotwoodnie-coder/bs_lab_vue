@@ -10,7 +10,13 @@
         :class="{ 'muted-2': child.id !== selectedChildId }"
         @click="selectChild(child.id)"
       >
-        <div class="avatar avatar-sm" :class="child.id === selectedChildId ? 'avatar-grad-warm' : 'avatar-grad-cool'">{{ child.avatar }}</div>
+        <UserAvatar
+          size="sm"
+          :name="child.name"
+          :src="child.avatarUrl"
+          :grad-class="child.id === selectedChildId ? 'avatar-grad-warm' : 'avatar-grad-cool'"
+          role="student"
+        />
         <span class="text-xs font-semibold">{{ child.name }}</span>
         <span v-if="child.id === selectedChildId" class="text-xs muted-2">当前</span>
       </button>
@@ -20,6 +26,7 @@
 
 <script setup>
 import { inject } from 'vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 const selectedChildId = inject('parentSelectedId')
 const selectChild = inject('parentSelectChild')

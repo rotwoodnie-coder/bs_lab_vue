@@ -11,7 +11,7 @@
         <PageBackButton />
         <h1 class="pad-workbench__title">个人中心</h1>
         <div class="pad-workbench__topbar-actions">
-          <router-link v-if="isParent" to="/notifications" class="icon-btn profile-notify-btn" aria-label="消息通知">
+          <router-link to="/notifications" class="icon-btn profile-notify-btn" aria-label="消息通知">
             <i data-lucide="bell" class="icon"></i>
             <span v-if="stats.messages > 0" class="profile-notify-badge">{{ unreadMessagesBadge }}</span>
           </router-link>
@@ -26,7 +26,7 @@
           <header class="topbar page-topbar">
             <PageBackButton />
             <h1 class="topbar-title text-xl flex-1 min-w-0">个人中心</h1>
-            <router-link v-if="isParent" to="/notifications" class="icon-btn profile-notify-btn" aria-label="消息通知">
+            <router-link to="/notifications" class="icon-btn profile-notify-btn" aria-label="消息通知">
               <i data-lucide="bell" class="icon"></i>
               <span v-if="stats.messages > 0" class="profile-notify-badge">{{ unreadMessagesBadge }}</span>
             </router-link>
@@ -38,12 +38,7 @@
         <!-- ============ 用户 Banner ============ -->
         <div class="pad-profile__banner" :class="bannerClass">
           <div class="flex items-center gap-4">
-            <div v-if="profile.userLogo" class="avatar avatar-xl" style="font-size:36px;">
-              <img :src="resolveFileUrl(profile.userLogo)" alt="头像" />
-            </div>
-            <div v-else class="avatar avatar-xl" :class="avatarGradClass" style="font-size:36px;">
-              {{ userInitial }}
-            </div>
+            <UserAvatar size="xl" font-size="36px" />
             <div class="flex-1">
               <h2 class="text-lg font-bold" :class="bannerTextClass">{{ displayName }}</h2>
               <!-- 学生：班级+学号 -->
@@ -59,6 +54,7 @@
                 {{ maskedPhoneLabel }}
               </p>
               <p v-if="isTeacher && profile.perResume" class="banner-sub" style="margin-top:8px;">{{ profile.perResume }}</p>
+              <p v-if="isResearcher && !isTeacher" class="banner-sub">教研员 · {{ classLabel || '实验审核与待办' }}</p>
             </div>
           </div>
         </div>
@@ -67,17 +63,17 @@
         <div class="pad-profile__stats">
           <!-- 学生 -->
           <template v-if="isStudent">
-            <router-link to="/tasks?category=experiment" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
+            <router-link to="/tasks?status=pending&category=experiment" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
               <div class="mb-1"><i data-lucide="notebook-text" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
               <div class="stat-num text-brand">{{ stats.homework }}</div>
               <div class="text-xs muted mt-1">我的实验</div>
             </router-link>
-            <router-link to="/tasks?category=remix" class="card rounded-xl card-pad text-center anim-fade-up delay-2">
+            <router-link to="/tasks?status=pending&category=remix" class="card rounded-xl card-pad text-center anim-fade-up delay-2">
               <div class="mb-1"><i data-lucide="camera" class="icon icon-lg" style="color:var(--c-amber-600);"></i></div>
               <div class="stat-num text-warning">{{ stats.remix }}</div>
               <div class="text-xs muted mt-1">拍同款</div>
             </router-link>
-            <router-link to="/tasks?category=creative" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
+            <router-link to="/tasks?status=pending&category=creative" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
               <div class="mb-1"><i data-lucide="lightbulb" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
               <div class="stat-num text-accent">{{ stats.creative }}</div>
               <div class="text-xs muted mt-1">创意实验</div>
@@ -113,7 +109,7 @@
           </template>
           <!-- 教师 -->
           <template v-if="isTeacher">
-            <router-link to="/review" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
+            <router-link to="/audits" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
               <div class="mb-1"><i data-lucide="file-check" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
               <div class="stat-num text-brand">{{ stats.pendingReview }}</div>
               <div class="text-xs muted mt-1">待批阅</div>
@@ -123,12 +119,12 @@
               <div class="stat-num text-warning">{{ stats.assigned }}</div>
               <div class="text-xs muted mt-1">已布置</div>
             </router-link>
-            <router-link to="/board" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
+            <router-link to="/tasks" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
               <div class="mb-1"><i data-lucide="check-circle" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
               <div class="stat-num text-success">{{ stats.submitted }}</div>
               <div class="text-xs muted mt-1">已提交</div>
             </router-link>
-            <router-link to="/board" class="card rounded-xl card-pad text-center anim-fade-up delay-4">
+            <router-link :to="boardLink" class="card rounded-xl card-pad text-center anim-fade-up delay-4">
               <div class="mb-1"><i data-lucide="users" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
               <div class="stat-num text-accent">{{ stats.students }}</div>
               <div class="text-xs muted mt-1">学生数</div>
@@ -140,15 +136,15 @@
         <div class="pad-profile__shortcuts">
           <!-- 学生：9 个入口 -->
           <template v-if="isStudent">
-            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-1" @click="navigateTo('/tasks?category=experiment')">
+            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-1" @click="navigateTo('/tasks?status=pending&category=experiment')">
               <div class="mb-1"><i data-lucide="notebook-text" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
               <span class="text-xs font-bold">我的实验</span>
             </button>
-            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/tasks?category=remix')">
+            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/tasks?status=pending&category=remix')">
               <div class="mb-1"><i data-lucide="camera" class="icon icon-lg" style="color:var(--c-amber-600);"></i></div>
               <span class="text-xs font-bold">拍同款</span>
             </button>
-            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-3" @click="navigateTo('/tasks?category=creative')">
+            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-3" @click="navigateTo('/tasks?status=pending&category=creative')">
               <div class="mb-1"><i data-lucide="lightbulb" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
               <span class="text-xs font-bold">创意实验</span>
             </button>
@@ -184,9 +180,9 @@
           <template v-if="isTeacher">
             <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-1 relative" @click="navigateTo('/assign')">
               <div class="mb-1"><i data-lucide="pen-square" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
-              <span class="text-xs font-bold">布置作业</span>
+              <span class="text-xs font-bold">布置实验任务</span>
             </button>
-            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/review')">
+            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/audits')">
               <div class="mb-1"><i data-lucide="check-circle" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
               <span class="text-xs font-bold">批阅</span>
             </button>
@@ -202,6 +198,21 @@
             <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-5" @click="navigateTo('/chat')">
               <div class="mb-1"><i data-lucide="bot" class="icon icon-lg" style="color:var(--c-cyan-600);"></i></div>
               <span class="text-xs font-bold">AI助手</span>
+            </button>
+          </template>
+          <!-- 教研员 / 校管 -->
+          <template v-if="isResearcher && !isTeacher">
+            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-1" @click="navigateTo('/content-audits')">
+              <div class="mb-1"><i data-lucide="file-check" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
+              <span class="text-xs font-bold">实验审核</span>
+            </button>
+            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/audits')">
+              <div class="mb-1"><i data-lucide="inbox" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
+              <span class="text-xs font-bold">待办中心</span>
+            </button>
+            <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-3" @click="navigateTo('/chat')">
+              <div class="mb-1"><i data-lucide="bot" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
+              <span class="text-xs font-bold">教研助手</span>
             </button>
           </template>
         </div>
@@ -262,17 +273,17 @@
 
           <!-- 手机端统计 -->
           <div v-if="isStudent" class="grid-2 gap-3 px-4 mt-3">
-            <router-link to="/tasks?category=experiment" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
+            <router-link to="/tasks?status=pending&category=experiment" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
               <div class="mb-1"><i data-lucide="notebook-text" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
               <div class="stat-num text-brand">{{ stats.homework }}</div>
               <div class="text-xs muted mt-1">我的实验</div>
             </router-link>
-            <router-link to="/tasks?category=remix" class="card rounded-xl card-pad text-center anim-fade-up delay-2">
+            <router-link to="/tasks?status=pending&category=remix" class="card rounded-xl card-pad text-center anim-fade-up delay-2">
               <div class="mb-1"><i data-lucide="camera" class="icon icon-lg" style="color:var(--c-amber-600);"></i></div>
               <div class="stat-num text-warning">{{ stats.remix }}</div>
               <div class="text-xs muted mt-1">拍同款</div>
             </router-link>
-            <router-link to="/tasks?category=creative" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
+            <router-link to="/tasks?status=pending&category=creative" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
               <div class="mb-1"><i data-lucide="lightbulb" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
               <div class="stat-num text-accent">{{ stats.creative }}</div>
               <div class="text-xs muted mt-1">创意实验</div>
@@ -306,7 +317,7 @@
             </router-link>
           </div>
           <div v-if="isTeacher" class="grid-2 gap-3 px-4 mt-3">
-            <router-link to="/review" class="card rounded-xl card-pad text-center">
+            <router-link to="/audits" class="card rounded-xl card-pad text-center">
               <div class="mb-1"><i data-lucide="file-check" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
               <div class="stat-num text-brand">{{ stats.pendingReview }}</div>
               <div class="text-xs muted mt-1">待批阅</div>
@@ -371,15 +382,15 @@
             <div class="grid-3 gap-3">
               <!-- 学生：8 个 -->
               <template v-if="isStudent">
-                <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-1" @click="navigateTo('/tasks?category=experiment')">
+                <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-1" @click="navigateTo('/tasks?status=pending&category=experiment')">
                   <div class="mb-1"><i data-lucide="notebook-text" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
                   <span class="text-xs font-bold">我的实验</span>
                 </button>
-                <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/tasks?category=remix')">
+                <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/tasks?status=pending&category=remix')">
                   <div class="mb-1"><i data-lucide="camera" class="icon icon-lg" style="color:var(--c-amber-600);"></i></div>
                   <span class="text-xs font-bold">拍同款</span>
                 </button>
-                <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-3" @click="navigateTo('/tasks?category=creative')">
+                <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-3" @click="navigateTo('/tasks?status=pending&category=creative')">
                   <div class="mb-1"><i data-lucide="lightbulb" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
                   <span class="text-xs font-bold">创意实验</span>
                 </button>
@@ -408,9 +419,9 @@
               <template v-if="isTeacher">
                 <button type="button" class="card rounded-xl card-pad text-center relative" @click="navigateTo('/assign')">
                   <div class="mb-1"><i data-lucide="pen-square" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
-                  <span class="text-xs font-bold">布置作业</span>
+                  <span class="text-xs font-bold">布置实验任务</span>
                 </button>
-                <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo('/review')">
+                <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo('/audits')">
                   <div class="mb-1"><i data-lucide="check-circle" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
                   <span class="text-xs font-bold">批阅</span>
                 </button>
@@ -426,6 +437,21 @@
                 <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo('/chat')">
                   <div class="mb-1"><i data-lucide="bot" class="icon icon-lg" style="color:var(--c-cyan-600);"></i></div>
                   <span class="text-xs font-bold">AI助手</span>
+                </button>
+              </template>
+              <!-- 教研员 / 校管 -->
+              <template v-if="isResearcher && !isTeacher">
+                <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo('/content-audits')">
+                  <div class="mb-1"><i data-lucide="file-check" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
+                  <span class="text-xs font-bold">实验审核</span>
+                </button>
+                <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo('/audits')">
+                  <div class="mb-1"><i data-lucide="inbox" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
+                  <span class="text-xs font-bold">待办中心</span>
+                </button>
+                <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo('/chat')">
+                  <div class="mb-1"><i data-lucide="bot" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
+                  <span class="text-xs font-bold">教研助手</span>
                 </button>
               </template>
             </div>
@@ -449,8 +475,21 @@
           </div>
         </div>
 
-        <!-- 底部操作：系统设置 + 退出登录（全角色统一，仅一处） -->
+        <!-- 底部操作：消息 + 系统设置 + 退出登录 -->
         <div class="px-4 pb-6 stack-2 profile-actions">
+          <router-link to="/notifications" class="card rounded-xl card-pad profile-message-entry">
+            <div class="row items-center gap-3">
+              <span class="profile-message-entry__icon">
+                <i data-lucide="bell" class="icon"></i>
+              </span>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-bold">消息通知</div>
+                <div class="text-xs muted mt-0.5">作业提醒、批阅反馈与系统公告</div>
+              </div>
+              <span v-if="stats.messages > 0" class="badge badge-danger">{{ unreadMessagesBadge }}</span>
+              <i data-lucide="chevron-right" class="icon muted shrink-0"></i>
+            </div>
+          </router-link>
           <router-link to="/settings" class="btn btn-outline btn-block">
             <i data-lucide="settings" class="icon"></i> 系统设置
           </router-link>
@@ -464,28 +503,32 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useProfileStore } from '@/stores/profile'
 import { useAppStore } from '@/stores/app'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { fetchParentDashboard } from '@/api/home'
 import { fetchTeacherDashboard, remindTeacherTask } from '@/api/teacher'
+import { showToast } from '@/utils/toast'
 import { fetchUnreadCount } from '@/api/notification'
 import { fetchTasks } from '@/api/task'
 import { fetchBadges } from '@/api/badge'
 import { fetchGrowth } from '@/api/growth'
-import { fetchProfile } from '@/api/profile'
-import { resolveFileUrl } from '@/utils/fileUrl'
 import { useParentContext } from '@/composables/useParentContext'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const router = useRouter()
 const userStore = useUserStore()
+const profileStore = useProfileStore()
+const { profile } = storeToRefs(profileStore)
 const appStore = useAppStore()
 appStore.setActiveTab('profile')
 
-const profile = ref({})
 const stats = ref({
   homework: 0, remix: 0, creative: 0, badgeEarned: 0, learningPoints: 0,
   children: 0, pending: 0, completed: 0, works: 0, messages: 0,
@@ -500,9 +543,12 @@ const roleLower = computed(() => (profile.value.userRoleId || userStore.userInfo
 const isStudent = computed(() => roleLower.value === 'student')
 const isParent = computed(() => roleLower.value === 'parent')
 const isTeacher = computed(() => roleLower.value === 'teacher')
+const isResearcher = computed(() => {
+  const r = roleLower.value
+  return r === 'researcher' || r === 'sys_admin' || r === 'school_admin'
+})
 
-const displayName = computed(() => profile.value.userNickName || profile.value.userName || userStore.userInfo.username || '同学')
-const userInitial = computed(() => displayName.value.charAt(0) || '用')
+const displayName = computed(() => profileStore.displayName || '同学')
 const classLabel = computed(() => profile.value.userOrgName || profile.value.rootOrgName || '')
 const gradeLabel = computed(() => classLabel.value)
 const studentNoLabel = computed(() => profile.value.loginName || '')
@@ -513,10 +559,7 @@ const unreadMessagesBadge = computed(() => {
   return count > 99 ? '99+' : String(count)
 })
 const teacherClassLabel = computed(() => profile.value.userOrgName || '')
-const boardLink = computed(() => {
-  const id = stats.value.latestTaskId
-  return id ? { path: '/board', query: { taskId: id } } : '/board'
-})
+const boardLink = computed(() => '/tasks')
 const { children: parentChildren, selectedChild: parentSelected, loadChildren } = useParentContext()
 
 const badgeLabel = computed(() => {
@@ -537,11 +580,6 @@ const themeClass = computed(() => {
 })
 const bannerClass = computed(() => isParent.value ? 'banner banner-sky-indigo' : 'banner banner-amber-rose')
 const bannerTextClass = computed(() => isParent.value ? 'text-on-brand' : '')
-const avatarGradClass = computed(() => {
-  if (isParent.value) return 'avatar-grad-warm'
-  if (isTeacher.value) return 'avatar-grad-ocean'
-  return 'avatar-grad-warm'
-})
 
 function navigateTo(path) {
   router.push(path)
@@ -555,24 +593,18 @@ async function handleTeacherRemind() {
     const res = await remindTeacherTask(taskId)
     if (res?.code === 200) {
       const count = res.data?.notifiedCount ?? stats.value.unsubmitted
-      alert(res.data?.message || `已向 ${count} 名未提交学生发送提醒`)
+      showToast(res.data?.message || `已向 ${count} 名未提交学生发送提醒`)
     } else {
-      alert(res?.message || '提醒发送失败')
+      showToast(res?.message || '提醒发送失败', 'danger')
     }
   } catch {
-    alert('提醒发送失败，请稍后重试')
+    showToast('提醒发送失败，请稍后重试', 'danger')
   } finally {
     reminding.value = false
   }
 }
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 async function handleLogout() {
   if (confirm('确定退出登录？')) {
@@ -583,13 +615,7 @@ async function handleLogout() {
 
 onMounted(async () => {
   try {
-    const res = await fetchProfile()
-    if (res.code === 200 && res.data) {
-      profile.value = res.data
-      if (res.data.userName) userStore.userInfo.username = res.data.userName
-      if (res.data.rootOrgName) userStore.userInfo.rootOrgName = res.data.rootOrgName
-      if (res.data.userRoleId) userStore.userInfo.userRoleId = res.data.userRoleId
-    }
+    await profileStore.loadProfile(true)
   } catch { /* ignore */ }
 
   try {
@@ -601,14 +627,14 @@ onMounted(async () => {
       fetchGrowth(),
       fetchUnreadCount()
     ])
-    stats.value.messages = Number(msgRes?.data?.count ?? msgRes?.data ?? 0)
+    const s = { ...stats.value, messages: Number(msgRes?.data?.count ?? msgRes?.data ?? 0) }
 
     if (isStudent.value) {
-      stats.value.homework = Number(homeworkRes?.data?.total || 0)
-      stats.value.remix = Number(remixRes?.data?.total || 0)
-      stats.value.creative = Number(creativeRes?.data?.total || 0)
-      stats.value.badgeEarned = Number(badgeRes?.data?.earned || 0)
-      stats.value.learningPoints = Number(
+      s.homework = Number(homeworkRes?.data?.total || 0)
+      s.remix = Number(remixRes?.data?.total || 0)
+      s.creative = Number(creativeRes?.data?.total || 0)
+      s.badgeEarned = Number(badgeRes?.data?.earned || 0)
+      s.learningPoints = Number(
         profile.value.perScore ?? growthRes?.data?.stats?.points ?? 0
       )
       const timeline = growthRes?.data?.timeline
@@ -624,24 +650,25 @@ onMounted(async () => {
       await loadChildren(true)
       const dashRes = await fetchParentDashboard().catch(() => null)
       const dash = dashRes?.data || {}
-      stats.value.children = Number(dash.children?.length || parentChildren.value.length || 0)
+      s.children = Number(dash.children?.length || parentChildren.value.length || 0)
       const active = parentSelected.value
-      stats.value.pending = Number(active?.pending ?? dash.todayProgress?.pending ?? 0)
-      stats.value.completed = Number(active?.completed ?? dash.todayProgress?.completed ?? 0)
-      stats.value.works = Number(active?.works ?? 0)
+      s.pending = Number(active?.pending ?? dash.todayProgress?.pending ?? 0)
+      s.completed = Number(active?.completed ?? dash.todayProgress?.completed ?? 0)
+      s.works = Number(active?.works ?? 0)
     } else {
       const dashRes = await fetchTeacherDashboard().catch(() => null)
       const dash = dashRes?.data || {}
-      stats.value.pendingReview = Number(dash.pendingReview || 0)
-      stats.value.assigned = Number(dash.assigned || 0)
-      stats.value.submitted = Number(dash.submitted || 0)
-      stats.value.students = Number(dash.students || 0)
-      stats.value.submitRate = Number(dash.submitRate || 0)
-      stats.value.totalExperiments = Number(dash.assigned || 0)
-      stats.value.unsubmitted = Number(dash.unsubmitted || 0)
-      stats.value.pendingParentBinds = Number(dash.pendingParentBinds || 0)
-      stats.value.latestTaskId = dash.latestTaskId || ''
+      s.pendingReview = Number(dash.pendingReview || 0)
+      s.assigned = Number(dash.assigned || 0)
+      s.submitted = Number(dash.submitted || 0)
+      s.students = Number(dash.students || 0)
+      s.submitRate = Number(dash.submitRate || 0)
+      s.totalExperiments = Number(dash.assigned || 0)
+      s.unsubmitted = Number(dash.unsubmitted || 0)
+      s.pendingParentBinds = Number(dash.pendingParentBinds || 0)
+      s.latestTaskId = dash.latestTaskId || ''
     }
+    stats.value = s
   } catch {
     stats.value = { homework: 0, remix: 0, creative: 0, badgeEarned: 0, learningPoints: 0, children: 0, pending: 0, completed: 0, works: 0, messages: 0, pendingReview: 0, assigned: 0, submitted: 0, students: 0, totalExperiments: 0, submitRate: 0, unsubmitted: 0, pendingParentBinds: 0, latestTaskId: '' }
   }
@@ -669,6 +696,23 @@ onMounted(async () => {
   font-weight: var(--weight-bold);
   line-height: 16px;
   text-align: center;
+}
+
+.profile-message-entry {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.profile-message-entry__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  color: var(--c-blue-600);
 }
 
 :deep(.pad-profile__shortcuts) .parent-profile-upload-card {

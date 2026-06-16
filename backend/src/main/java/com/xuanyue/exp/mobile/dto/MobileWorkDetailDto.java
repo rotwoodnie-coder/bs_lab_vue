@@ -1,5 +1,8 @@
 package com.xuanyue.exp.mobile.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MobileWorkDetailDto {
 
     private String id;
@@ -12,6 +15,14 @@ public class MobileWorkDetailDto {
     private int likes;
     private int comments;
     private String sourceExpId;
+    private String workType;
+    private String taskId;
+    private String reviewStatus;
+    private String reviewStatusLabel;
+    private String coverUrl;
+    private String coverType;
+    private int fileCount;
+    private List<MobileWorkFileDto> files = new ArrayList<>();
     private TeacherReview teacherReview;
 
     public String getId() { return id; }
@@ -34,6 +45,22 @@ public class MobileWorkDetailDto {
     public void setComments(int comments) { this.comments = comments; }
     public String getSourceExpId() { return sourceExpId; }
     public void setSourceExpId(String sourceExpId) { this.sourceExpId = sourceExpId; }
+    public String getWorkType() { return workType; }
+    public void setWorkType(String workType) { this.workType = workType; }
+    public String getTaskId() { return taskId; }
+    public void setTaskId(String taskId) { this.taskId = taskId; }
+    public String getReviewStatus() { return reviewStatus; }
+    public void setReviewStatus(String reviewStatus) { this.reviewStatus = reviewStatus; }
+    public String getReviewStatusLabel() { return reviewStatusLabel; }
+    public void setReviewStatusLabel(String reviewStatusLabel) { this.reviewStatusLabel = reviewStatusLabel; }
+    public String getCoverUrl() { return coverUrl; }
+    public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
+    public String getCoverType() { return coverType; }
+    public void setCoverType(String coverType) { this.coverType = coverType; }
+    public int getFileCount() { return fileCount; }
+    public void setFileCount(int fileCount) { this.fileCount = fileCount; }
+    public List<MobileWorkFileDto> getFiles() { return files; }
+    public void setFiles(List<MobileWorkFileDto> files) { this.files = files != null ? files : new ArrayList<>(); }
     public TeacherReview getTeacherReview() { return teacherReview; }
     public void setTeacherReview(TeacherReview teacherReview) { this.teacherReview = teacherReview; }
 

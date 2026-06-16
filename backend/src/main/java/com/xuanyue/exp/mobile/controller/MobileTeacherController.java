@@ -72,8 +72,9 @@ public class MobileTeacherController {
 
     @GetMapping("/tasks")
     public ApiResponse<List<TeacherTaskSummaryDto>> teacherTasks(
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return ApiResponse.success(teacherService.listTeacherTasks(userId));
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestParam(value = "scope", defaultValue = "active") String scope) {
+        return ApiResponse.success(teacherService.listTeacherTasks(userId, scope));
     }
 
     @PostMapping("/remind")
@@ -82,6 +83,18 @@ public class MobileTeacherController {
             @RequestParam String taskId) {
         try {
             return ApiResponse.success(teacherService.remindUnsubmitted(userId, taskId));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(400, e.getMessage());
+        }
+    }
+
+    @PostMapping("/tasks/{taskId}/cancel")
+    public ApiResponse<TeacherTaskCancelResultDto> cancelTask(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @PathVariable String taskId,
+            @RequestBody(required = false) TeacherTaskCancelRequest request) {
+        try {
+            return ApiResponse.success(teacherService.cancelTask(userId, taskId, request));
         } catch (IllegalArgumentException e) {
             return ApiResponse.fail(400, e.getMessage());
         }
@@ -113,6 +126,17 @@ public class MobileTeacherController {
             @RequestBody TeacherParentBindAuditRequest request) {
         try {
             return ApiResponse.success(parentBindService.audit(userId, bindId, request));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(400, e.getMessage());
+        }
+    }
+
+    @GetMapping("/works/{workId}")
+    public ApiResponse<MobileWorkDetailDto> workDetail(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @PathVariable String workId) {
+        try {
+            return ApiResponse.success(teacherService.getWorkForReview(userId, workId));
         } catch (IllegalArgumentException e) {
             return ApiResponse.fail(400, e.getMessage());
         }

@@ -52,6 +52,7 @@ import { useRoute } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchQuizRecord } from '@/api/quiz'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const QUIZ_RESULT_KEY = 'mb_quiz_result'
 
@@ -98,11 +99,7 @@ const reviewLink = computed(() => {
   return date ? `/quiz/review?date=${date}` : '/quiz/review'
 })
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => createIcons({ icons })).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 async function loadResult() {
   loading.value = true

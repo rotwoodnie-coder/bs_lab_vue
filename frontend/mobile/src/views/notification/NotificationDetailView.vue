@@ -43,6 +43,7 @@ import { FORMAT_EXP_LONG } from '@/utils/richText'
 import { fetchMessages, markMessageRead } from '@/api/notification'
 import { fetchLatestNotice } from '@/api/home'
 import { mapMessageItem, markNoticeRead, ensureNoticeReadState } from '@/utils/notificationDisplay'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
 const loading = ref(true)
@@ -50,13 +51,7 @@ const item = ref(null)
 
 const isNoticeRoute = computed(() => route.path.includes('/notifications/notice/'))
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 async function loadDetail() {
   loading.value = true
@@ -99,12 +94,10 @@ async function loadDetail() {
 function taskDetailLink(item) {
   if (item?.linkRoute) return item.linkRoute
   if (!item?.linkId) return '/notifications'
-  if ((item.type || '').toLowerCase() === 'task') {
-    return `/tasks/${item.linkId}`
-  }
-  if ((item.type || '').toLowerCase() === 'bind') {
-    return '/parent-binds'
-  }
+  const type = (item.type || '').toLowerCase()
+  if (type === 'task') return `/tasks/${item.linkId}`
+  if (type === 'bind') return '/parent-binds'
+  if (type === 'grade') return `/works/${item.linkId}`
   return `/exp/${item.linkId}`
 }
 
@@ -112,7 +105,9 @@ function taskCtaLabel(item) {
   if (item?.linkRoute === '/parent-binds' || (item?.type || '').toLowerCase() === 'bind') {
     return '前往绑定审核'
   }
-  return (item?.type || '').toLowerCase() === 'task' ? '查看任务详情' : '查看关联内容'
+  const type = (item?.type || '').toLowerCase()
+  if (type === 'grade') return '查看作品详情'
+  return type === 'task' ? '查看任务详情' : '查看关联内容'
 }
 
 onMounted(loadDetail)

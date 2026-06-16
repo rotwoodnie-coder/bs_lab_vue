@@ -29,6 +29,8 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchSimulatorDetail } from '@/api/simulator'
+import { useLucideIcons } from '@/composables/useLucideIcons'
+import { resolveMediaUrl } from '@/utils/fileUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -38,13 +40,7 @@ const error = ref('')
 const title = ref('模拟实验')
 const simulatorUrl = ref('')
 
-function initIcons() {
-  nextTick(() => {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    }).catch(() => {})
-  })
-}
+const { initIcons } = useLucideIcons()
 
 function goBack() {
   if (window.history.length > 1) {
@@ -73,11 +69,14 @@ async function loadDetail() {
     }
     title.value = data.simulatorName || '模拟实验'
     document.title = `${title.value} · 模拟实验 · 宝山小实验社区`
-    if (!data.simulatorUrl) {
+
+    // simulatorPreviewUrl（后端已解析的完整 URL）优先，其次 simulatorUrl
+    const url = resolveMediaUrl(data, 'simulatorUrl')
+    if (!url) {
       error.value = '该实验暂未配置模拟地址'
       return
     }
-    simulatorUrl.value = data.simulatorUrl
+    simulatorUrl.value = url
   } catch (e) {
     console.warn('加载模拟实验详情失败', e)
     error.value = '加载失败，请稍后重试'

@@ -40,12 +40,6 @@ export const useAppStore = defineStore('app', () => {
 
       return SHARED_TABS.map((tab) => {
 
-        if (tab.key === 'tasks') {
-
-          return { ...tab, label: '孩子任务' }
-
-        }
-
         if (tab.key === 'chat') {
 
           return { ...CHAT_TAB, hasBadge: false }
@@ -75,4 +69,3 @@ export const useAppStore = defineStore('app', () => {
   return { activeTab, tabs, setActiveTab }
 
 })
-

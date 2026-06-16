@@ -81,6 +81,7 @@ import { ref, onMounted, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { useUserStore } from '@/stores/user'
+import { useProfileStore } from '@/stores/profile'
 
 import { login as loginApi } from '@/api/auth'
 import { getUserInfo } from '@/utils/authStorage'
@@ -96,6 +97,7 @@ const router = useRouter()
 const route = useRoute()
 
 const userStore = useUserStore()
+const profileStore = useProfileStore()
 
 
 
@@ -160,6 +162,7 @@ async function handleLogin() {
     }
 
     userStore.applyTokenPayload(res.data)
+    profileStore.loadProfile(true)
 
     const info = getUserInfo()
     if (info?.parentRestricted) {
@@ -178,7 +181,7 @@ async function handleLogin() {
     const apiMessage = typeof body === 'object' ? (body.message || body.error) : ''
 
     if (!err.response) {
-      errorMsg.value = '无法连接服务器。开发模式请确认本机后端已启动（8011）；局域网访问推荐 http://本机IP:8011/m/#/login'
+      errorMsg.value = '无法连接服务器。开发模式请确认本机后端已启动（8010）；局域网访问推荐 http://本机IP:8010/m/#/login'
     } else if (status === 404) {
       errorMsg.value = '登录接口不存在，请更新并重启后端（需包含 /api/mobile/auth/login）'
     } else if (apiMessage) {

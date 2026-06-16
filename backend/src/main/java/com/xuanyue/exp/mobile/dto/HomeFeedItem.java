@@ -36,6 +36,14 @@ public class HomeFeedItem {
     private String gradientClass;
     /** 关联模拟器 ID（type=simulation 时） */
     private String simulatorId;
+    /** 作品类型 homework/remix/creative（type=work 时） */
+    private String workType;
+    /** 作者头像 URL */
+    private String authorAvatarUrl;
+    /** 班级展示（作品） */
+    private String classLabel;
+    /** 作者角色 teacher/student */
+    private String authorRole;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -69,4 +77,12 @@ public class HomeFeedItem {
     public void setGradientClass(String gradientClass) { this.gradientClass = gradientClass; }
     public String getSimulatorId() { return simulatorId; }
     public void setSimulatorId(String simulatorId) { this.simulatorId = simulatorId; }
+    public String getWorkType() { return workType; }
+    public void setWorkType(String workType) { this.workType = workType; }
+    public String getAuthorAvatarUrl() { return authorAvatarUrl; }
+    public void setAuthorAvatarUrl(String authorAvatarUrl) { this.authorAvatarUrl = authorAvatarUrl; }
+    public String getClassLabel() { return classLabel; }
+    public void setClassLabel(String classLabel) { this.classLabel = classLabel; }
+    public String getAuthorRole() { return authorRole; }
+    public void setAuthorRole(String authorRole) { this.authorRole = authorRole; }
 }

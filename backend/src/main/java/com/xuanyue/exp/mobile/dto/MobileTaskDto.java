@@ -24,6 +24,8 @@ public class MobileTaskDto {
     private String uploadQuery;
     private MobileTaskExpBriefDto expBrief;
     private List<String> completionGuide;
+    /** 任务是否已由老师取消 */
+    private boolean cancelled;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -65,4 +67,6 @@ public class MobileTaskDto {
     public void setExpBrief(MobileTaskExpBriefDto expBrief) { this.expBrief = expBrief; }
     public List<String> getCompletionGuide() { return completionGuide; }
     public void setCompletionGuide(List<String> completionGuide) { this.completionGuide = completionGuide; }
+    public boolean isCancelled() { return cancelled; }
+    public void setCancelled(boolean cancelled) { this.cancelled = cancelled; }
 }
