@@ -127,6 +127,17 @@ index c1ba7e6..ce042c2 100644
      }
  
      private String resolveObjectName(String fileUrl) {
+diff --git a/backend/src/main/java/com/xuanyue/exp/edu/repository/SubjectGroupResearcherRepository.java b/backend/src/main/java/com/xuanyue/exp/edu/repository/SubjectGroupResearcherRepository.java
+index 4227ee8..ab82fd0 100644
+--- a/backend/src/main/java/com/xuanyue/exp/edu/repository/SubjectGroupResearcherRepository.java
++++ b/backend/src/main/java/com/xuanyue/exp/edu/repository/SubjectGroupResearcherRepository.java
+@@ -7,5 +7,6 @@ import java.util.List;
+ 
+ public interface SubjectGroupResearcherRepository extends JpaRepository<SubjectGroupResearcher, String> {
+     List<SubjectGroupResearcher> findByGroupId(String groupId);
++    List<SubjectGroupResearcher> findByResearcherUserId(String researcherUserId);
+     void deleteByGroupId(String groupId);
+ }
 diff --git a/backend/src/main/java/com/xuanyue/exp/exp/dto/ExpSimulatorPageQuery.java b/backend/src/main/java/com/xuanyue/exp/exp/dto/ExpSimulatorPageQuery.java
 index 5a3edc1..eb6a0bf 100644
 --- a/backend/src/main/java/com/xuanyue/exp/exp/dto/ExpSimulatorPageQuery.java
@@ -193,7 +204,7 @@ index f395fd5..2d82b68 100644
 +                                            @Param("gradeIds") List<String> gradeIds);
  }
 diff --git a/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java b/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java
-index 450c177..27063db 100644
+index 450c177..ed83ca7 100644
 --- a/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java
 +++ b/backend/src/main/java/com/xuanyue/exp/exp/service/impl/ExpSimulatorServiceImpl.java
 @@ -18,10 +18,13 @@ import org.springframework.util.StringUtils;
@@ -210,7 +221,7 @@ index 450c177..27063db 100644
  import java.util.UUID;
  import java.util.stream.Collectors;
  
-@@ -45,14 +48,23 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
+@@ -45,17 +48,25 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
          String keyword = StringUtils.hasText(query == null ? null : query.getKeyword()) ? query.getKeyword().trim() : null;
          String status = StringUtils.hasText(query == null ? null : query.getStatus()) ? query.getStatus().trim() : null;
          String subjectId = StringUtils.hasText(query == null ? null : query.getSubjectId()) ? query.getSubjectId().trim() : null;
@@ -233,8 +244,11 @@ index 450c177..27063db 100644
 +                .filter(item -> gradeAllowed == null || gradeAllowed.contains(item.getSimulatorId()))
                  .sorted(Comparator.comparing(ExpSimulator::getSimulatorName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                  .collect(Collectors.toList());
- 
-@@ -143,6 +155,22 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
+-
+         Map<String, String> userNameMap = loadUserNameMap(filtered);
+         int start = Math.min((pageNum - 1) * pageSize, filtered.size());
+         int end = Math.min(start + pageSize, filtered.size());
+@@ -143,6 +154,21 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
          return StringUtils.hasText(source) && StringUtils.hasText(keyword) && source.toLowerCase().contains(keyword.toLowerCase());
      }
  
@@ -253,10 +267,58 @@ index 450c177..27063db 100644
 +                return null;
 +        }
 +    }
-+
      private ExpSimulatorListItem toItem(ExpSimulator simulator, String createUserName) {
          return new ExpSimulatorListItem(simulator.getSimulatorId(), simulator.getSimulatorName(), simulator.getSubjectId(), simulator.getCoverImageUrl(), simulator.getSimulatorUrl(), simulator.getComments(), simulator.getStatus(), createUserName);
      }
+diff --git a/backend/src/main/java/com/xuanyue/exp/system/repository/SysMsgRepository.java b/backend/src/main/java/com/xuanyue/exp/system/repository/SysMsgRepository.java
+index 0829d01..fff3c72 100644
+--- a/backend/src/main/java/com/xuanyue/exp/system/repository/SysMsgRepository.java
++++ b/backend/src/main/java/com/xuanyue/exp/system/repository/SysMsgRepository.java
+@@ -8,4 +8,5 @@ import java.util.List;
+ public interface SysMsgRepository extends JpaRepository<SysMsg, String> {
+     List<SysMsg> findByReceiverUserIdOrderBySendTimeDesc(String receiverUserId);
+     List<SysMsg> findByReceiverUserIdAndMsgTypeIdOrderBySendTimeDesc(String receiverUserId, String msgTypeId);
++    List<SysMsg> findByReceiverUserIdAndLinkIdOrderBySendTimeDesc(String receiverUserId, String linkId);
+ }
+diff --git a/backend/src/main/java/com/xuanyue/exp/system/service/SysMsgService.java b/backend/src/main/java/com/xuanyue/exp/system/service/SysMsgService.java
+index ae0b1f8..8e1a33e 100644
+--- a/backend/src/main/java/com/xuanyue/exp/system/service/SysMsgService.java
++++ b/backend/src/main/java/com/xuanyue/exp/system/service/SysMsgService.java
+@@ -6,4 +6,5 @@ public interface SysMsgService {
+     PageResult<?> page(int pageNum, int pageSize, String msgTypeId, String readTag, String currentUserId);
+     long unreadCount(String currentUserId);
+     void markRead(String msgId, String currentUserId);
++    int markAllRead(String currentUserId);
+ }
+diff --git a/backend/src/main/java/com/xuanyue/exp/system/service/impl/SysMsgServiceImpl.java b/backend/src/main/java/com/xuanyue/exp/system/service/impl/SysMsgServiceImpl.java
+index 2a72376..28dc434 100644
+--- a/backend/src/main/java/com/xuanyue/exp/system/service/impl/SysMsgServiceImpl.java
++++ b/backend/src/main/java/com/xuanyue/exp/system/service/impl/SysMsgServiceImpl.java
+@@ -65,6 +65,24 @@ public class SysMsgServiceImpl implements SysMsgService {
+         }
+     }
+ 
++    @Override
++    @Transactional
++    public int markAllRead(String currentUserId) {
++        String uid = asString(currentUserId);
++        if (!StringUtils.hasText(uid)) return 0;
++        List<SysMsg> unread = repository.findByReceiverUserIdOrderBySendTimeDesc(uid).stream()
++                .filter(item -> !"1".equals(asString(item.getReadTag())))
++                .collect(Collectors.toList());
++        if (unread.isEmpty()) return 0;
++        Date now = new Date();
++        for (SysMsg msg : unread) {
++            msg.setReadTag("1");
++            msg.setReadTime(now);
++        }
++        repository.saveAll(unread);
++        return unread.size();
++    }
++
+     private Map<String, Object> toView(SysMsg item) {
+         Map<String, Object> view = new HashMap<>();
+         view.put("msgId", item.getMsgId());
 diff --git a/backend/src/main/resources/application-dev.yml b/backend/src/main/resources/application-dev.yml
 index a221987..a1b6758 100644
 --- a/backend/src/main/resources/application-dev.yml
