@@ -6,4 +6,5 @@ public interface SysMsgService {
     PageResult<?> page(int pageNum, int pageSize, String msgTypeId, String readTag, String currentUserId);
     long unreadCount(String currentUserId);
     void markRead(String msgId, String currentUserId);
+    int markAllRead(String currentUserId);
 }

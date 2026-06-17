@@ -65,6 +65,24 @@ public class SysMsgServiceImpl implements SysMsgService {
         }
     }
 
+    @Override
+    @Transactional
+    public int markAllRead(String currentUserId) {
+        String uid = asString(currentUserId);
+        if (!StringUtils.hasText(uid)) return 0;
+        List<SysMsg> unread = repository.findByReceiverUserIdOrderBySendTimeDesc(uid).stream()
+                .filter(item -> !"1".equals(asString(item.getReadTag())))
+                .collect(Collectors.toList());
+        if (unread.isEmpty()) return 0;
+        Date now = new Date();
+        for (SysMsg msg : unread) {
+            msg.setReadTag("1");
+            msg.setReadTime(now);
+        }
+        repository.saveAll(unread);
+        return unread.size();
+    }
+
     private Map<String, Object> toView(SysMsg item) {
         Map<String, Object> view = new HashMap<>();
         view.put("msgId", item.getMsgId());
