@@ -42,6 +42,7 @@
         <el-table-column label="操作" width="320" fixed="right" align="center">
           <template #default="scope">
             <el-button link type="success" @click="openResearcherDialog(scope.row)">分配教研员</el-button>
+            <el-button link type="warning" @click="openTeacherDialog(scope.row)">分配教师</el-button>
             <el-button link type="primary" @click="openEditDialog(scope.row)">编辑</el-button>
             <el-button link type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </template>
@@ -98,12 +99,27 @@
         <el-form-item label="教研组名称">
           <el-input :model-value="researcherForm.groupName" disabled />
         </el-form-item>
+        <el-form-item label="所属学科">
+          <el-input :model-value="researcherForm.subjectName" disabled />
+        </el-form-item>
         <el-form-item label="教研员" prop="researcherUserIds">
-          <el-checkbox-group v-model="researcherForm.researcherUserIds" class="researcher-checkbox-group">
-            <el-checkbox v-for="item in researcherOptions" :key="item.userId" :label="item.userId">
-              {{ item.userName || item.loginName || item.userId }}
-            </el-checkbox>
-          </el-checkbox-group>
+          <el-select
+            v-model="researcherForm.researcherUserIds"
+            multiple
+            filterable
+            clearable
+            collapse-tags
+            collapse-tags-tooltip
+            placeholder="请选择教研员"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in researcherOptions"
+              :key="item.userId"
+              :label="item.userName || item.loginName || item.userId"
+              :value="item.userId"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -111,13 +127,69 @@
         <el-button type="primary" :loading="researcherSubmitLoading" @click="handleResearcherSubmit">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="teacherDialogVisible" title="分配教师" width="720px" @closed="handleTeacherDialogClosed">
+      <el-form ref="teacherFormRef" :model="teacherForm" :rules="teacherRules" label-width="100px">
+        <el-form-item label="教研组名称">
+          <el-input :model-value="teacherForm.groupName" disabled />
+        </el-form-item>
+        <el-form-item label="所属学科">
+          <el-input :model-value="teacherForm.subjectName" disabled />
+        </el-form-item>
+        <el-form-item label="教师" prop="teacherUserIds">
+          <el-select
+            v-model="teacherForm.teacherUserIds"
+            multiple
+            filterable
+            clearable
+            collapse-tags
+            collapse-tags-tooltip
+            placeholder="请选择教师"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in teacherOptions"
+              :key="item.userId"
+              :label="`${getTeacherOrgName(item)} - ${getTeacherDisplayName(item)}`"
+              :value="item.userId"
+            >
+              <div class="teacher-option-item">
+                <span class="teacher-option-org">{{ getTeacherOrgName(item) }}</span>
+                <span class="teacher-option-name">{{ getTeacherDisplayName(item) }}</span>
+              </div>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="已选教师">
+          <el-input :model-value="`${teacherSelectedCount} 人`" disabled style="width: 160px" />
+        </el-form-item>
+        <el-form-item label="已选列表">
+          <div class="selected-user-list">
+            <el-tag
+              v-for="item in selectedTeacherItems"
+              :key="item.userId"
+              class="selected-user-tag"
+              effect="plain"
+              type="warning"
+            >
+              {{ getTeacherOrgName(item) }} - {{ getTeacherDisplayName(item) }}
+            </el-tag>
+            <span v-if="!selectedTeacherItems.length" class="selected-user-empty">暂无已选教师</span>
+          </div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="teacherDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="teacherSubmitLoading" @click="handleTeacherSubmit">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { fetchDataDictItems, fetchSubjectGroups, createSubjectGroup, updateSubjectGroup, deleteSubjectGroup, fetchUsers, fetchSubjectGroupResearchers, saveSubjectGroupResearchers } from '../../api/index'
+import { fetchDataDictItems, fetchSubjectGroups, createSubjectGroup, updateSubjectGroup, deleteSubjectGroup, fetchSubjectGroupResearchers, saveSubjectGroupResearchers, fetchSubjectGroupTeachers, saveSubjectGroupTeachers, fetchTeacherAssignOptions } from '../../api/index'
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -127,6 +199,7 @@ const isEdit = ref(false)
 const editId = ref('')
 const formRef = ref()
 const researcherFormRef = ref()
+const teacherFormRef = ref()
 const tableData = ref([])
 const total = ref(0)
 const pageSizes = [10, 20, 50, 100]
@@ -136,7 +209,11 @@ const subjectNameMap = computed(() => Object.fromEntries(subjectOptions.value.ma
 const researcherDialogVisible = ref(false)
 const researcherSubmitLoading = ref(false)
 const researcherOptions = ref([])
-const researcherForm = reactive({ groupId: '', groupName: '', researcherUserIds: [] })
+const researcherForm = reactive({ groupId: '', groupName: '', subjectId: '', subjectName: '', researcherUserIds: [] })
+const teacherDialogVisible = ref(false)
+const teacherSubmitLoading = ref(false)
+const teacherOptions = ref([])
+const teacherForm = reactive({ groupId: '', groupName: '', subjectId: '', subjectName: '', teacherUserIds: [] })
 const form = reactive({ groupName: '', subjectId: '', comments: '', status: 'y' })
 
 const rules = {
@@ -149,8 +226,19 @@ const researcherRules = {
   researcherUserIds: [{ required: true, message: '请选择教研员', trigger: 'change' }]
 }
 
+const teacherRules = {
+  teacherUserIds: [{ required: true, message: '请选择教师', trigger: 'change' }]
+}
+
 const getSubjectName = (row) => subjectNameMap.value[row?.subjectId] || row?.subjectName || row?.subjectId || '-'
 const getResearcherCount = (row) => Number(row?.researcherCount || 0)
+const selectedTeacherItems = computed(() => {
+  const selectedIds = Array.isArray(teacherForm.teacherUserIds) ? teacherForm.teacherUserIds : []
+  return teacherOptions.value.filter(item => selectedIds.includes(item.userId))
+})
+const teacherSelectedCount = computed(() => Array.isArray(teacherForm.teacherUserIds) ? teacherForm.teacherUserIds.length : 0)
+const getTeacherDisplayName = (item) => item.userName || item.loginName || item.userId
+const getTeacherOrgName = (item) => item.rootOrgName || item.rootOrgId || '-'
 
 const loadSubjects = async () => {
   try {
@@ -170,6 +258,16 @@ const loadResearchers = async () => {
     researcherOptions.value = rows.filter(item => String(item.userRoleId || '').toLowerCase() === 'researcher' && String(item.status || '').toLowerCase() === 'y')
   } catch (error) {
     researcherOptions.value = []
+  }
+}
+
+const loadTeachers = async (subjectId = teacherForm.subjectId) => {
+  try {
+    const res = await fetchTeacherAssignOptions({ subjectId })
+    const rows = res.data.code === 200 ? (res.data.data || []) : []
+    teacherOptions.value = Array.isArray(rows) ? rows : []
+  } catch (error) {
+    teacherOptions.value = []
   }
 }
 
@@ -263,6 +361,8 @@ const handleSubmit = async () => {
 const openResearcherDialog = async (row) => {
   researcherForm.groupId = row.groupId
   researcherForm.groupName = row.groupName || ''
+  researcherForm.subjectId = row.subjectId || ''
+  researcherForm.subjectName = getSubjectName(row)
   researcherForm.researcherUserIds = []
   try {
     const res = await fetchSubjectGroupResearchers(row.groupId)
@@ -276,12 +376,48 @@ const openResearcherDialog = async (row) => {
   researcherDialogVisible.value = true
 }
 
+const openTeacherDialog = async (row) => {
+  teacherForm.groupId = row.groupId
+  teacherForm.groupName = row.groupName || ''
+  teacherForm.subjectId = row.subjectId || ''
+  teacherForm.subjectName = getSubjectName(row)
+  teacherForm.teacherUserIds = []
+  try {
+    const res = await fetchSubjectGroupTeachers(row.groupId)
+    if (res.data.code === 200) {
+      const records = res.data.data?.records || res.data.data || []
+      teacherForm.teacherUserIds = records.map(item => item.teacherUserId)
+    }
+  } catch (error) {
+    teacherForm.teacherUserIds = []
+  }
+  await loadTeachers(teacherForm.subjectId)
+  teacherDialogVisible.value = true
+}
+
 const handleResearcherDialogClosed = () => {
   researcherForm.groupId = ''
   researcherForm.groupName = ''
+  researcherForm.subjectId = ''
+  researcherForm.subjectName = ''
   researcherForm.researcherUserIds = []
   researcherFormRef.value?.clearValidate?.()
 }
+
+const handleTeacherDialogClosed = () => {
+  teacherForm.groupId = ''
+  teacherForm.groupName = ''
+  teacherForm.subjectId = ''
+  teacherForm.subjectName = ''
+  teacherForm.teacherUserIds = []
+  teacherFormRef.value?.clearValidate?.()
+}
+
+watch(() => teacherForm.subjectId, async (newSubjectId, oldSubjectId) => {
+  if (!teacherDialogVisible.value || newSubjectId === oldSubjectId) return
+  teacherForm.teacherUserIds = []
+  await loadTeachers(newSubjectId)
+})
 
 const handleResearcherSubmit = async () => {
   if (!researcherForm.groupId) return
@@ -300,6 +436,26 @@ const handleResearcherSubmit = async () => {
     ElMessage.error(error?.response?.data?.message || error?.message || '保存失败')
   } finally {
     researcherSubmitLoading.value = false
+  }
+}
+
+const handleTeacherSubmit = async () => {
+  if (!teacherForm.groupId) return
+  try {
+    await teacherFormRef.value?.validate?.()
+    teacherSubmitLoading.value = true
+    const res = await saveSubjectGroupTeachers(teacherForm.groupId, { teacherUserIds: teacherForm.teacherUserIds })
+    if (res.data.code === 200) {
+      ElMessage.success('保存成功')
+      teacherDialogVisible.value = false
+      await loadItems()
+    } else {
+      ElMessage.error(res.data.message || '保存失败')
+    }
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '保存失败')
+  } finally {
+    teacherSubmitLoading.value = false
   }
 }
 
@@ -324,5 +480,6 @@ onMounted(async () => {
   await loadSubjects()
   await loadItems()
   await loadResearchers()
+  await loadTeachers()
 })
 </script>

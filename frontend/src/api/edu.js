@@ -65,6 +65,10 @@ export function fetchSubjectGroups(params) {
   return request.get('/edu/subject-groups', { params })
 }
 
+export function fetchTeacherAssignOptions(params) {
+  return request.get('/edu/subject-groups/teacher-assign-options', { params })
+}
+
 export function fetchSubjectGroup(groupId) {
   return request.get(`/edu/subject-groups/${groupId}`)
 }
@@ -87,6 +91,14 @@ export function fetchSubjectGroupResearchers(groupId) {
 
 export function saveSubjectGroupResearchers(groupId, data) {
   return request.put(`/edu/subject-groups/${groupId}/researchers`, data)
+}
+
+export function fetchSubjectGroupTeachers(groupId) {
+  return request.get(`/edu/subject-groups/${groupId}/teachers`)
+}
+
+export function saveSubjectGroupTeachers(groupId, data) {
+  return request.put(`/edu/subject-groups/${groupId}/teachers`, data)
 }
 
 //school notices
