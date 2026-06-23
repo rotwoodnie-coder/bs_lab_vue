@@ -19,9 +19,9 @@ import com.xuanyue.exp.mobile.support.MobileUserContext;
 import com.xuanyue.exp.system.entity.SysUser;
 import com.xuanyue.exp.system.repository.SysUserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -113,7 +113,9 @@ public class MobileTaskService {
         items.addAll(listExperimentItems(studentId, status));
         items.addAll(listRemixItems(studentId, status));
         items.addAll(listCreativeItems(studentId, status));
-        items.addAll(listQuizItems(studentId, status));
+        if (!parentAccessService.isParentUser(userId)) {
+            items.addAll(listQuizItems(studentId, status));
+        }
         items.sort(Comparator.comparingLong(MobileTaskListItemDto::getSortTime).reversed());
         return items;
     }
@@ -299,7 +301,15 @@ public class MobileTaskService {
        详情
        ════════════════════════════════════════ */
 
-    public MobileTaskDto get(String userId, String taskId) {
+    @Transactional(readOnly = true)
+    public MobileTaskDto get(String userId, String childUserId, String taskId) {
+        String studentId;
+        try {
+            studentId = parentAccessService.resolveStudentScope(userId, childUserId);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        }
+
         // 先尝试从 exp_homework 查找
         Optional<MobileExpHomework> hwOpt = homeworkRepository.findById(taskId);
         if (hwOpt.isPresent()) {
@@ -308,14 +318,23 @@ public class MobileTaskService {
             dto.setId(hw.getHomeworkId());
             dto.setType("homework");
             dto.setTitle(resolveExpName(hw.getTeacherExpId()));
-            dto.setState("pending");
-            dto.setStateLabel("待完成");
             dto.setTaskTypeLabel("老师布置");
             dto.setDeadline(hw.getRequireDate());
             dto.setTeacherHint("老师布置 · 实验作业");
             dto.setTeacherHintClass("tint-orange");
             dto.setVideoId(hw.getTeacherExpId());
             dto.setUploadQuery("taskId=" + hw.getHomeworkId());
+
+            // 检查提交状态
+            boolean submitted = studentWorkService.hasSubmittedHomework(taskId, studentId);
+            if (submitted) {
+                dto.setState("submitted");
+                dto.setStateLabel("已提交");
+                dto.setBadgeClass("badge-success");
+            } else {
+                dto.setState("pending");
+                dto.setStateLabel("待完成");
+            }
             return dto;
         }
         // 再尝试从 exp_msg 查找（拍同款/创意实验草稿）
@@ -327,7 +346,6 @@ public class MobileTaskService {
         Optional<MbTask> taskOpt = taskRepository.findById(taskId);
         if (taskOpt.isPresent()) {
             MbTask task = taskOpt.get();
-            String studentId = MobileUserContext.resolveStudentId(userId);
             Optional<MbTaskSubmission> sub = submissionRepository.findByTaskIdAndStudentUserId(taskId, studentId);
             MobileTaskDto dto = MobileEntityMapper.toTaskDto(task, sub.orElse(null));
             applyEffectiveTaskType(task, dto);

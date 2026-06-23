@@ -36,6 +36,7 @@ app:
     enabled: true
     static-dir: ../frontend/mobile/dist
     url-prefix: /m
+    agents-base-url: ${MOBILE_AGENTS_BASE_URL:http://127.0.0.1:5001}
   dingtalk:
     # 上线开通：DINGTALK_ENABLED=true + CLIENT_ID/SECRET，并在钉钉开放平台登记 redirect_uri
     enabled: ${DINGTALK_ENABLED:false}

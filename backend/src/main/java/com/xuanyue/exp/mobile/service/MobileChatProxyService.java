@@ -4,7 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+
+import com.xuanyue.exp.mobile.config.MobileWebProperties;
 
 import java.util.*;
 
@@ -16,12 +19,21 @@ import java.util.*;
 public class MobileChatProxyService {
 
     private static final Logger log = LoggerFactory.getLogger(MobileChatProxyService.class);
-    private static final String AGENTS_BASE_URL = "http://127.0.0.1:5001";
 
     private final RestTemplate restTemplate;
+    private final String agentsBaseUrl;
 
-    public MobileChatProxyService() {
+    public MobileChatProxyService(MobileWebProperties mobileWebProperties) {
         this.restTemplate = new RestTemplate();
+        this.agentsBaseUrl = normalizeBaseUrl(mobileWebProperties.getAgentsBaseUrl());
+        log.info("Mobile AI chat proxy target: {}", agentsBaseUrl);
+    }
+
+    static String normalizeBaseUrl(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return "http://127.0.0.1:5001";
+        }
+        return raw.trim().replaceAll("/+$", "");
     }
 
     /**
@@ -59,7 +71,7 @@ public class MobileChatProxyService {
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
-                    AGENTS_BASE_URL + "/v1/chat/sync",
+                    agentsBaseUrl + "/v1/chat/sync",
                     HttpMethod.POST,
                     request,
                     Map.class
@@ -85,7 +97,7 @@ public class MobileChatProxyService {
      */
     public Object getChatHistory(String threadId) {
         try {
-            String url = AGENTS_BASE_URL + "/v1/student/chat/history/" + threadId;
+            String url = agentsBaseUrl + "/v1/student/chat/history/" + threadId;
             ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
             return response.getBody();
         } catch (Exception e) {
@@ -99,7 +111,7 @@ public class MobileChatProxyService {
      */
     public void clearChatSession(String threadId) {
         try {
-            restTemplate.delete(AGENTS_BASE_URL + "/v1/student/chat/clear/" + threadId);
+            restTemplate.delete(agentsBaseUrl + "/v1/student/chat/clear/" + threadId);
             log.info("已清除聊天会话: {}", threadId);
         } catch (Exception e) {
             log.error("清除聊天会话失败: {}", e.getMessage());

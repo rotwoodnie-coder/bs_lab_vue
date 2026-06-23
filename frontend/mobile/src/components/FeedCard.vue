@@ -4,9 +4,12 @@
 
     :to="to"
 
-    class="waterfall-card video-card video-card--feed card-link"
+    class="waterfall-card video-card card-link"
 
-    :class="'anim-fade-up delay-' + ((index % 4) + 1)"
+    :class="[
+      compact ? 'video-card--compact' : 'video-card--feed',
+      !compact ? 'anim-fade-up delay-' + ((index % 4) + 1) : ''
+    ]"
 
     :data-home-subject="item.subject"
 
@@ -134,7 +137,9 @@ const props = defineProps({
 
   item: { type: Object, required: true },
 
-  index: { type: Number, default: 0 }
+  index: { type: Number, default: 0 },
+
+  compact: { type: Boolean, default: false }
 
 })
 

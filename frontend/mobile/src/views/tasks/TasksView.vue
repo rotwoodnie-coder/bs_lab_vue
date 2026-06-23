@@ -62,7 +62,7 @@
 
             @click="switchStatus(tab.key)"
 
-          >{{ tab.label }}</button>
+          >{{ tab.label }}<span v-if="tab.count > 0" class="tab-count">({{ tab.count }})</span></button>
 
         </div>
 
@@ -80,7 +80,7 @@
             class="tab"
             :class="{ active: activeStatus === tab.key }"
             @click="switchStatus(tab.key)"
-          >{{ tab.label }}</button>
+          >{{ tab.label }}<span v-if="tab.count > 0" class="tab-count">({{ tab.count }})</span></button>
         </div>
       </div>
 
@@ -144,7 +144,7 @@
 
                 @click="switchStatus(tab.key)"
 
-              >{{ tab.label }}</button>
+              >{{ tab.label }}<span v-if="tab.count > 0" class="tab-count">({{ tab.count }})</span></button>
 
             </div>
 
@@ -286,7 +286,7 @@ import TaskCardInner from '@/components/tasks/TaskCardInner.vue'
 
 import TeacherTasksHub from '@/views/tasks/TeacherTasksHub.vue'
 
-import { fetchTaskInbox, fetchTasks } from '@/api/task'
+import { fetchTaskInbox } from '@/api/task'
 
 import { startCreativeTask } from '@/api/creative'
 
@@ -317,13 +317,7 @@ const isTeacherView = computed(() => normalizeRole(userStore.userInfo.userRoleId
 
 const showTeacherHub = computed(() => activeStatus.value === 'pending')
 
-const useStudentTaskApi = computed(() => {
-
-  const role = normalizeRole(userStore.userInfo.userRoleId)
-
-  return role === 'student' || role === 'parent'
-
-})
+const TASK_FETCH_SIZE = 200
 
 
 
@@ -344,6 +338,8 @@ const loading = ref(false)
 const startingCreative = ref(false)
 
 const allTasks = ref([])
+
+const statusCounts = ref({ pending: 0, done: 0, cancelled: 0 })
 
 const activeStatus = ref('pending')
 
@@ -403,15 +399,25 @@ const tasks = computed(() => {
 
 const statusTabs = computed(() => {
 
+  const withCount = (key, label) => ({
+
+    key,
+
+    label,
+
+    count: statusCounts.value[key] || 0
+
+  })
+
   if (isTeacherView.value) {
 
     return [
 
-      { key: 'pending', label: '进行中' },
+      withCount('pending', '进行中'),
 
-      { key: 'done', label: '已完成' },
+      withCount('done', '已完成'),
 
-      { key: 'cancelled', label: '已取消' }
+      withCount('cancelled', '已取消')
 
     ]
 
@@ -419,9 +425,9 @@ const statusTabs = computed(() => {
 
   return [
 
-    { key: 'pending', label: '待办任务' },
+    withCount('pending', '待办任务'),
 
-    { key: 'done', label: '已完成' }
+    withCount('done', '已完成')
 
   ]
 
@@ -507,53 +513,81 @@ function showParentAssist(task) {
 
 
 
-async function loadStudentParentTasks() {
+function filterParentQuiz(items) {
 
-  const childUserId = childQueryParam()
+  if (!isParentView.value) return items
 
-  const status = activeStatus.value
+  return items.filter((t) => t.category !== 'quiz')
 
-  const categories = isParentView.value
+}
 
-    ? ['experiment', 'remix', 'creative']
 
-    : ['experiment', 'remix', 'creative', 'quiz']
 
-  const results = await Promise.all(
+function countVisibleTasks(items) {
 
-    categories.map((category) =>
+  let list = filterParentQuiz(items)
 
-      fetchTasks({ childUserId, category, status, page: 1, size: 50 })
+  if (activeCategory.value) {
 
-    )
-
-  )
-
-  const merged = []
-
-  const seen = new Set()
-
-  for (const res of results) {
-
-    if (res?.code !== 200) continue
-
-    for (const item of res?.data?.records || []) {
-
-      const key = `${item.id}-${item.kind || item.category || ''}`
-
-      if (seen.has(key)) continue
-
-      seen.add(key)
-
-      merged.push(item)
-
-    }
+    list = list.filter((t) => t.category === activeCategory.value)
 
   }
 
-  merged.sort((a, b) => (b.sortTime || 0) - (a.sortTime || 0))
+  return list.length
 
-  allTasks.value = merged
+}
+
+
+
+async function fetchInboxTasks(status) {
+
+  const res = await fetchTaskInbox({
+
+    childUserId: childQueryParam(),
+
+    status,
+
+    page: 1,
+
+    size: TASK_FETCH_SIZE
+
+  })
+
+  if (res?.code !== 200) return []
+
+  return filterParentQuiz(res?.data?.records || [])
+
+}
+
+
+
+async function refreshStatusCounts(cachedByStatus = null) {
+
+  const statuses = isTeacherView.value
+
+    ? ['pending', 'done', 'cancelled']
+
+    : ['pending', 'done']
+
+  const counts = { pending: 0, done: 0, cancelled: 0 }
+
+  try {
+
+    await Promise.all(statuses.map(async (status) => {
+
+      const items = cachedByStatus?.[status] ?? await fetchInboxTasks(status)
+
+      counts[status] = countVisibleTasks(items)
+
+    }))
+
+    statusCounts.value = counts
+
+  } catch (e) {
+
+    console.warn('加载任务统计失败', e)
+
+  }
 
 }
 
@@ -565,6 +599,8 @@ async function loadTasks() {
 
     teacherHubRef.value?.reload?.()
 
+    await refreshStatusCounts()
+
     initIcons()
 
     return
@@ -575,27 +611,11 @@ async function loadTasks() {
 
   try {
 
-    if (useStudentTaskApi.value) {
+    const items = await fetchInboxTasks(activeStatus.value)
 
-      await loadStudentParentTasks()
+    allTasks.value = items
 
-      return
-
-    }
-
-    const res = await fetchTaskInbox({
-
-      childUserId: childQueryParam(),
-
-      status: activeStatus.value,
-
-      page: 1,
-
-      size: 50
-
-    })
-
-    allTasks.value = res?.code === 200 ? (res?.data?.records || []) : []
+    await refreshStatusCounts({ [activeStatus.value]: items })
 
   } catch (e) {
 
@@ -729,11 +749,23 @@ watch(() => route.query.status, (val) => {
 
 watch(() => route.query.category, () => {
 
-  if (!isTeacherView.value || !showTeacherHub.value) {
+  if (isTeacherView.value && showTeacherHub.value) {
 
-    loadTasks()
+    refreshStatusCounts()
+
+    return
 
   }
+
+  if (allTasks.value.length || activeStatus.value) {
+
+    refreshStatusCounts({ [activeStatus.value]: allTasks.value })
+
+    return
+
+  }
+
+  loadTasks()
 
 })
 
@@ -807,6 +839,12 @@ onMounted(async () => {
 
   text-decoration: none;
 
+}
+
+.tab-count {
+  margin-left: 0.15rem;
+  font-weight: 600;
+  opacity: 0.85;
 }
 
 .tasks-teacher-mobile-tabs {

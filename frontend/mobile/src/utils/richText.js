@@ -2,6 +2,8 @@
  * 统一文档展示格式化：序号分行、bullet 分行、段落首行缩进 2em、HTML/换行兼容
  */
 
+import { rewriteRichTextMediaUrls } from './fileUrl'
+
 const HTML_TAG_RE = /<[a-z][\s\S]*>/i
 const COMPLEX_HTML_RE = /<(ul|ol|table|thead|tbody|tr|th|td|img|iframe|video|embed|a)\b/i
 const SERIAL_MARKER_RE = /(\d+[\.．、]|[（(]\d+[）)]|[①-⑳])/g
@@ -233,7 +235,7 @@ function shouldParagraphIndent(blocks, opts) {
 }
 
 function enhanceHtml(html) {
-  return String(html).trim()
+  return rewriteRichTextMediaUrls(String(html).trim())
 }
 
 /** 开发期自测样例 */

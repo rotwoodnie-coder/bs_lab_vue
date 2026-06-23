@@ -229,7 +229,7 @@
           <div class="card card-pad row items-start gap-3 surface-2" style="border:none;">
             <i data-lucide="lock" class="icon text-lg shrink-0" style="color:var(--brand);"></i>
             <p class="text-xs leading-relaxed muted">
-              提交即表示同意 <a href="#" class="text-brand">《用户协议》</a> 和 <a href="#" class="text-brand">《隐私政策》</a>。
+              提交即表示同意 <router-link to="/legal/terms" class="text-brand">《用户协议》</router-link> 和 <router-link to="/legal/privacy" class="text-brand">《隐私政策》</router-link>。
               一个家长账号最多可绑定 <strong>3 个孩子</strong>。
             </p>
           </div>

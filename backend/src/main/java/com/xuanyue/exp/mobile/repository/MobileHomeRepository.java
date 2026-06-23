@@ -18,13 +18,10 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
     String CS = "utf8mb4_unicode_ci";
     String EXP_ID = "CONVERT(e.exp_id USING utf8mb4) COLLATE " + CS;
     String SIM_ID = "CONVERT(s.simulator_id USING utf8mb4) COLLATE " + CS;
-    String WORK_ID = "CONVERT(w.work_id USING utf8mb4) COLLATE " + CS;
     String SRC_EXP = "CONVERT('exp_msg' USING utf8mb4) COLLATE " + CS;
     String SRC_SIM = "CONVERT('simulator' USING utf8mb4) COLLATE " + CS;
-    String SRC_WORK = "CONVERT('work' USING utf8mb4) COLLATE " + CS;
     String EXP_NAME = "CONVERT(e.exp_name USING utf8mb4) COLLATE " + CS;
     String SIM_NAME = "CONVERT(s.simulator_name USING utf8mb4) COLLATE " + CS;
-    String WORK_TITLE = "CONVERT(w.title USING utf8mb4) COLLATE " + CS;
 
     String EXP_MSG_ELIGIBLE = " e.status = 'y' AND ( " +
             "e.exp_type IN ('standard', 'teacher', 'teaching', 'student') " +
@@ -33,8 +30,6 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
     String STANDALONE_SIM = " s.status = 'y' AND NOT EXISTS ( " +
             "SELECT 1 FROM exp_msg em WHERE em.status = 'y' " +
             "AND em.simulator_id = s.simulator_id ) ";
-
-    String WORK_ELIGIBLE = " w.status = 'y' AND w.review_status IN ('reviewed', 'approved') ";
 
     /** 独立模拟实验：通过关联 exp_msg.exp_grade 匹配年级 */
     String SIM_GRADE_EXISTS = " EXISTS ( SELECT 1 FROM exp_msg e " +
@@ -48,19 +43,13 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
             "GROUP BY e.exp_id, e.create_time) " +
             "UNION ALL " +
             "(SELECT " + SIM_ID + " AS item_id, " + SRC_SIM + " AS item_source, s.create_time AS sort_time FROM exp_simulator s " +
-            "WHERE " + STANDALONE_SIM + " AND " + SIM_GRADE_EXISTS + ") " +
-            "UNION ALL " +
-            "(SELECT " + WORK_ID + " AS item_id, " + SRC_WORK + " AS item_source, COALESCE(w.review_time, w.create_time) AS sort_time FROM mb_work w " +
-            "WHERE " + WORK_ELIGIBLE + " AND w.school_grade_id IN (:gradeIds)) ";
+            "WHERE " + STANDALONE_SIM + " AND " + SIM_GRADE_EXISTS + ") ";
 
     String FEED_UNION_ALL = "(SELECT " + EXP_ID + " AS item_id, " + SRC_EXP + " AS item_source, e.create_time AS sort_time FROM exp_msg e " +
             "WHERE " + EXP_MSG_ELIGIBLE + ") " +
             "UNION ALL " +
             "(SELECT " + SIM_ID + " AS item_id, " + SRC_SIM + " AS item_source, s.create_time AS sort_time FROM exp_simulator s " +
-            "WHERE " + STANDALONE_SIM + ") " +
-            "UNION ALL " +
-            "(SELECT " + WORK_ID + " AS item_id, " + SRC_WORK + " AS item_source, COALESCE(w.review_time, w.create_time) AS sort_time FROM mb_work w " +
-            "WHERE " + WORK_ELIGIBLE + ") ";
+            "WHERE " + STANDALONE_SIM + ") ";
 
     /**
      * 首页混排候选池（实验 + 模拟 + 已审核作品，按时间倒序取前 N 条）
@@ -82,8 +71,6 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
             "(SELECT " + EXP_ID + " AS item_id FROM exp_msg e WHERE " + EXP_MSG_ELIGIBLE + ") " +
             "UNION ALL " +
             "(SELECT " + SIM_ID + " AS item_id FROM exp_simulator s WHERE " + STANDALONE_SIM + ") " +
-            "UNION ALL " +
-            "(SELECT " + WORK_ID + " AS item_id FROM mb_work w WHERE " + WORK_ELIGIBLE + ") " +
             ") feed",
             nativeQuery = true)
     long countFeedAll();
@@ -111,8 +98,6 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
             "WHERE " + EXP_MSG_ELIGIBLE + " AND eg.grade_id IN (:gradeIds)) " +
             "UNION ALL " +
             "(SELECT " + SIM_ID + " AS item_id FROM exp_simulator s WHERE " + STANDALONE_SIM + " AND " + SIM_GRADE_EXISTS + ") " +
-            "UNION ALL " +
-            "(SELECT " + WORK_ID + " AS item_id FROM mb_work w WHERE " + WORK_ELIGIBLE + " AND w.school_grade_id IN (:gradeIds)) " +
             ") feed",
             nativeQuery = true)
     long countFeedByGrades(@Param("gradeIds") List<String> gradeIds);
@@ -124,9 +109,6 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
             "(SELECT " + SIM_ID + " AS item_id, " + SRC_SIM + " AS item_source, s.create_time AS sort_time FROM exp_simulator s " +
             "WHERE " + STANDALONE_SIM + " AND (s.simulator_name LIKE CONCAT('%', :keyword, '%') " +
             "OR s.comments LIKE CONCAT('%', :keyword, '%'))) " +
-            "UNION ALL " +
-            "(SELECT " + WORK_ID + " AS item_id, " + SRC_WORK + " AS item_source, COALESCE(w.review_time, w.create_time) AS sort_time FROM mb_work w " +
-            "WHERE " + WORK_ELIGIBLE + " AND w.title LIKE CONCAT('%', :keyword, '%')) " +
             ") feed ORDER BY sort_time DESC LIMIT :size OFFSET :offset",
             nativeQuery = true)
     List<Object[]> findFeedRefsPageByKeyword(@Param("keyword") String keyword,
@@ -139,9 +121,6 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
             "UNION ALL " +
             "(SELECT " + SIM_ID + " AS item_id FROM exp_simulator s WHERE " + STANDALONE_SIM +
             " AND (s.simulator_name LIKE CONCAT('%', :keyword, '%') OR s.comments LIKE CONCAT('%', :keyword, '%'))) " +
-            "UNION ALL " +
-            "(SELECT " + WORK_ID + " AS item_id FROM mb_work w WHERE " + WORK_ELIGIBLE +
-            " AND w.title LIKE CONCAT('%', :keyword, '%')) " +
             ") feed",
             nativeQuery = true)
     long countFeedByKeyword(@Param("keyword") String keyword);
@@ -150,8 +129,6 @@ public interface MobileHomeRepository extends JpaRepository<MobileExpMsg, String
             "(SELECT " + EXP_NAME + " AS name, e.create_time AS sort_time FROM exp_msg e WHERE " + EXP_MSG_ELIGIBLE + ") " +
             "UNION ALL " +
             "(SELECT " + SIM_NAME + " AS name, s.create_time AS sort_time FROM exp_simulator s WHERE " + STANDALONE_SIM + ") " +
-            "UNION ALL " +
-            "(SELECT " + WORK_TITLE + " AS name, COALESCE(w.review_time, w.create_time) AS sort_time FROM mb_work w WHERE " + WORK_ELIGIBLE + ") " +
             ") feed ORDER BY sort_time DESC LIMIT :limit",
             nativeQuery = true)
     List<String> findRecentFeedNames(@Param("limit") int limit);

@@ -8,9 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.GetObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.http.Method;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -192,6 +192,25 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
         }
         String normalizedPath = path.startsWith("/") ? path : "/" + path;
         return prefix + normalizedPath;
+    }
+
+    @Override
+    public String getBucket() {
+        return properties.getBucket();
+    }
+
+    @Override
+    public InputStream getObjectStream(String fileUrl) throws Exception {
+        if (!StringUtils.hasText(fileUrl)) {
+            return null;
+        }
+        String objectName = resolveObjectName(fileUrl);
+        return minioClient.getObject(
+                io.minio.GetObjectArgs.builder()
+                        .bucket(properties.getBucket())
+                        .object(objectName)
+                        .build()
+        );
     }
 
     @Override

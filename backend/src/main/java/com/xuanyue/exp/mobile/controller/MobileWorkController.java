@@ -5,9 +5,13 @@ import com.xuanyue.exp.common.PageResult;
 import com.xuanyue.exp.mobile.dto.CreateWorkRequest;
 import com.xuanyue.exp.mobile.dto.MobileWorkDetailDto;
 import com.xuanyue.exp.mobile.dto.MobileWorkItemDto;
+import com.xuanyue.exp.mobile.dto.HomeFeedItem;
+import com.xuanyue.exp.mobile.dto.UpdateWorkRequest;
 import com.xuanyue.exp.mobile.service.MobileWorkService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/mobile/works")
@@ -49,6 +53,11 @@ public class MobileWorkController {
         return ApiResponse.success(detail);
     }
 
+    @GetMapping("/{workId}/recommendations")
+    public ApiResponse<List<HomeFeedItem>> recommendations(@PathVariable String workId) {
+        return ApiResponse.success(workService.listRecommendations(workId));
+    }
+
     @PostMapping
     public ApiResponse<MobileWorkDetailDto> create(
             @RequestHeader(value = "X-User-Id", required = false) String userId,
@@ -59,6 +68,19 @@ public class MobileWorkController {
             return ApiResponse.fail(400, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return ApiResponse.fail(400, "提交失败：数据约束冲突，请稍后重试或联系管理员");
+        }
+    }
+
+    @PutMapping("/{workId}")
+    public ApiResponse<MobileWorkDetailDto> update(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @PathVariable String workId,
+            @RequestBody UpdateWorkRequest request) {
+        try {
+            return ApiResponse.success(workService.updateWork(userId, workId, request));
+        } catch (IllegalArgumentException e) {
+            int code = "请先登录".equals(e.getMessage()) ? 401 : 400;
+            return ApiResponse.fail(code, e.getMessage());
         }
     }
 }

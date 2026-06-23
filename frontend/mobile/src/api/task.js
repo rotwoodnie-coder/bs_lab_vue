@@ -25,8 +25,12 @@ export function fetchTasks(params = {}) {
   })
 }
 
-export function fetchTaskDetail(taskId) {
-  return request.get(`/mobile/tasks/${taskId}`)
+export function fetchTaskDetail(taskId, params = {}) {
+  return request.get(`/mobile/tasks/${taskId}`, {
+    params: {
+      childUserId: params.childUserId || undefined,
+    }
+  })
 }
 
 export function createTask(payload) {

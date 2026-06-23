@@ -133,15 +133,17 @@
             <section ref="commentsSection" class="lab-watch__comments" aria-label="留言">
               <div class="lab-comments__head row items-center justify-between">
                 <h2 class="text-sm font-bold">留言 <span class="muted font-normal">{{ commentList.length }}</span></h2>
-                <button type="button" class="text-xs text-brand font-medium">最热</button>
+                <button type="button" class="text-xs font-medium" :class="commentSortOrder === 'hot' ? 'text-brand' : 'muted'" @click="toggleCommentSort">
+                  {{ commentSortOrder === 'hot' ? '最热' : '最新' }}
+                </button>
               </div>
               <form class="comment-compose" @submit.prevent="submitComment">
                 <UserAvatar size="sm" shrink />
                 <input v-model="commentText" type="text" class="comment-compose__input" placeholder="写下你的实验心得或疑问…" aria-label="发表留言">
                 <button type="submit" class="btn btn-sm btn-gradient shrink-0">发送</button>
               </form>
-              <ul v-if="commentList.length" class="comment-list">
-                <li v-for="c in commentList" :key="c.id || c.text" class="comment-item">
+              <ul v-if="displayedComments.length" class="comment-list">
+                <li v-for="c in displayedComments" :key="c.id || c.text" class="comment-item">
                   <UserAvatar
                     size="sm"
                     shrink
@@ -341,12 +343,13 @@ import {
 import { startRemix } from '@/api/remix'
 import { fetchSocialSummary, fetchComments, createComment, toggleReaction, toggleCommentLike as apiToggleCommentLike } from '@/api/social'
 import { sharePage } from '@/utils/share'
+import { sortComments } from '@/utils/commentSort'
 import { ensureSocialOk, parseSocialSummary, parseCommentReaction } from '@/utils/socialFeedback'
 import FormattedText from '@/components/FormattedText.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { FORMAT_EXP_LONG, FORMAT_EXP_STEP, hasRichContent } from '@/utils/richText'
 import { metaChipItems, curriculumRows as buildCurriculumRows } from '@/utils/expDisplay'
-import { resolveMediaUrl } from '@/utils/fileUrl'
+import { resolveMediaUrl, resolveMaterialPicUrl } from '@/utils/fileUrl'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
@@ -369,6 +372,7 @@ const starred = ref(false)
 const commentText = ref('')
 const commentsSection = ref(null)
 const commentList = ref([])
+const commentSortOrder = ref('hot')
 const socialLikeNum = ref(0)
 const socialCollectNum = ref(0)
 const socialLoaded = ref(false)
@@ -380,6 +384,12 @@ const displayLikeNum = computed(() => {
   return Number(detail.value?.likeNum || 0)
 })
 const displayCollectNum = computed(() => socialCollectNum.value || detail.value?.collectionNum || 0)
+
+const displayedComments = computed(() => sortComments(commentList.value, commentSortOrder.value))
+
+function toggleCommentSort() {
+  commentSortOrder.value = commentSortOrder.value === 'hot' ? 'latest' : 'hot'
+}
 
 function mapComment(c) {
   return {
@@ -567,7 +577,7 @@ const trackStyle = computed(() => ({
 }))
 
 function materialPic(item) {
-  return resolveMediaUrl(item, 'mainPicUrl')
+  return resolveMaterialPicUrl(item)
 }
 
 const { initIcons } = useLucideIcons()
@@ -615,6 +625,12 @@ async function loadDetail() {
 
     if (!detailRes || detailRes.code !== 200 || !detailRes.data) {
       error.value = detailRes?.message || '未找到该实验'
+      return
+    }
+
+    const expType = detailRes.data.expType || detailRes.data.exp_type
+    if (expType === 'student') {
+      router.replace(`/works/${expId.value}`)
       return
     }
 

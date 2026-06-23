@@ -16,10 +16,15 @@ public class MobileWebProperties {
     /** 访问路径前缀，如 /m */
     private String urlPrefix = "/m";
 
+    /** AI 对话 Agent 服务根地址（FastAPI，默认本机 5001） */
+    private String agentsBaseUrl = "http://127.0.0.1:5001";
+
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public String getStaticDir() { return staticDir; }
     public void setStaticDir(String staticDir) { this.staticDir = staticDir; }
     public String getUrlPrefix() { return urlPrefix; }
     public void setUrlPrefix(String urlPrefix) { this.urlPrefix = urlPrefix; }
+    public String getAgentsBaseUrl() { return agentsBaseUrl; }
+    public void setAgentsBaseUrl(String agentsBaseUrl) { this.agentsBaseUrl = agentsBaseUrl; }
 }

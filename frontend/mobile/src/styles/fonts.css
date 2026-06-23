@@ -1,0 +1,6 @@
+/**
+ * 本地字体（@fontsource），不依赖 Google Fonts CDN，离线可渲染中文。
+ */
+@import "@fontsource/noto-sans-sc/400.css";
+@import "@fontsource/noto-sans-sc/500.css";
+@import "@fontsource/noto-sans-sc/700.css";

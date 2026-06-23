@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,8 +42,8 @@ public class MobileFileController {
     }
 
     /**
-     * MinIO 媒体预览：302 跳转到预签名 URL。
-     * 当客户端无法直连 MinIO 时，可将 img/video src 指向此接口。
+     * MinIO 媒体预览：后端从 MinIO 读取并流式输出（供 &lt;img&gt; 使用，无需 JWT）。
+     * 无法读取对象时回退 302 到预签名 URL。
      */
     @GetMapping("/preview")
     public void preview(@RequestParam("url") String url, HttpServletResponse response) throws IOException {
@@ -50,12 +51,34 @@ public class MobileFileController {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "url required");
             return;
         }
-        String accessible = MobileMediaUrlSupport.resolve(minioStorageService, url.trim());
-        if (!StringUtils.hasText(accessible)) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "media not found");
-            return;
+        String trimmed = url.trim();
+        try (InputStream in = minioStorageService.getObjectStream(trimmed)) {
+            if (in == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "media not found");
+                return;
+            }
+            response.setContentType(guessContentType(trimmed));
+            response.setHeader("Cache-Control", "private, max-age=3600");
+            org.springframework.util.StreamUtils.copy(in, response.getOutputStream());
+            response.flushBuffer();
+        } catch (Exception ex) {
+            String accessible = MobileMediaUrlSupport.resolve(minioStorageService, trimmed);
+            if (!StringUtils.hasText(accessible)) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "media not found");
+                return;
+            }
+            response.sendRedirect(accessible);
         }
-        response.sendRedirect(accessible);
+    }
+
+    private static String guessContentType(String url) {
+        String lower = url.toLowerCase();
+        if (lower.contains(".png")) return MediaType.IMAGE_PNG_VALUE;
+        if (lower.contains(".gif")) return MediaType.IMAGE_GIF_VALUE;
+        if (lower.contains(".webp")) return "image/webp";
+        if (lower.contains(".mp4")) return "video/mp4";
+        if (lower.contains(".webm")) return "video/webm";
+        return MediaType.IMAGE_JPEG_VALUE;
     }
 
     /** 返回可访问 URL（JSON），供前端拼接或调试 */

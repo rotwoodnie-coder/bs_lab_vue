@@ -10,7 +10,9 @@ import com.xuanyue.exp.mobile.entity.MobileExpHomeworkStudent;
 import com.xuanyue.exp.mobile.repository.MobileExpHomeworkRepository;
 import com.xuanyue.exp.mobile.repository.MobileExpHomeworkStudentRepository;
 import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
+import com.xuanyue.exp.mobile.support.MobileTeacherClassScope;
 import com.xuanyue.exp.mobile.support.MobileUserContext;
+import com.xuanyue.exp.mobile.support.MobileWorkAuditStatus;
 import com.xuanyue.exp.system.entity.SysOrg;
 import com.xuanyue.exp.system.entity.SysUser;
 import com.xuanyue.exp.system.repository.SysOrgRepository;
@@ -157,7 +159,71 @@ public class MobileTeacherService {
                 .map(this::toReviewItem)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+        // 追加：无作业关联的创意/拍同款作品（status=t），按教师可管理班级范围筛选
+        Set<String> existingIds = items.stream()
+                .map(TeacherReviewQueueItemDto::getId)
+                .collect(Collectors.toSet());
+        for (ExpMsg msg : findPendingCreativeWorksInScope(teacherId)) {
+            if (existingIds.contains(msg.getExpId())) continue;
+            TeacherReviewQueueItemDto item = toReviewItemFromMsg(msg);
+            if (item != null) {
+                items.add(item);
+                existingIds.add(msg.getExpId());
+            }
+        }
         return paginate(items, page, size);
+    }
+
+    /** 教师可审核范围内、待审核(t)且无作业关联的创意/拍同款作品 */
+    private List<ExpMsg> findPendingCreativeWorksInScope(String teacherId) {
+        SysUser teacher = StringUtils.hasText(teacherId)
+                ? sysUserRepository.findById(teacherId.trim()).orElse(null) : null;
+        if (teacher == null) return Collections.emptyList();
+        Set<String> classOrgIds = MobileTeacherClassScope.resolveClassOrgIds(teacher, null, sysOrgRepository);
+        if (classOrgIds.isEmpty()) return Collections.emptyList();
+
+        Map<String, String> studentClass = sysUserRepository.findAll().stream()
+                .filter(u -> STUDENT_ROLE.equals(u.getUserRoleId()))
+                .filter(u -> u.getUserOrgId() != null && classOrgIds.contains(u.getUserOrgId().trim()))
+                .collect(Collectors.toMap(SysUser::getUserId, u -> u.getUserOrgId().trim(), (a, b) -> a));
+
+        return expMsgRepository.findAll().stream()
+                .filter(m -> "student".equals(m.getExpType()))
+                .filter(m -> MobileWorkAuditStatus.isPending(m.getStatus()))
+                .filter(m -> "tk".equals(m.getExpTaskType()) || "self".equals(m.getExpTaskType()))
+                .filter(m -> m.getCreateUserId() != null && studentClass.containsKey(m.getCreateUserId().trim()))
+                .sorted((a, b) -> cmpTimeDesc(a.getCreateTime(), b.getCreateTime()))
+                .collect(Collectors.toList());
+    }
+
+    private int cmpTimeDesc(Date a, Date b) {
+        if (a == null && b == null) return 0;
+        if (a == null) return 1;
+        if (b == null) return -1;
+        return b.compareTo(a);
+    }
+
+    private TeacherReviewQueueItemDto toReviewItemFromMsg(ExpMsg msg) {
+        if (msg == null || !StringUtils.hasText(msg.getExpId())) return null;
+        TeacherReviewQueueItemDto item = new TeacherReviewQueueItemDto();
+        item.setId(msg.getExpId());
+        String studentName = resolveStudentName(msg.getCreateUserId());
+        item.setStudent(studentName);
+        item.setStudentInitial(initialOf(studentName));
+        String avatar = resolveStudentAvatar(msg.getCreateUserId());
+        if (StringUtils.hasText(avatar)) item.setStudentAvatarUrl(avatar);
+        item.setTitle(msg.getExpName());
+        item.setTime(msg.getCreateTime() != null ? TIME_FMT.format(msg.getCreateTime()) : "");
+        item.setAvatarClass("avatar-grad-warm");
+        if ("tk".equals(msg.getExpTaskType())) {
+            item.setWorkType("remix");
+            item.setWorkTypeLabel("拍同款");
+        } else {
+            item.setWorkType("creative");
+            item.setWorkTypeLabel("创意实验");
+        }
+        return item;
     }
 
     @Transactional(readOnly = true)
@@ -212,17 +278,9 @@ public class MobileTeacherService {
         String rating = request.getRating();
         String comment = request.getComment();
 
-        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByStudentExpId(msg.getExpId());
-        if (records.isEmpty()) {
-            throw new IllegalArgumentException("该作品没有关联的作业记录");
-        }
-        for (MobileExpHomeworkStudent hs : records) {
-            hs.setMarkUserId(teacherUserId);
-            hs.setMarkTime(new Date());
-            hs.setMarkComments(StringUtils.hasText(comment) ? comment.trim() : null);
-            hs.setMarkResult(StringUtils.hasText(rating) ? rating.trim().toLowerCase() : "pass");
-            homeworkStudentRepository.save(hs);
-        }
+        // 统一走审核逻辑：权限校验 + 评分落 exp_homework_student + 审核结论落 exp_msg.status
+        // （作业类有关联记录；创意/拍同款无关联记录也可审核）
+        workService.reviewWork(teacherUserId, msg.getExpId(), rating, comment, null);
 
         notificationService.sendWorkReviewedToStudent(teacherUserId, msg, rating, comment);
     }
@@ -478,11 +536,14 @@ public class MobileTeacherService {
         }
     }
 
+    private static final Set<String> ASSIGNABLE_EXP_TYPES = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("standard", "teach", "teacher", "teaching")));
+
     private List<TeacherAssignOptionsDto.OptionItem> listExperimentOptions() {
         List<ExpMsg> exps = expMsgRepository.findAll().stream()
-                .filter(e -> "y".equals(e.getStatus()))
-                .filter(e -> "exp".equals(e.getExpType()) || StringUtils.hasText(e.getSimulatorId()))
-                .limit(50)
+                .filter(this::isAssignableExperiment)
+                .sorted(Comparator.comparing(ExpMsg::getCreateTime, Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(80)
                 .collect(Collectors.toList());
         List<TeacherAssignOptionsDto.OptionItem> items = new ArrayList<>();
         Set<String> seen = new HashSet<>();
@@ -491,6 +552,7 @@ public class MobileTeacherService {
             TeacherAssignOptionsDto.OptionItem option = new TeacherAssignOptionsDto.OptionItem();
             option.setId(e.getExpId());
             option.setLabel(e.getExpName());
+            option.setSubtitle(assignableExpSubtitle(e));
             if (StringUtils.hasText(e.getSimulatorId())) {
                 option.setSourceType("simulator");
                 option.setSimulatorId(e.getSimulatorId());
@@ -500,6 +562,38 @@ public class MobileTeacherService {
             items.add(option);
         }
         return items;
+    }
+
+    /** 与首页 feed 一致：已发布标准/教学实验及含模拟器的实验，排除学生作品 */
+    private boolean isAssignableExperiment(ExpMsg e) {
+        if (e == null || !"y".equalsIgnoreCase(e.getStatus()) || !StringUtils.hasText(e.getExpName())) {
+            return false;
+        }
+        if ("student".equalsIgnoreCase(e.getExpType())) {
+            return false;
+        }
+        if (StringUtils.hasText(e.getSimulatorId()) || StringUtils.hasText(e.getSimulatorUrl())) {
+            return true;
+        }
+        String type = e.getExpType() != null ? e.getExpType().trim().toLowerCase(Locale.ROOT) : "";
+        if (!StringUtils.hasText(type)) {
+            return true;
+        }
+        return ASSIGNABLE_EXP_TYPES.contains(type);
+    }
+
+    private String assignableExpSubtitle(ExpMsg e) {
+        if (StringUtils.hasText(e.getSimulatorId()) || StringUtils.hasText(e.getSimulatorUrl())) {
+            return "模拟实验";
+        }
+        String type = e.getExpType() != null ? e.getExpType().trim().toLowerCase(Locale.ROOT) : "";
+        if ("teach".equals(type) || "teaching".equals(type) || "teacher".equals(type)) {
+            return "教学实验";
+        }
+        if ("standard".equals(type)) {
+            return "标准实验";
+        }
+        return "实验库任务";
     }
 
     private String resolveStudentName(String userId) {

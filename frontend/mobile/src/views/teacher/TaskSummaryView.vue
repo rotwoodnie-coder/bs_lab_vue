@@ -113,23 +113,7 @@
 
               </button>
 
-              <button
-
-                v-if="!board.cancelled"
-
-                type="button"
-
-                class="btn btn-sm btn-danger btn-outline"
-
-                @click="openCancelModal"
-
-              >
-
-                取消任务
-
-              </button>
-
-              <div v-else class="card card-pad surface-2 text-sm text-center tint-slate">
+              <div v-if="board.cancelled" class="card card-pad surface-2 text-sm text-center tint-slate">
 
                 该任务已取消，学生端待办将不再展示；已提交成果仍可查看与批阅。
 
@@ -253,40 +237,6 @@
 
     </div>
 
-    <div v-if="cancelModalOpen" class="modal-backdrop" @click.self="closeCancelModal">
-      <div class="modal-panel card card-pad stack-4">
-        <h2 class="text-base font-bold">确认取消任务？</h2>
-        <p class="text-sm muted">
-          取消后，未提交的学生将不再看到该任务，也无法继续上传成果。
-        </p>
-        <div v-if="board.submitted > 0" class="card card-pad tint-amber text-sm stack-2">
-          <p class="font-bold text-warning">已有 {{ board.submitted }} 名学生提交</p>
-          <p class="muted">已提交的成果与批阅记录会保留，此操作不可撤销。</p>
-          <label class="row items-start gap-2 text-xs">
-            <input v-model="cancelAcknowledged" type="checkbox" class="mt-0.5" />
-            <span>我已了解：强制取消后，已提交学生仍可查看历史成果</span>
-          </label>
-        </div>
-        <div>
-          <label class="text-xs font-bold muted-2">取消原因（可选）</label>
-          <textarea v-model="cancelReason" class="textarea mt-2" rows="2" placeholder="如：选错实验、时间调整…"></textarea>
-        </div>
-        <div class="row gap-2">
-          <button type="button" class="btn btn-outline flex-1" :disabled="cancelling" @click="closeCancelModal">
-            我再想想
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger flex-1"
-            :disabled="cancelling || !canConfirmCancel"
-            @click="confirmCancel"
-          >
-            {{ cancelling ? '取消中…' : '确认取消' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
 </template>
@@ -305,7 +255,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 
 import WorkReviewPanel from '@/components/teacher/WorkReviewPanel.vue'
 
-import { fetchTeacherTaskBoard, fetchTeacherTasks, remindTeacherTask, submitTeacherReview, cancelTeacherTask } from '@/api/teacher'
+import { fetchTeacherTaskBoard, fetchTeacherTasks, remindTeacherTask, submitTeacherReview } from '@/api/teacher'
 
 import { showToast } from '@/utils/toast'
 import { useLucideIcons } from '@/composables/useLucideIcons'
@@ -325,14 +275,6 @@ const loading = ref(true)
 const error = ref('')
 
 const reminding = ref(false)
-
-const cancelling = ref(false)
-
-const cancelModalOpen = ref(false)
-
-const cancelReason = ref('')
-
-const cancelAcknowledged = ref(false)
 
 const submittingId = ref('')
 
@@ -361,13 +303,6 @@ const board = ref({
 })
 
 const reviewForms = reactive({})
-
-
-
-const canConfirmCancel = computed(() => {
-  if (board.value.submitted > 0) return cancelAcknowledged.value
-  return true
-})
 
 
 
@@ -581,44 +516,6 @@ async function loadBoard() {
 
   }
 
-}
-
-
-
-function openCancelModal() {
-  cancelReason.value = ''
-  cancelAcknowledged.value = false
-  cancelModalOpen.value = true
-}
-
-
-
-function closeCancelModal() {
-  if (cancelling.value) return
-  cancelModalOpen.value = false
-}
-
-
-
-async function confirmCancel() {
-  if (!taskId.value || cancelling.value || !canConfirmCancel.value) return
-  cancelling.value = true
-  try {
-    const res = await cancelTeacherTask(taskId.value, {
-      reason: cancelReason.value.trim() || undefined
-    })
-    if (res?.code === 200) {
-      cancelModalOpen.value = false
-      showToast(res.data?.message || '任务已取消')
-      router.replace({ path: '/tasks', query: { status: 'cancelled' } })
-      return
-    }
-    showToast(res?.message || '取消失败', 'danger')
-  } catch (e) {
-    showToast(e?.response?.data?.message || '取消失败', 'danger')
-  } finally {
-    cancelling.value = false
-  }
 }
 
 

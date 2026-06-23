@@ -52,6 +52,7 @@
                 @click="item.rating = r.key"
               >{{ r.label }}</button>
             </div>
+            <p class="text-xs muted mt-2">合格及以上将审核通过并展示到首页；选择「不合格」则驳回，作品不在首页展示。</p>
           </div>
 
           <div>

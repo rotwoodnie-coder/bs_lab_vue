@@ -115,15 +115,6 @@
         <p v-else-if="task.state === 'submitted'" class="text-xs muted mt-2">老师将尽快批阅，可在「我的作品」查看成果</p>
         <p v-else-if="task.state === 'reviewed'" class="text-xs muted mt-2">批阅已完成，可在「我的作品」查看评级与评语</p>
       </div>
-
-      <router-link v-if="isTeacherAssigned && task.type === 'homework'" to="/quiz" class="card card-pad card-link quiz-nudge row items-center gap-3 mt-4">
-        <div class="tile-icon tile-sm tint-violet shrink-0">🧠</div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-bold">顺手完成每日答题</div>
-          <p class="text-xs muted mt-1">每日答题 · 巩固本课知识点</p>
-        </div>
-        <i data-lucide="chevron-right" class="icon muted-2 shrink-0"></i>
-      </router-link>
     </div>
   </div>
 </template>
@@ -136,8 +127,10 @@ import { FORMAT_EXP_BRIEF } from '@/utils/richText'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTaskDetail } from '@/api/task'
 import { useLucideIcons } from '@/composables/useLucideIcons'
+import { useParentContext } from '@/composables/useParentContext'
 
 const route = useRoute()
+const { childQueryParam } = useParentContext()
 const loading = ref(true)
 const error = ref('')
 const task = ref(null)
@@ -236,7 +229,9 @@ async function loadDetail() {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetchTaskDetail(route.params.id)
+    const res = await fetchTaskDetail(route.params.id, {
+      childUserId: childQueryParam()
+    })
     if (res?.code === 200 && res.data) {
       task.value = { ...res.data }
     } else {

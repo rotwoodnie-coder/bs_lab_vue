@@ -83,6 +83,15 @@
 }
 .bottom-nav .nav-item.active .nav-icon--avatar .nav-avatar { border-color: var(--brand); }
 
+.bottom-nav .nav-icon .icon,
+.bottom-nav .nav-icon svg {
+  --icon-size: 22px;
+  width: 22px;
+  height: 22px;
+  display: block;
+  flex-shrink: 0;
+}
+
 /* ───────────────────────── 卡片 ───────────────────────── */
 .card {
   background: var(--color-surface);

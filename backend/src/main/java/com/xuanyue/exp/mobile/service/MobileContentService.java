@@ -2,11 +2,13 @@ package com.xuanyue.exp.mobile.service;
 
 import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 import com.xuanyue.exp.exp.entity.ExpMaterial;
+import com.xuanyue.exp.exp.entity.ExpMaterialPic;
 import com.xuanyue.exp.exp.entity.ExpReference;
 import com.xuanyue.exp.exp.entity.ExpResult;
 import com.xuanyue.exp.exp.entity.ExpScientist;
 import com.xuanyue.exp.exp.entity.ExpStep;
 import com.xuanyue.exp.exp.entity.ExpVideo;
+import com.xuanyue.exp.exp.repository.ExpMaterialPicRepository;
 import com.xuanyue.exp.exp.repository.ExpMaterialRepository;
 import com.xuanyue.exp.exp.repository.ExpReferenceRepository;
 import com.xuanyue.exp.exp.repository.ExpResultRepository;
@@ -36,6 +38,7 @@ public class MobileContentService {
     private final ExpVideoRepository videoRepository;
     private final ExpStepRepository stepRepository;
     private final ExpMaterialRepository materialRepository;
+    private final ExpMaterialPicRepository materialPicRepository;
     private final ExpResultRepository resultRepository;
     private final ExpReferenceRepository referenceRepository;
     private final ExpScientistRepository scientistRepository;
@@ -45,6 +48,7 @@ public class MobileContentService {
                                 ExpVideoRepository videoRepository,
                                 ExpStepRepository stepRepository,
                                 ExpMaterialRepository materialRepository,
+                                ExpMaterialPicRepository materialPicRepository,
                                 ExpResultRepository resultRepository,
                                 ExpReferenceRepository referenceRepository,
                                 ExpScientistRepository scientistRepository,
@@ -53,6 +57,7 @@ public class MobileContentService {
         this.videoRepository = videoRepository;
         this.stepRepository = stepRepository;
         this.materialRepository = materialRepository;
+        this.materialPicRepository = materialPicRepository;
         this.resultRepository = resultRepository;
         this.referenceRepository = referenceRepository;
         this.scientistRepository = scientistRepository;
@@ -171,6 +176,22 @@ public class MobileContentService {
         return dto;
     }
 
+    private String resolveMaterialMainPicUrl(ExpMaterial material) {
+        List<String> candidates = new ArrayList<>();
+        if (StringUtils.hasText(material.getMainPicUrl())) {
+            candidates.add(material.getMainPicUrl().trim());
+        }
+        for (ExpMaterialPic pic : materialPicRepository.findByExpMaterialIdOrderBySortOrderAsc(material.getExpMaterialId())) {
+            if (StringUtils.hasText(pic.getMaterialUrl())) {
+                candidates.add(pic.getMaterialUrl().trim());
+            }
+        }
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        return MobileMediaUrlSupport.pickBestMediaUrl(candidates.toArray(new String[0]));
+    }
+
     private MobileExpMaterialDto toMaterialDto(ExpMaterial material) {
         MobileExpMaterialDto dto = new MobileExpMaterialDto();
         dto.setExpMaterialId(material.getExpMaterialId());
@@ -180,8 +201,10 @@ public class MobileContentService {
         dto.setMaterialPropId(material.getMaterialPropId());
         dto.setMaterialTypeId(material.getMaterialTypeId());
         dto.setMaterialNum(material.getMaterialNum());
-        dto.setMainPicUrl(material.getMainPicUrl());
-        dto.setMainPicPreviewUrl(MobileMediaUrlSupport.resolve(minioStorageService, material.getMainPicUrl()));
+
+        String mainPicUrl = resolveMaterialMainPicUrl(material);
+        dto.setMainPicUrl(mainPicUrl);
+        dto.setMainPicPreviewUrl(MobileMediaUrlSupport.resolve(minioStorageService, mainPicUrl));
         dto.setExpPurpose(material.getExpPurpose());
         dto.setSecurityComments(material.getSecurityComments());
         dto.setAdditionalComments(material.getAdditionalComments());

@@ -35,8 +35,9 @@ public class MobileHomeController {
     public ApiResponse<HomeBootstrapDto> bootstrap(
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestParam(defaultValue = "all") String gradeKey,
+            @RequestParam(value = "type", defaultValue = "all") String type,
             @RequestParam(defaultValue = "12") int size) {
-        return ApiResponse.success(homeService.getBootstrap(userId, gradeKey, size));
+        return ApiResponse.success(homeService.getBootstrap(userId, gradeKey, type, size));
     }
 
     /**
@@ -48,9 +49,10 @@ public class MobileHomeController {
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestParam(value = "childUserId", required = false) String childUserId,
             @RequestParam(defaultValue = "all") String gradeKey,
+            @RequestParam(value = "type", defaultValue = "all") String type,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        PageResult<HomeFeedItem> result = homeService.getFeed(userId, childUserId, gradeKey, page, size);
+        PageResult<HomeFeedItem> result = homeService.getFeed(userId, childUserId, gradeKey, type, page, size);
         return ApiResponse.success(result);
     }
 

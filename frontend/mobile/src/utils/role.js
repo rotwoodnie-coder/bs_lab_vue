@@ -35,6 +35,16 @@ export function isAdminRole(role) {
   return normalizeRole(role) === 'admin'
 }
 
+/** 系统管理员（全局范围） */
+export function isSysAdminRole(role) {
+  return String(role || '').toLowerCase() === 'sys_admin'
+}
+
+/** 校管理员（限本校范围） */
+export function isSchoolAdminRole(role) {
+  return String(role || '').toLowerCase() === 'school_admin'
+}
+
 export function canAuditExperiments(role) {
   const r = normalizeRole(role)
   return r === 'researcher' || r === 'admin'

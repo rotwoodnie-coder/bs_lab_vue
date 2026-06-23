@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { fetchHomeBootstrap, fetchHomeFeed } from '@/api/home'
 import { GRADE_FILTERS, gradeEmptyHint } from '@/utils/gradeFilters'
@@ -93,7 +93,6 @@ appStore.setActiveTab('home')
 const items = ref([])
 const gradeFilters = ref(GRADE_FILTERS)
 const activeGradeKey = ref('all')
-const emptyHint = computed(() => gradeEmptyHint(activeGradeKey.value))
 const unreadCount = ref(0)
 
 const page = ref(1)
@@ -104,6 +103,8 @@ const hasMore = ref(false)
 const PAGE_SIZE = 12
 
 const { initIcons } = useLucideIcons()
+
+const emptyHint = computed(() => gradeEmptyHint(activeGradeKey.value))
 
 async function loadBootstrap() {
   loading.value = true
@@ -164,7 +165,7 @@ async function loadFeed(isLoadMore = false) {
 function switchGrade(key) {
   if (activeGradeKey.value === key) return
   activeGradeKey.value = key
-  loadFeed()
+  loadFeed(false)
 }
 
 function loadMore() {

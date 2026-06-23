@@ -27,16 +27,25 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useScrollRevealBottomNav } from '@/composables/useScrollRevealBottomNav'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 import UserAvatar from '@/components/UserAvatar.vue'
 
 const navRef = ref(null)
 useScrollRevealBottomNav(navRef)
 
 const appStore = useAppStore()
+const { initIcons } = useLucideIcons()
 
 const tabs = computed(() => appStore.tabs)
 const activeTab = computed(() => appStore.activeTab)
+
+function refreshNavIcons() {
+  initIcons(navRef.value)
+}
+
+onMounted(refreshNavIcons)
+watch(tabs, refreshNavIcons, { deep: true })
 </script>

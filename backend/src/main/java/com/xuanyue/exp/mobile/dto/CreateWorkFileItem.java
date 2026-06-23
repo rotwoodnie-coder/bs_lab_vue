@@ -2,6 +2,7 @@ package com.xuanyue.exp.mobile.dto;
 
 public class CreateWorkFileItem {
 
+    private String id;
     private String type;
     private String name;
     private String size;
@@ -10,6 +11,8 @@ public class CreateWorkFileItem {
     private String duration;
     private String url;
 
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
     public String getName() { return name; }

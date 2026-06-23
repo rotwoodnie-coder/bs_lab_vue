@@ -281,6 +281,16 @@
                   </span>
                   <i v-if="accountSecurity.dingTalkConfigured" data-lucide="chevron-right" class="icon muted-2"></i>
                 </div>
+                <div
+                  v-if="!accountSecurity.wechatSupported"
+                  class="settings-row is-disabled"
+                >
+                  <div class="settings-row__main">
+                    <div class="settings-row__label">微信绑定</div>
+                    <div class="settings-row__hint">用于快捷登录与消息提醒</div>
+                  </div>
+                  <span class="settings-row__value muted-2">即将上线</span>
+                </div>
                 <div v-if="isStudent" class="settings-row">
                   <div class="settings-row__main">
                     <div class="settings-row__label">家长绑定</div>
@@ -467,6 +477,43 @@
               <router-link to="/notifications" class="btn btn-outline w-full mt-2">查看全部消息</router-link>
             </div>
           </section>
+
+          <!-- ===== 关于与帮助 ===== -->
+          <section class="pad-settings__section" :class="{ 'is-active': activeSection === 'about' }">
+            <header class="pad-settings__section-head">
+              <h2>关于与帮助</h2>
+            </header>
+            <div class="settings-card settings-group">
+              <router-link to="/legal/terms" class="settings-row settings-row--action">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">用户协议</div>
+                  <div class="settings-row__hint">查看服务条款</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </router-link>
+              <router-link to="/legal/privacy" class="settings-row settings-row--action">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">隐私政策</div>
+                  <div class="settings-row__hint">了解我们如何保护你的信息</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </router-link>
+              <button type="button" class="settings-row settings-row--action w-full" @click="showHelp">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">帮助与反馈</div>
+                  <div class="settings-row__hint">使用问题与意见反馈</div>
+                </div>
+                <i data-lucide="chevron-right" class="icon muted-2"></i>
+              </button>
+              <div class="settings-row">
+                <div class="settings-row__main">
+                  <div class="settings-row__label">关于应用</div>
+                  <div class="settings-row__hint">实验探究平台</div>
+                </div>
+                <span class="text-xs muted-2">v{{ appVersion }}</span>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -568,6 +615,7 @@ const accountSecurity = ref({
   dingTalkBound: false,
   dingTalkLabel: '待开通',
   wechatBound: false,
+  wechatSupported: false,
   parentBound: false,
   parentBindLabel: '未绑定',
   currentDeviceLabel: '本机',
@@ -585,8 +633,11 @@ const parentRelation = ref('')
 const allTabs = [
   { key: 'profile', label: '个人资料', icon: 'user' },
   { key: 'account', label: '账号与安全', icon: 'lock' },
-  { key: 'notifications', label: '消息通知', icon: 'bell' }
+  { key: 'notifications', label: '消息通知', icon: 'bell' },
+  { key: 'about', label: '关于与帮助', icon: 'info' }
 ]
+
+const appVersion = '1.0.0'
 
 const visibleTabs = computed(() => allTabs)
 
@@ -1068,6 +1119,10 @@ async function handleLogout() {
 function goBack() {
   if (window.history.length > 1) router.back()
   else router.push('/profile')
+}
+
+function showHelp() {
+  alert('如需帮助或反馈，请联系所在学校管理员，或发送邮件至 support@xuanyue.com')
 }
 
 const { initIcons } = useLucideIcons()

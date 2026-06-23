@@ -71,6 +71,7 @@ import { fetchMessages, fetchUnreadCount, markMessageRead, markAllMessagesRead }
 import { fetchLatestNotice } from '@/api/home'
 import { mapMessageItem, isNoticeRead, markNoticeRead, ensureNoticeReadState } from '@/utils/notificationDisplay'
 import { useAppStore } from '@/stores/app'
+import { resolveNotificationListLink } from '@/utils/notificationLinks'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const appStore = useAppStore()
@@ -103,13 +104,7 @@ const filteredItems = computed(() => {
 const { initIcons } = useLucideIcons()
 
 function itemLink(item) {
-  if (item.kind === 'notice') return `/notifications/notice/${item.id}`
-  if (item.linkRoute) return item.linkRoute
-  const type = (item.type || '').toLowerCase()
-  if (type === 'bind') return '/parent-binds'
-  if (type === 'grade' && item.linkId) return `/works/${item.linkId}`
-  if (type === 'task' && item.linkId) return `/tasks/${item.linkId}`
-  return `/notifications/${item.id}`
+  return resolveNotificationListLink(item)
 }
 
 async function onItemClick(item) {

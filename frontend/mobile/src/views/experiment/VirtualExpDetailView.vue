@@ -30,7 +30,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchSimulatorDetail } from '@/api/simulator'
 import { useLucideIcons } from '@/composables/useLucideIcons'
-import { resolveMediaUrl } from '@/utils/fileUrl'
+import { resolveFileUrl, resolveMediaUrl } from '@/utils/fileUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -70,8 +70,9 @@ async function loadDetail() {
     title.value = data.simulatorName || '模拟实验'
     document.title = `${title.value} · 模拟实验 · 宝山小实验社区`
 
-    // simulatorPreviewUrl（后端已解析的完整 URL）优先，其次 simulatorUrl
-    const url = resolveMediaUrl(data, 'simulatorUrl')
+    // 只用 simulatorPreviewUrl（后端已解析的完整 URL）或 simulatorUrl，
+    // 不能走 resolveMediaUrl —— 它会误匹配 coverImagePreviewUrl
+    const url = data.simulatorPreviewUrl || resolveFileUrl(data.simulatorUrl || '')
     if (!url) {
       error.value = '该实验暂未配置模拟地址'
       return

@@ -138,6 +138,7 @@ import { createSpeechRecognizer, isSpeechRecognitionSupported } from '@/utils/sp
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useProfileStore } from '@/stores/profile'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -408,12 +409,10 @@ watch(isBusy, (val) => {
   updateSendState()
 })
 
+const { initIcons } = useLucideIcons()
+
 onMounted(async () => {
-  if (typeof window !== 'undefined') {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    })
-  }
+  initIcons()
   threadId.value = loadStoredThreadId()
   if (threadId.value) {
     try {
