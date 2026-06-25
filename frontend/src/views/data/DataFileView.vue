@@ -202,7 +202,23 @@
               />
             </div>
             <div v-if="getDisplayUrl(form.previewUrl)" class="data-file-form-preview">
+              <template v-if="getPreviewMediaType(form.previewUrl, form.fileName) === 'image'">
+                <el-image
+                  class="data-file-form-preview-image"
+                  :src="getDisplayUrl(form.previewUrl)"
+                  fit="contain"
+                  :preview-src-list="[getDisplayUrl(form.previewUrl)]"
+                  preview-teleported
+                />
+              </template>
+              <template v-else-if="getPreviewMediaType(form.previewUrl, form.fileName) === 'video'">
+                <video class="data-file-form-preview-media" controls :src="getDisplayUrl(form.previewUrl)" />
+              </template>
+              <template v-else-if="getPreviewMediaType(form.previewUrl, form.fileName) === 'audio'">
+                <audio class="data-file-form-preview-audio" controls :src="getDisplayUrl(form.previewUrl)" />
+              </template>
               <el-button
+                v-else
                 class="data-file-preview-button"
                 type="primary"
                 plain
@@ -389,7 +405,13 @@ const loadFileTypes = async () => {
 
 const getFileTypeName = (fileTypeId) => fileTypeNameMap.value[fileTypeId] || fileTypeId || '-'
 const isPublicItem = (row) => String(row?.isPublic || '').toLowerCase() === 'y'
-const isImageFile = (url, fileName) => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(fileName || url || ''))
+const getPreviewMediaType = (url, fileName) => {
+  const ext = getExtFromFileName(fileName || url)
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) return 'image'
+  if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'video'
+  if (['mp3', 'wav', 'flac', 'aac', 'ogg'].includes(ext)) return 'audio'
+  return 'link'
+}
 const getDisplayUrl = (url) => {
   if (!url) return ''
   const raw = String(url).trim()
@@ -713,19 +735,33 @@ onMounted(async () => {
   object-fit: contain;
 }
 
-.data-file-form-preview-image {
+.data-file-form-preview-image,
+.data-file-form-preview-media,
+.data-file-form-preview-audio,
+.data-file-preview-button {
   width: 240px;
-  height: 140px;
   border-radius: 10px;
-  overflow: hidden;
   border: 1px solid #ebeef5;
   background: #fafafa;
 }
 
-.data-file-preview-button {
-  width: 240px;
+.data-file-form-preview-image,
+.data-file-form-preview-media {
   height: 140px;
-  border-radius: 10px;
+  overflow: hidden;
+}
+
+.data-file-form-preview-audio {
+  height: 54px;
+}
+
+.data-file-form-preview-media {
+  object-fit: contain;
+  background: #000;
+}
+
+.data-file-preview-button {
+  height: 140px;
 }
 
 .data-file-preview-button :deep(span) {
