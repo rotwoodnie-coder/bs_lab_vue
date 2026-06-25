@@ -46,7 +46,7 @@ public class SubjectGroupController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{groupId}")
+    @PostMapping("/{groupId}")
     public ApiResponse<Void> update(@PathVariable String groupId,
                                     @RequestBody Map<String, Object> payload,
                                     @RequestHeader(value = "X-User-Id", required = false) String currentUserId,

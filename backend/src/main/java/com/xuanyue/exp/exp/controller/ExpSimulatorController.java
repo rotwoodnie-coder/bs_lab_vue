@@ -55,7 +55,7 @@ public class ExpSimulatorController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{simulatorId}")
+    @PostMapping("/{simulatorId}")
     public ApiResponse<Void> update(@PathVariable String simulatorId, @RequestBody ExpSimulatorUpdateRequest request, HttpServletRequest httpServletRequest) {
         service.update(simulatorId, request, httpServletRequest.getHeader("X-User-Id"));
         return ApiResponse.success(null);

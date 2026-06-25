@@ -57,13 +57,13 @@ public class MenuController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{menuId}")
+    @PostMapping("/{menuId}")
     public ApiResponse<Void> update(@PathVariable String menuId, @Validated @RequestBody MenuUpdateRequest request) {
         menuService.update(menuId, request);
         return ApiResponse.success(null);
     }
 
-    @PatchMapping("/{menuId}/status")
+    @PostMapping("/{menuId}/status")
     public ApiResponse<Void> updateStatus(@PathVariable String menuId, @RequestParam String status) {
         menuService.updateStatus(menuId, status);
         return ApiResponse.success(null);

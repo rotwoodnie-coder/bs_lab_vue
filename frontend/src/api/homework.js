@@ -14,7 +14,7 @@ export function fetchExpHomeworks(params) {
   }
   
   export function updateExpHomework(id, data) {
-    return request.put(`/homework/${id}`, data)
+    return request.post(`/homework/${id}`, data)
   }
   
   export function deleteExpHomework(id) {
@@ -22,7 +22,7 @@ export function fetchExpHomeworks(params) {
   }
 
   export function assignExpHomework(id) {
-    return request.put(`/homework/${id}/assign`)
+    return request.post(`/homework/${id}/assign`)
   }
   
   // homework student
@@ -39,7 +39,7 @@ export function fetchExpHomeworks(params) {
   }
   
   export function updateExpHomeworkStudent(id, data) {
-    return request.put(`/homework-students/${id}`, data)
+    return request.post(`/homework-students/${id}`, data)
   }
   
   export function deleteExpHomeworkStudent(id) {

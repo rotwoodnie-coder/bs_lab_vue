@@ -50,13 +50,13 @@ public class RoleController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{roleId}")
+    @PostMapping("/{roleId}")
     public ApiResponse<Void> update(@PathVariable String roleId, @Validated @RequestBody RoleUpdateRequest request) {
         roleService.update(roleId, request);
         return ApiResponse.success(null);
     }
 
-    @PatchMapping("/{roleId}/status")
+    @PostMapping("/{roleId}/status")
     public ApiResponse<Void> updateStatus(@PathVariable String roleId, @RequestParam String status) {
         roleService.updateStatus(roleId, status);
         return ApiResponse.success(null);

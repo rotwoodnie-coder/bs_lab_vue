@@ -39,7 +39,7 @@ public class DataDictionaryController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{type}/{id}")
+    @PostMapping("/{type}/{id}")
     public ApiResponse<Void> update(@PathVariable String type, @PathVariable String id, @RequestBody Map<String, Object> payload) {
         dataDictionaryService.update(type, id, payload);
         return ApiResponse.success(null);

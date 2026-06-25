@@ -46,7 +46,7 @@ public class SchoolNoticeController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id,
                                     @RequestBody Map<String, Object> payload,
                                     @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
@@ -54,7 +54,7 @@ public class SchoolNoticeController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}/confirm")
+    @PostMapping("/{id}/confirm")
     public ApiResponse<Void> confirm(@PathVariable String id,
                                      @RequestBody Map<String, Object> payload,
                                      @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
@@ -62,7 +62,7 @@ public class SchoolNoticeController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}/publish")
+    @PostMapping("/{id}/publish")
     public ApiResponse<Void> publish(@PathVariable String id,
                                      @RequestBody Map<String, Object> payload,
                                      @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
@@ -70,7 +70,7 @@ public class SchoolNoticeController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}/void")
+    @PostMapping("/{id}/void")
     public ApiResponse<Void> voidNotice(@PathVariable String id,
                                         @RequestBody Map<String, Object> payload,
                                         @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {

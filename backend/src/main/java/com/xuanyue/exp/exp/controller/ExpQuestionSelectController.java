@@ -35,13 +35,13 @@ public class ExpQuestionSelectController {
         return ApiResponse.success(service.list(questionId));
     }
 
-    @PutMapping("/question-selects/{questionId}")
+    @PostMapping("/question-selects/{questionId}")
     public ApiResponse<Void> saveBatch(@PathVariable String questionId, @RequestBody List<Map<String, Object>> selects) {
         service.saveBatch(questionId, selects);
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/questions/{questionId}/selects")
+    @PostMapping("/questions/{questionId}/selects")
     public ApiResponse<Void> saveBatchByQuestionPath(@PathVariable String questionId, @RequestBody List<Map<String, Object>> selects) {
         service.saveBatch(questionId, selects);
         return ApiResponse.success(null);

@@ -38,7 +38,7 @@ public class CoursebookContentController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id, @RequestBody Map<String, Object> payload) {
         service.update(id, payload);
         return ApiResponse.success(null);
@@ -50,7 +50,7 @@ public class CoursebookContentController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{coursebookId}/reorder")
+    @PostMapping("/{coursebookId}/reorder")
     public ApiResponse<Void> reorder(@PathVariable String coursebookId, @RequestBody List<Map<String, Object>> tree) {
         service.reorder(coursebookId, tree);
         return ApiResponse.success(null);

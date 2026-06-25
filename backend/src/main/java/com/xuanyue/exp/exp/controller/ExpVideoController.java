@@ -40,12 +40,13 @@ public class ExpVideoController {
         service.saveOne(expId, video);
         return ApiResponse.success(null);
     }
-
-    @PutMapping("/{expId}")
+    
+    /*
+    @PostMapping("/{expId}")
     public ApiResponse<Void> update(@PathVariable String expId, @RequestBody List<Map<String, Object>> videos) {
         service.saveBatch(expId, videos);
         return ApiResponse.success(null);
-    }
+    }*/
 
     @DeleteMapping("/{seqId}")
     public ApiResponse<Void> delete(@PathVariable String seqId) {

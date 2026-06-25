@@ -58,7 +58,7 @@ public class ExpQuestionController {
         return ApiResponse.success(result);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id, @RequestBody Map<String, Object> payload) {
         service.update(id, payload);
         return ApiResponse.success(null);

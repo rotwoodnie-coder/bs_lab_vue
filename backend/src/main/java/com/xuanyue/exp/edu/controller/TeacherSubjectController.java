@@ -46,13 +46,13 @@ public class TeacherSubjectController {
         teacherSubjectService.save(teacherId, payload, currentUserId, currentRootOrgId);
         return ApiResponse.success(null);
     }
-
-    @PutMapping("/{teacherId}")
+    /*
+    @PostMapping("/{teacherId}")
     public ApiResponse<Void> update(@PathVariable String teacherId,
                                     @RequestBody Map<String, Object> payload,
                                     @RequestHeader(value = "X-User-Id", required = false) String currentUserId,
                                     @RequestHeader(value = "X-User-Root-Org-Id", required = false) String currentRootOrgId) {
         teacherSubjectService.save(teacherId, payload, currentUserId, currentRootOrgId);
         return ApiResponse.success(null);
-    }
+    }*/
 }

@@ -41,7 +41,7 @@ public class OrgController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id, @RequestBody SysOrg org) {
         orgService.update(id, org);
         return ApiResponse.success(null);
