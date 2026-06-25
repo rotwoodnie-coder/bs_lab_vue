@@ -136,7 +136,7 @@ public class MobileTaskService {
             item.setCategory("experiment");
             item.setKind("task");
             item.setTitle(resolveExpName(hw.getTeacherExpId()));
-            item.setDesc("作业 · " + (StringUtils.hasText(hw.getRequireDate()) ? "截止 " + hw.getRequireDate() : ""));
+            item.setDesc("作品 · " + (StringUtils.hasText(hw.getRequireDate()) ? "截止 " + hw.getRequireDate() : ""));
             item.setSubType("standard");
             item.setLink("/tasks/" + hw.getHomeworkId());
             item.setUploadLink("/upload?taskId=" + hw.getHomeworkId());
@@ -318,9 +318,9 @@ public class MobileTaskService {
             dto.setId(hw.getHomeworkId());
             dto.setType("homework");
             dto.setTitle(resolveExpName(hw.getTeacherExpId()));
-            dto.setTaskTypeLabel("老师布置");
+            dto.setTaskTypeLabel("老师发布");
             dto.setDeadline(hw.getRequireDate());
-            dto.setTeacherHint("老师布置 · 实验作业");
+            dto.setTeacherHint("老师发布 · 实验任务");
             dto.setTeacherHintClass("tint-orange");
             dto.setVideoId(hw.getTeacherExpId());
             dto.setUploadQuery("taskId=" + hw.getHomeworkId());
@@ -383,9 +383,9 @@ public class MobileTaskService {
             dto.setTitle(request.getExperimentTitle().trim());
             dto.setState("pending");
             dto.setStateLabel("待完成");
-            dto.setTaskTypeLabel("老师布置");
+            dto.setTaskTypeLabel("老师发布");
             dto.setDeadline(hw.getRequireDate());
-            dto.setTeacherHint("老师布置 · 实验作业");
+            dto.setTeacherHint("老师发布 · 实验任务");
             dto.setTeacherHintClass("tint-orange");
             dto.setVideoId(hw.getTeacherExpId());
             return dto;
@@ -545,8 +545,8 @@ public class MobileTaskService {
     }
 
     private String resolveExpName(String expId) {
-        if (!StringUtils.hasText(expId)) return "实验作业";
-        return expMsgRepository.findById(expId).map(ExpMsg::getExpName).filter(StringUtils::hasText).orElse("实验作业");
+        if (!StringUtils.hasText(expId)) return "实验任务";
+        return expMsgRepository.findById(expId).map(ExpMsg::getExpName).filter(StringUtils::hasText).orElse("实验任务");
     }
 
     private String safe(String value) {

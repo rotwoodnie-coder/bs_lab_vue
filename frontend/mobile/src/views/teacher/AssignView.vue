@@ -3,7 +3,7 @@
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
         <PageBackButton fallback="/home" />
-        <h1 class="pad-workbench__title">📝 布置实验任务</h1>
+        <h1 class="pad-workbench__title">📝 发布实验任务</h1>
       </header>
 
       <div class="pad-form__body">
@@ -54,7 +54,7 @@
             </button>
             <div v-if="publishSuccess" class="card card-pad text-center tint-green mt-3">
               <div class="text-3xl mb-2">🎉</div>
-              <div class="text-sm font-bold text-success">作业发布成功！</div>
+              <div class="text-sm font-bold text-success">实验任务已发布</div>
               <div class="text-xs muted mt-1">已通知 {{ selectedStudentTotal }} 名学生</div>
               <router-link to="/home" class="btn btn-outline btn-sm mt-3">返回首页</router-link>
             </div>
@@ -65,7 +65,7 @@
       <div class="pad-form__mobile-only pb-28">
         <div class="topbar safe-top">
           <PageBackButton fallback="/home" />
-          <h1 class="topbar-title flex-1">📝 布置实验任务</h1>
+          <h1 class="topbar-title flex-1">📝 发布实验任务</h1>
         </div>
 
         <div class="px-4 py-4 stack-4">
@@ -104,7 +104,7 @@
 
           <div v-if="publishSuccess" class="card card-pad text-center tint-green">
             <div class="text-3xl mb-2">🎉</div>
-            <div class="text-sm font-bold text-success">作业发布成功！</div>
+            <div class="text-sm font-bold text-success">实验任务已发布</div>
             <div class="text-xs muted mt-1">已通知 {{ selectedStudentTotal }} 名学生</div>
             <router-link to="/home" class="btn btn-outline btn-sm mt-3">返回首页</router-link>
           </div>
@@ -125,6 +125,7 @@ import BottomNav from '@/components/BottomNav.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import AssignOptionSections from '@/components/teacher/AssignOptionSections.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'
+import { defaultDeadlineDate, deadlineDateToIsoEnd } from '@/utils/deadlineDate'
 
 const appStore = useAppStore()
 appStore.setActiveTab('tasks')
@@ -167,12 +168,6 @@ function toggleClass(id) {
   publishSuccess.value = false
 }
 
-function defaultDeadline() {
-  const d = new Date()
-  d.setDate(d.getDate() + 7)
-  return d.toISOString().slice(0, 10)
-}
-
 async function loadOptions() {
   optionsLoading.value = true
   try {
@@ -186,7 +181,7 @@ async function loadOptions() {
       selectedClassIds.value = ids
     }
   } catch (e) {
-    console.warn('加载布置选项失败', e)
+    console.warn('加载发布选项失败', e)
   } finally {
     optionsLoading.value = false
   }
@@ -198,7 +193,8 @@ async function submit() {
   publishSuccess.value = false
   try {
     const exp = selectedExp.value
-    const deadline = deadlineDate.value ? `${deadlineDate.value}T23:59:59` : undefined
+    const dateStr = deadlineDate.value || defaultDeadlineDate()
+    const deadline = deadlineDateToIsoEnd(dateStr)
     let ok = 0
     for (const cls of selectedClasses.value) {
       const isSimulator = exp.sourceType === 'simulator'
@@ -234,7 +230,7 @@ async function submit() {
 const { initIcons } = useLucideIcons()
 
 onMounted(async () => {
-  deadlineDate.value = defaultDeadline()
+  deadlineDate.value = defaultDeadlineDate()
   await loadOptions()
   initIcons()
 })

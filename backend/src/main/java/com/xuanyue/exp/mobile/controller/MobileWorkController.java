@@ -76,6 +76,19 @@ public class MobileWorkController {
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @PathVariable String workId,
             @RequestBody UpdateWorkRequest request) {
+        return doUpdateWork(userId, workId, request);
+    }
+
+    /** POST 别名，兼容外网仅放行 POST 的网关/WAF */
+    @PostMapping("/{workId}/save")
+    public ApiResponse<MobileWorkDetailDto> updateViaPost(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @PathVariable String workId,
+            @RequestBody UpdateWorkRequest request) {
+        return doUpdateWork(userId, workId, request);
+    }
+
+    private ApiResponse<MobileWorkDetailDto> doUpdateWork(String userId, String workId, UpdateWorkRequest request) {
         try {
             return ApiResponse.success(workService.updateWork(userId, workId, request));
         } catch (IllegalArgumentException e) {

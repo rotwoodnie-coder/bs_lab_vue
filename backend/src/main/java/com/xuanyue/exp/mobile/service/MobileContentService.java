@@ -18,7 +18,12 @@ import com.xuanyue.exp.exp.repository.ExpVideoRepository;
 import com.xuanyue.exp.exp.service.ExpStandardService;
 import com.xuanyue.exp.mobile.dto.MobileExpMaterialDto;
 import com.xuanyue.exp.mobile.dto.MobileExpVideoDto;
+import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileMediaUrlSupport;
+import com.xuanyue.exp.system.entity.SysOrg;
+import com.xuanyue.exp.system.entity.SysUser;
+import com.xuanyue.exp.system.repository.SysOrgRepository;
+import com.xuanyue.exp.system.repository.SysUserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -43,6 +48,8 @@ public class MobileContentService {
     private final ExpReferenceRepository referenceRepository;
     private final ExpScientistRepository scientistRepository;
     private final MinioStorageService minioStorageService;
+    private final SysUserRepository sysUserRepository;
+    private final SysOrgRepository sysOrgRepository;
 
     public MobileContentService(ExpStandardService standardService,
                                 ExpVideoRepository videoRepository,
@@ -52,7 +59,9 @@ public class MobileContentService {
                                 ExpResultRepository resultRepository,
                                 ExpReferenceRepository referenceRepository,
                                 ExpScientistRepository scientistRepository,
-                                MinioStorageService minioStorageService) {
+                                MinioStorageService minioStorageService,
+                                SysUserRepository sysUserRepository,
+                                SysOrgRepository sysOrgRepository) {
         this.standardService = standardService;
         this.videoRepository = videoRepository;
         this.stepRepository = stepRepository;
@@ -62,6 +71,8 @@ public class MobileContentService {
         this.referenceRepository = referenceRepository;
         this.scientistRepository = scientistRepository;
         this.minioStorageService = minioStorageService;
+        this.sysUserRepository = sysUserRepository;
+        this.sysOrgRepository = sysOrgRepository;
     }
 
     public Map<String, Object> getDetail(String expId) {
@@ -156,6 +167,48 @@ public class MobileContentService {
                 detail.put("simulatorPreviewUrl", simulatorUrl);
             }
         }
+        enrichAuthorFields(detail);
+    }
+
+    private void enrichAuthorFields(Map<String, Object> detail) {
+        Object userIdObj = detail.get("createUserId");
+        if (!(userIdObj instanceof String) || !StringUtils.hasText((String) userIdObj)) {
+            return;
+        }
+        sysUserRepository.findById(((String) userIdObj).trim()).ifPresent(user -> {
+            detail.put("createUserSchoolName", resolveSchoolName(user));
+            if (isTeacherRole(user)) {
+                detail.put("createUserRoleLabel", "老师");
+            }
+            String avatarUrl = MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, user);
+            if (StringUtils.hasText(avatarUrl)) {
+                detail.put("createUserAvatarUrl", avatarUrl);
+            }
+        });
+    }
+
+    private String resolveSchoolName(SysUser user) {
+        if (StringUtils.hasText(user.getRootOrgId())) {
+            String name = resolveOrgName(user.getRootOrgId());
+            if (StringUtils.hasText(name)) {
+                return name;
+            }
+        }
+        if (StringUtils.hasText(user.getUserOrgId())) {
+            return resolveOrgName(user.getUserOrgId());
+        }
+        return null;
+    }
+
+    private String resolveOrgName(String orgId) {
+        return sysOrgRepository.findById(orgId.trim())
+                .map(SysOrg::getOrgName)
+                .orElse(null);
+    }
+
+    private static boolean isTeacherRole(SysUser user) {
+        return user != null && user.getUserRoleId() != null
+                && "Teacher".equalsIgnoreCase(user.getUserRoleId().trim());
     }
 
     private void enrichMapField(Map<String, Object> detail, String key) {

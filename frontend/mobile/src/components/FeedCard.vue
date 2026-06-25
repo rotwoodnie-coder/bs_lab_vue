@@ -63,7 +63,7 @@
 
       <span class="video-card__tag" :class="'video-card__tag--' + (item.tagType || 'video')">
 
-        <i :data-lucide="tagIcon(item)" class="icon"></i>{{ item.tagLabel }}
+        <i :data-lucide="tagIcon(item)" class="icon"></i>{{ displayTagLabel }}
 
       </span>
 
@@ -129,6 +129,7 @@ import {
 
 } from '@/utils/feedDisplay'
 
+import { workTypeTagLabel } from '@/utils/workLabels'
 import { resolveFileUrl, isVideoMediaUrl } from '@/utils/fileUrl'
 
 
@@ -154,6 +155,8 @@ const mediaRef = ref(null)
 
 
 const to = computed(() => detailRoute(props.item))
+
+const displayTagLabel = computed(() => workTypeTagLabel(props.item.tagLabel || props.item.workType))
 
 const showPlay = computed(() =>
   props.item.tagType === 'video'

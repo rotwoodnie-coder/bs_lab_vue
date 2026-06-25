@@ -33,6 +33,7 @@ export function useScrollRevealBottomNav(navRef) {
 
     const layout = shell.getAttribute('data-layout')
     if (!IMMERSIVE_LAYOUTS.has(layout)) return
+    if (shell.hasAttribute('data-quiz-flow')) return
 
     nav.classList.add('bottom-nav--immersive')
 

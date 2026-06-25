@@ -17,8 +17,9 @@
         </header>
       </div>
 
-      <div class="pad-explore__filters px-4 stack-2">
-        <div class="tabs">
+      <div class="pad-explore__filters px-4 stack-2 works-wall-filters">
+        <!-- 公开作品墙可切换 scope；「我的作品墙」入口固定为本人作品，不再重复切换 -->
+        <div v-if="!isMineScope" class="tabs works-wall-filters__scope">
           <button
             type="button"
             class="tab"
@@ -33,25 +34,29 @@
             @click="switchScope('mine')"
           >我的作品</button>
         </div>
-        <div class="tabs">
-          <button
-            v-for="tab in typeTabs"
-            :key="tab.key"
-            type="button"
-            class="tab"
-            :class="{ active: activeType === tab.key }"
-            @click="switchType(tab.key)"
-          >{{ tab.label }}</button>
+        <div class="works-wall-filters__scroll">
+          <div class="tabs works-wall-filters__chips">
+            <button
+              v-for="tab in typeTabs"
+              :key="tab.key"
+              type="button"
+              class="tab"
+              :class="{ active: activeType === tab.key }"
+              @click="switchType(tab.key)"
+            >{{ tab.label }}</button>
+          </div>
         </div>
-        <div v-if="isMineScope" class="tabs">
-          <button
-            v-for="tab in statusTabs"
-            :key="tab.key"
-            type="button"
-            class="tab"
-            :class="{ active: activeReviewStatus === tab.key }"
-            @click="switchReviewStatus(tab.key)"
-          >{{ tab.label }}</button>
+        <div v-if="isMineScope" class="works-wall-filters__scroll">
+          <div class="tabs works-wall-filters__chips">
+            <button
+              v-for="tab in statusTabs"
+              :key="tab.key"
+              type="button"
+              class="tab"
+              :class="{ active: activeReviewStatus === tab.key }"
+              @click="switchReviewStatus(tab.key)"
+            >{{ tab.label }}</button>
+          </div>
         </div>
       </div>
 
@@ -185,6 +190,7 @@ import { fetchWorks } from '@/api/work'
 import { startCreativeTask } from '@/api/creative'
 import { useUserStore } from '@/stores/user'
 import { resolveMediaUrl } from '@/utils/fileUrl'
+import { workTypeTagLabel } from '@/utils/workLabels'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
@@ -194,8 +200,8 @@ const userStore = useUserStore()
 const submitOptions = [
   {
     key: 'homework',
-    label: '我的实验',
-    desc: '完成老师布置的实验任务',
+    label: '实验任务',
+    desc: '完成老师发布的实验任务',
     icon: 'notebook-text',
     color: 'var(--c-blue-600)'
   },
@@ -217,14 +223,14 @@ const submitOptions = [
 
 const mineTypeTabs = [
   { key: 'all', label: '全部' },
-  { key: 'homework', label: '我的实验' },
+  { key: 'homework', label: '实验任务' },
   { key: 'remix', label: '拍同款' },
   { key: 'creative', label: '创意实验' }
 ]
 
 const publicTypeTabs = [
   { key: 'all', label: '全部' },
-  { key: 'homework', label: '我的实验' },
+  { key: 'homework', label: '实验任务' },
   { key: 'remix', label: '拍同款' },
   { key: 'creative', label: '创意实验' }
 ]
@@ -254,7 +260,7 @@ const submitEntryAriaLabel = computed(() => {
 })
 
 const submitEntryHint = computed(() => {
-  if (activeType.value === 'homework') return '完成老师布置的实验任务'
+  if (activeType.value === 'homework') return '完成老师发布的实验任务'
   if (activeType.value === 'remix') return '从待完成的拍同款任务进入上传'
   if (activeType.value === 'creative') return '发起创意实验并上传成果'
   return '实验 / 拍同款 / 创意'
@@ -275,10 +281,7 @@ const emptyHint = computed(() => {
 })
 
 function typeLabel(type) {
-  if (type === 'remix') return '拍同款'
-  if (type === 'creative') return '创意'
-  if (type === 'homework') return '作品'
-  return '作品'
+  return workTypeTagLabel(type)
 }
 
 function resolveCoverUrl(work) {

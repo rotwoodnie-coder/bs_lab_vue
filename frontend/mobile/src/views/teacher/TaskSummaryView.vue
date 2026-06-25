@@ -115,7 +115,7 @@
 
               <div v-if="board.cancelled" class="card card-pad surface-2 text-sm text-center tint-slate">
 
-                该任务已取消，学生端待办将不再展示；已提交成果仍可查看与批阅。
+                该任务已取消，学生端待办将不再展示；已提交成果仍可查看与评价。
 
               </div>
 
@@ -223,7 +223,7 @@
 
                   class="btn btn-sm btn-outline text-brand"
 
-                >查看批阅</router-link>
+                >查看评价</router-link>
 
               </div>
 
@@ -584,7 +584,7 @@ async function submitReview(student) {
 
     if (res?.code === 200) {
 
-      showToast('批阅已提交')
+      showToast('评价已提交')
 
       await loadBoard()
 
@@ -592,11 +592,11 @@ async function submitReview(student) {
 
     }
 
-    showToast(res?.message || '批阅失败', 'danger')
+    showToast(res?.message || '评价失败', 'danger')
 
   } catch (e) {
 
-    showToast(e?.response?.data?.message || '批阅失败', 'danger')
+    showToast(e?.response?.data?.message || '评价失败', 'danger')
 
   } finally {
 

@@ -77,7 +77,7 @@ public class MobileNotificationService {
             if (!StringUtils.hasText(studentId)) continue;
             if (wantsTaskNotify(studentId)) {
                 String studentName = resolveUserName(studentId);
-                String title = teacherName + "提醒你提交作业";
+                String title = teacherName + "提醒你提交作品";
                 String preview = "「" + taskTitle + "」尚未提交，请尽快完成";
                 String body = buildReminderBody(studentName, taskTitle, deadlineLabel, teacherName);
                 saveMessage(studentId, senderUserId, hw.getHomeworkId(), title, preview, body);
@@ -104,7 +104,7 @@ public class MobileNotificationService {
         for (String studentId : studentIds) {
             if (wantsTaskNotify(studentId)) {
                 String title = "新实验任务：" + taskTitle;
-                String preview = teacherName + " 布置了新任务" + (StringUtils.hasText(deadlineLabel) ? "，截止 " + deadlineLabel : "");
+                String preview = teacherName + " 发布了新任务" + (StringUtils.hasText(deadlineLabel) ? "，截止 " + deadlineLabel : "");
                 String body = buildAssignedBody(taskTitle, deadlineLabel, teacherName, "");
                 saveMessage(studentId, senderUserId, hw.getHomeworkId(), title, preview, body);
                 count++;
@@ -125,11 +125,11 @@ public class MobileNotificationService {
         String teacherName = resolveSenderName(teacherUserId);
         String workTitle = safe(msg.getExpName());
         boolean rejected = "fail".equalsIgnoreCase(safe(rating));
-        String title = rejected ? "作品未通过批阅" : "作品已批阅";
+        String title = rejected ? "作品未通过评价" : "作品已评价";
         String ratingLabel = ratingLabel(rating);
-        String preview = teacherName + " 批阅了「" + workTitle + "」：" + ratingLabel;
+        String preview = teacherName + " 评价了「" + workTitle + "」：" + ratingLabel;
         StringBuilder body = new StringBuilder();
-        body.append(teacherName).append(" 已批阅你的作品「").append(workTitle).append("」。");
+        body.append(teacherName).append(" 已评价你的作品「").append(workTitle).append("」。");
         body.append("\n评级：").append(ratingLabel);
         if (StringUtils.hasText(comment)) body.append("\n评语：").append(comment.trim());
         if (rejected) body.append("\n\n请根据老师意见修改后重新提交。");
@@ -267,14 +267,14 @@ public class MobileNotificationService {
             String preview;
             String body;
             if (reminder) {
-                title = childName + " 尚未提交作业";
+                title = childName + " 尚未提交作品";
                 preview = "「" + taskTitle + "」待提交 · " + teacherName + " 已发送提醒";
                 body = childName + " 的实验任务「" + taskTitle + "」尚未提交。"
                         + (StringUtils.hasText(deadlineLabel) ? "\n截止时间：" + deadlineLabel : "")
                         + "\n请协助孩子尽快完成并上传成果。";
             } else {
                 title = childName + " 有新实验任务";
-                preview = teacherName + " 布置了「" + taskTitle + "」"
+                preview = teacherName + " 发布了「" + taskTitle + "」"
                         + (StringUtils.hasText(deadlineLabel) ? "，截止 " + deadlineLabel : "");
                 body = childName + " 收到新实验任务「" + taskTitle + "」。"
                         + (StringUtils.hasText(deadlineLabel) ? "\n截止时间：" + deadlineLabel : "")
@@ -341,7 +341,7 @@ public class MobileNotificationService {
 
     private String buildAssignedBody(String taskTitle, String deadlineLabel, String teacherName, String description) {
         StringBuilder sb = new StringBuilder();
-        sb.append(teacherName).append(" 布置了新实验任务「").append(taskTitle).append("」。");
+        sb.append(teacherName).append(" 发布了新实验任务「").append(taskTitle).append("」。");
         if (StringUtils.hasText(deadlineLabel)) sb.append("\n截止时间：").append(deadlineLabel);
         if (StringUtils.hasText(description)) sb.append("\n\n").append(description.trim());
         sb.append("\n\n请前往「我的任务」查看详情并开始实验。");
@@ -394,7 +394,7 @@ public class MobileNotificationService {
     }
 
     private String ratingLabel(String rating) {
-        if (!StringUtils.hasText(rating)) return "已批阅";
+        if (!StringUtils.hasText(rating)) return "已评价";
         switch (rating.trim().toLowerCase()) {
             case "excellent": return "优秀";
             case "good": return "良好";

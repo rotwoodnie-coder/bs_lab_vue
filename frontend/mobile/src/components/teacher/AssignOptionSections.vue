@@ -48,6 +48,7 @@
 
   <div>
     <h2 class="text-sm font-bold mb-3">📅 截止日期</h2>
+    <p class="text-xs muted mb-2">默认为发布日后 7 天，可手动修改</p>
     <input :value="deadlineDate" class="input" type="date" @input="$emit('update:deadlineDate', $event.target.value)" />
   </div>
 

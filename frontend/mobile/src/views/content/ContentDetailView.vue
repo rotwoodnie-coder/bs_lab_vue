@@ -79,14 +79,14 @@
               <div class="lab-watch__toolbar">
                 <div class="lab-watch__uploader">
                   <UserAvatar
-                    v-if="authorInitial"
+                    v-if="detail.createUserName"
                     size="sm"
                     :name="detail.createUserName"
+                    :src="detail.createUserAvatarUrl"
                     role="teacher"
                   />
                   <div class="min-w-0">
-                    <div v-if="detail.createUserName" class="text-sm font-bold">{{ detail.createUserName }}老师</div>
-                    <div v-if="detail.createUserSchoolName" class="text-xs muted">{{ detail.createUserSchoolName }}</div>
+                    <div v-if="authorLine" class="text-sm font-bold">{{ authorLine }}</div>
                   </div>
                 </div>
                 <div class="lab-watch__actions row gap-2">
@@ -350,6 +350,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { FORMAT_EXP_LONG, FORMAT_EXP_STEP, hasRichContent } from '@/utils/richText'
 import { metaChipItems, curriculumRows as buildCurriculumRows } from '@/utils/expDisplay'
 import { resolveMediaUrl, resolveMaterialPicUrl } from '@/utils/fileUrl'
+import { authorLineParts } from '@/utils/feedDisplay'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
@@ -527,9 +528,13 @@ async function onRemixClick() {
 
 const expId = computed(() => route.params.id)
 
-const authorInitial = computed(() => {
-  const name = detail.value?.createUserName
-  return name ? name.charAt(0) : ''
+const authorLine = computed(() => {
+  if (!detail.value) return ''
+  return authorLineParts({
+    author: detail.value.createUserName,
+    authorRole: 'teacher',
+    authorSchool: detail.value.createUserSchoolName
+  }).join(' · ')
 })
 
 const metaChips = computed(() => metaChipItems(detail.value))

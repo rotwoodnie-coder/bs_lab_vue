@@ -17,5 +17,5 @@ export function fetchBindApplications() {
 }
 
 export function setDefaultChild(childUserId) {
-  return request.put('/mobile/parent/default-child', { childUserId })
+  return request.post('/mobile/parent/default-child/save', { childUserId })
 }

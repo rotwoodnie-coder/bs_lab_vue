@@ -64,7 +64,9 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
             throw new RuntimeException("MinIO上传失败", e);
         }
         String fileUrl = buildFileUrl(objectName);
+        System.out.println("minio upload fileUrl: " + fileUrl);
         String previewUrl = buildPreviewUrl(objectName);
+        System.out.println("minio upload previewUrl: " + previewUrl);
         Map<String, Object> result = new HashMap<String, Object>();
         result.put("fileUrl", fileUrl);
         result.put("previewUrl", previewUrl);
@@ -137,6 +139,8 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
         if (!StringUtils.hasText(objectName)) {
             return trimmed;
         }
+        System.out.println("minio upload buildPreviewUrl: " + objectName);
+        /*
         try {
             return minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
@@ -148,7 +152,10 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
             );
         } catch (Exception e) {
             return joinPublicUrl(normalizeUrlPrefix(properties.getUrlPrefix()), objectName);
-        }
+        }*/
+        String previewUrl = joinPublicUrl(normalizeUrlPrefix(properties.getUrlPrefix()), objectName);
+        System.out.println("minio upload buildPreviewUrl: " + previewUrl);
+        return previewUrl;
     }
 
     @Override
@@ -220,6 +227,7 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
 
     private String resolveObjectName(String fileUrl) {
         String prefix = normalizeUrlPrefix(properties.getUrlPrefix());
+        System.out.println("minio upload normalizeUrlPrefix: " + prefix);
         String result = fileUrl.trim();
         if (StringUtils.hasText(prefix) && result.startsWith(prefix)) {
             result = result.substring(prefix.length());
@@ -227,6 +235,7 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
         while (result.startsWith("/")) {
             result = result.substring(1);
         }
+        System.out.println("minio uploadresolveObjectName: " + result);
         return result;
     }
 

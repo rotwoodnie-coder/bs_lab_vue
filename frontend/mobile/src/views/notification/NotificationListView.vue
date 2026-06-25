@@ -9,7 +9,7 @@
     <div class="px-4 mt-3">
       <div class="notif-summary card card-pad">
         <div class="notif-summary__count">{{ unreadCount }} 条未读</div>
-        <div class="notif-summary__hint">学习提醒、批阅反馈与系统公告</div>
+        <div class="notif-summary__hint">学习提醒、评价反馈与系统公告</div>
       </div>
     </div>
 

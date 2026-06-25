@@ -480,37 +480,38 @@
 
           <!-- ===== 关于与帮助 ===== -->
           <section class="pad-settings__section" :class="{ 'is-active': activeSection === 'about' }">
-            <header class="pad-settings__section-head">
+            <div class="settings-panel-head">
               <h2>关于与帮助</h2>
-            </header>
+              <p>协议、隐私、帮助反馈与版本信息</p>
+            </div>
             <div class="settings-card settings-group">
               <router-link to="/legal/terms" class="settings-row settings-row--action">
                 <div class="settings-row__main">
                   <div class="settings-row__label">用户协议</div>
                   <div class="settings-row__hint">查看服务条款</div>
                 </div>
-                <i data-lucide="chevron-right" class="icon muted-2"></i>
+                <i data-lucide="chevron-right" class="icon muted-2 settings-row__chevron"></i>
               </router-link>
               <router-link to="/legal/privacy" class="settings-row settings-row--action">
                 <div class="settings-row__main">
                   <div class="settings-row__label">隐私政策</div>
                   <div class="settings-row__hint">了解我们如何保护你的信息</div>
                 </div>
-                <i data-lucide="chevron-right" class="icon muted-2"></i>
+                <i data-lucide="chevron-right" class="icon muted-2 settings-row__chevron"></i>
               </router-link>
-              <button type="button" class="settings-row settings-row--action w-full" @click="showHelp">
+              <button type="button" class="settings-row settings-row--action" @click="showHelp">
                 <div class="settings-row__main">
                   <div class="settings-row__label">帮助与反馈</div>
                   <div class="settings-row__hint">使用问题与意见反馈</div>
                 </div>
-                <i data-lucide="chevron-right" class="icon muted-2"></i>
+                <i data-lucide="chevron-right" class="icon muted-2 settings-row__chevron"></i>
               </button>
-              <div class="settings-row">
+              <div class="settings-row settings-row--static">
                 <div class="settings-row__main">
                   <div class="settings-row__label">关于应用</div>
                   <div class="settings-row__hint">实验探究平台</div>
                 </div>
-                <span class="text-xs muted-2">v{{ appVersion }}</span>
+                <span class="settings-row__value">v{{ appVersion }}</span>
               </div>
             </div>
           </section>
@@ -576,6 +577,7 @@ import { fetchAccountSecurity, fetchDingTalkAuthorizeUrl, unbindDingTalk, fetchP
 import { mapMessageItem } from '@/utils/notificationDisplay'
 import { getDingTalkRedirectBase } from '@/utils/dingtalk'
 import { useLucideIcons } from '@/composables/useLucideIcons'
+import { apiMessage } from '@/utils/apiError'
 
 const router = useRouter()
 const route = useRoute()
@@ -966,7 +968,7 @@ async function onAvatarSelected(event) {
     resetForm()
   } catch (e) {
     console.warn('头像上传失败', e)
-    profileMsg.value = e?.message || '头像上传失败，请稍后重试'
+    profileMsg.value = apiMessage(e, '头像上传失败，请稍后重试')
     profileMsgType.value = 'error'
     alert(profileMsg.value)
   } finally {
@@ -1075,8 +1077,8 @@ async function saveProfile() {
       profileMsg.value = res.message || '保存失败'
       profileMsgType.value = 'error'
     }
-  } catch {
-    profileMsg.value = '保存失败，请检查网络'
+  } catch (e) {
+    profileMsg.value = apiMessage(e, '保存失败，请检查网络')
     profileMsgType.value = 'error'
   } finally {
     saving.value = false

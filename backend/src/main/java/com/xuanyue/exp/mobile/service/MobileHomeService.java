@@ -852,7 +852,7 @@ public class MobileHomeService {
             item.setGradientClass("card-media-grad-cool");
         } else {
             item.setWorkType("homework");
-            item.setTagLabel("作业");
+            item.setTagLabel("作品");
             item.setTagType("work-homework");
             item.setGradientClass(DEFAULT_GRADIENT);
         }

@@ -96,6 +96,17 @@ public class MobileLearningController {
     public ApiResponse<MobileGrowthDto.Plan> saveGrowthPlan(
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestBody GrowthPlanSaveRequest request) {
+        return doSaveGrowthPlan(userId, request);
+    }
+
+    @PostMapping("/growth/plan/save")
+    public ApiResponse<MobileGrowthDto.Plan> saveGrowthPlanViaPost(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestBody GrowthPlanSaveRequest request) {
+        return doSaveGrowthPlan(userId, request);
+    }
+
+    private ApiResponse<MobileGrowthDto.Plan> doSaveGrowthPlan(String userId, GrowthPlanSaveRequest request) {
         try {
             return ApiResponse.success(learningService.saveGrowthPlan(userId, request));
         } catch (IllegalArgumentException e) {

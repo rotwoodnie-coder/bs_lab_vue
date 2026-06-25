@@ -122,13 +122,13 @@ onMounted(async () => {
 }
 
 .dingtalk-callback h1 {
-  font-size: 20px;
+  font-size: var(--text-xl);
   margin: 0 0 8px;
 }
 
 .dingtalk-callback p {
   margin: 0 0 24px;
-  font-size: 14px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 

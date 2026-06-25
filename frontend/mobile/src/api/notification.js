@@ -16,9 +16,9 @@ export function fetchUnreadCount() {
 }
 
 export function markMessageRead(msgId) {
-  return request.put(`/mobile/notifications/${msgId}/read`)
+  return request.post(`/mobile/notifications/${msgId}/read`)
 }
 
 export function markAllMessagesRead() {
-  return request.put('/mobile/notifications/read-all')
+  return request.post('/mobile/notifications/read-all')
 }

@@ -17,14 +17,14 @@
   border-radius: var(--radius-full);
   background: var(--brand-soft);
   color: var(--brand-strong);
-  font-size: 12px;
+  font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
   cursor: pointer;
   border: none;
   white-space: nowrap;
 }
 .breadcrumb-chip .chip-icon { width: 14px; height: 14px; }
-.breadcrumb-sep { color: var(--color-text-3); font-size: 12px; }
+.breadcrumb-sep { color: var(--color-text-3); font-size: var(--text-2xs); }
 
 .step-panel { display: none; }
 .step-panel.active {

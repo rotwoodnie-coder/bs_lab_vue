@@ -37,7 +37,7 @@
     />
 
     <div v-if="isCreative" class="px-4 safe-top" style="padding-top:8px;">
-      <p class="quiz-tip-banner">💡 <strong>创意实验</strong> · 自由上传实验成果，不关联老师作业，提交后由老师审核通过再展示在作品墙</p>
+      <p class="quiz-tip-banner">💡 <strong>创意实验</strong> · 自由上传实验成果，不关联老师发布任务，提交后由老师审核通过再展示在作品墙</p>
     </div>
 
     <div v-if="taskAlreadySubmitted && !submitted" class="px-4 pt-3">
@@ -139,11 +139,11 @@
             <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
           </div>
           <div v-else-if="taskLocked && taskContext" class="field">
-            <label class="label">📎 关联作业</label>
+            <label class="label">📎 关联作品</label>
             <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
           </div>
           <div v-else-if="!isCreative" class="field">
-            <label class="label">📎 关联作业</label>
+            <label class="label">📎 关联作品</label>
             <select v-model="relatedTaskId" class="select">
               <option v-if="!relatedTasks.length" value="" disabled>暂无待完成实验任务</option>
               <option v-for="t in relatedTasks" :key="t.id" :value="t.id">{{ t.title }}</option>
@@ -195,11 +195,11 @@
           <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
         </div>
         <div v-else-if="taskLocked && taskContext" class="field">
-          <label class="label">📎 关联作业</label>
+          <label class="label">📎 关联作品</label>
           <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
         </div>
         <div v-else-if="!isCreative" class="field">
-          <label class="label">📎 关联作业</label>
+          <label class="label">📎 关联作品</label>
           <select v-model="relatedTaskId" class="select">
             <option v-if="!relatedTasks.length" value="" disabled>暂无待完成实验任务</option>
             <option v-for="t in relatedTasks" :key="t.id" :value="t.id">{{ t.title }}</option>
@@ -351,13 +351,13 @@ const stageFile = computed(() => {
 const successTitle = computed(() => {
   if (isRemix.value) return '拍同款已提交'
   if (isCreative.value) return '创意实验已提交'
-  return '作业已提交'
+  return '作品已提交'
 })
 
 const successHint = computed(() => {
   if (isRemix.value) return '老师审核通过后，作品将展示在作品墙「拍同款」'
   if (isCreative.value) return '老师审核通过后，作品将展示在作品墙「创意实验」'
-  return '老师将尽快批阅，可在「我的任务」中查看状态'
+  return '老师将尽快评价，可在「任务」中查看状态'
 })
 
 function newFileId() {

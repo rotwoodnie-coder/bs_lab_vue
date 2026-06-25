@@ -38,6 +38,34 @@ public class MobileParentRegistrationAdminService {
         this.authSupport = authSupport;
     }
 
+    /** 待审核家长注册数量（status=t），校管理员限本校 */
+    public int countPending(String operatorUserId) {
+        if (!StringUtils.hasText(operatorUserId)) {
+            return 0;
+        }
+        SysUser operator = sysUserRepository.findById(operatorUserId.trim()).orElse(null);
+        if (operator == null) {
+            return 0;
+        }
+        String role = operator.getUserRoleId() != null ? operator.getUserRoleId().trim() : "";
+        if (!"Sys_Admin".equals(role) && !"School_Admin".equals(role)) {
+            return 0;
+        }
+        int count = 0;
+        for (SysUser user : sysUserRepository.findAll()) {
+            if (!PARENT_ROLE.equals(user.getUserRoleId())) {
+                continue;
+            }
+            if (!"t".equals(user.getStatus())) {
+                continue;
+            }
+            if (authSupport.canSeeRootOrg(operator, user.getRootOrgId())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public PageResult<ParentRegistrationListItem> page(String keyword, String status,
                                                        int pageNum, int pageSize) {
         SysUser operator = authSupport.requireAdminUser();

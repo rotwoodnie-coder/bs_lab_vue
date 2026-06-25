@@ -26,6 +26,7 @@ import com.xuanyue.exp.mobile.support.MobileStudentOrgSupport;
 import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileTeacherClassScope;
 import com.xuanyue.exp.mobile.support.MobileUserContext;
+import com.xuanyue.exp.mobile.support.MobileHomeworkDateSupport;
 import com.xuanyue.exp.mobile.support.MobileWorkAuditStatus;
 import com.xuanyue.exp.system.entity.SysUser;
 import com.xuanyue.exp.system.repository.SysOrgRepository;
@@ -121,7 +122,7 @@ public class MobileStudentWorkService {
         hw.setTeacherExpId(teacherExpId);
         hw.setTearcherUserId(teacherId);
         hw.setClassId(classId);
-        hw.setRequireDate(StringUtils.hasText(request.getRequireDate()) ? request.getRequireDate().trim() : null);
+        hw.setRequireDate(MobileHomeworkDateSupport.resolveRequireDate(request.getRequireDate()));
         hw.setCreateTime(new Date());
         homeworkRepository.save(hw);
 
@@ -394,7 +395,7 @@ public class MobileStudentWorkService {
             return;
         }
 
-        throw new IllegalArgumentException("作业不存在");
+        throw new IllegalArgumentException("实验任务不存在");
     }
 
     /* ════════════════════════════════════════════
@@ -618,7 +619,7 @@ public class MobileStudentWorkService {
             item.setCategory("creative");
             item.setKind("creative-start");
             item.setTitle("开始创意实验");
-            item.setDesc("自由上传实验成果，不关联老师布置，提交后由老师审核再展示在作品墙");
+            item.setDesc("自由上传实验成果，不关联老师发布，提交后由老师审核再展示在作品墙");
             item.setLink("/upload?type=creative");
         }
         item.setState("pending");
@@ -1159,8 +1160,8 @@ public class MobileStudentWorkService {
     }
 
     private String resolveExpName(String expId) {
-        if (!StringUtils.hasText(expId)) return "实验作业";
-        return expMsgRepository.findById(expId).map(ExpMsg::getExpName).filter(StringUtils::hasText).orElse("实验作业");
+        if (!StringUtils.hasText(expId)) return "实验任务";
+        return expMsgRepository.findById(expId).map(ExpMsg::getExpName).filter(StringUtils::hasText).orElse("实验任务");
     }
 
     private String resolveUserName(String userId) {

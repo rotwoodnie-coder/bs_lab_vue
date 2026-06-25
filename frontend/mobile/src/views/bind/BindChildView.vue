@@ -157,7 +157,7 @@
           <div v-if="!padColumns || !selectedStudent" class="card card-pad row items-start gap-3 surface-2" style="border:none;">
             <i data-lucide="lock" class="icon text-lg shrink-0" style="color:var(--brand);"></i>
             <p class="text-xs leading-relaxed muted">
-              绑定后，您将可以查看孩子的作业、作品和成长记录。一个家长账号最多可绑定 <strong>3 个孩子</strong>。
+              绑定后，您将可以查看孩子的实验任务与作品、成长记录。一个家长账号最多可绑定 <strong>3 个孩子</strong>。
             </p>
           </div>
         </div>
@@ -181,7 +181,7 @@
           <div class="card card-pad row items-start gap-3 surface-2 mt-4" style="border:none;">
             <i data-lucide="lock" class="icon text-lg shrink-0" style="color:var(--brand);"></i>
             <p class="text-xs leading-relaxed muted">
-              绑定后，您将可以查看孩子的作业、作品和成长记录。一个家长账号最多可绑定 <strong>3 个孩子</strong>。
+              绑定后，您将可以查看孩子的实验任务与作品、成长记录。一个家长账号最多可绑定 <strong>3 个孩子</strong>。
             </p>
           </div>
         </div>

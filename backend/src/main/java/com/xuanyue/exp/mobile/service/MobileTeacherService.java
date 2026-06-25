@@ -243,9 +243,9 @@ public class MobileTeacherService {
 
     @Transactional
     public TeacherRemindResultDto remindUnsubmitted(String userId, String homeworkId) {
-        if (!StringUtils.hasText(homeworkId)) throw new IllegalArgumentException("请选择作业");
+        if (!StringUtils.hasText(homeworkId)) throw new IllegalArgumentException("请选择实验任务");
         MobileExpHomework hw = homeworkRepository.findById(homeworkId.trim())
-                .orElseThrow(() -> new IllegalArgumentException("作业不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("实验任务不存在"));
 
         TeacherTaskBoardDto board = getTaskBoard(userId, homeworkId);
         String teacherId = MobileUserContext.resolveTeacherId(userId);
@@ -266,7 +266,7 @@ public class MobileTeacherService {
     @Transactional
     public TeacherTaskCancelResultDto cancelTask(String userId, String taskId, TeacherTaskCancelRequest request) {
         // exp_homework 表无 status 列，暂不支持取消
-        throw new IllegalArgumentException("当前版本不支持取消作业");
+        throw new IllegalArgumentException("当前版本不支持取消实验任务");
     }
 
     @Transactional
@@ -287,12 +287,12 @@ public class MobileTeacherService {
 
     @Transactional(readOnly = true)
     public TeacherTaskBoardDto getTaskBoard(String userId, String homeworkId) {
-        if (!StringUtils.hasText(homeworkId)) throw new IllegalArgumentException("请选择作业");
+        if (!StringUtils.hasText(homeworkId)) throw new IllegalArgumentException("请选择实验任务");
         MobileExpHomework hw = homeworkRepository.findById(homeworkId.trim())
-                .orElseThrow(() -> new IllegalArgumentException("作业不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("实验任务不存在"));
         String teacherId = MobileUserContext.resolveTeacherId(userId);
         if (!teacherId.equals(safe(hw.getTearcherUserId()))) {
-            throw new IllegalArgumentException("无权查看该作业看板");
+            throw new IllegalArgumentException("无权查看该实验任务看板");
         }
 
         String classOrgId = hw.getClassId();
@@ -328,11 +328,11 @@ public class MobileTeacherService {
                 row.setWorkId(hs.getStudentExpId());
                 if (hs.getMarkTime() != null) {
                     row.setReviewStatus("reviewed");
-                    row.setReviewStatusLabel("已批阅");
+                    row.setReviewStatusLabel("已评价");
                     row.setGrade(hs.getMarkResult());
                 } else {
                     row.setReviewStatus("pending");
-                    row.setReviewStatusLabel("待批阅");
+                    row.setReviewStatusLabel("待评价");
                     pendingReview++;
                 }
             } else {
@@ -404,7 +404,7 @@ public class MobileTeacherService {
             item.setWorkTypeLabel("创意实验");
         } else {
             item.setWorkType("homework");
-            item.setWorkTypeLabel("作业");
+            item.setWorkTypeLabel("作品");
         }
         return item;
     }
@@ -429,11 +429,11 @@ public class MobileTeacherService {
     }
 
     private String resolveExpName(String expId) {
-        if (!StringUtils.hasText(expId)) return "实验作业";
+        if (!StringUtils.hasText(expId)) return "实验任务";
         return expMsgRepository.findById(expId)
                 .map(ExpMsg::getExpName)
                 .filter(StringUtils::hasText)
-                .orElse("实验作业");
+                .orElse("实验任务");
     }
 
     private void fillWeeklyTrend(TeacherDashboardDto dto, List<MobileExpHomework> hws) {

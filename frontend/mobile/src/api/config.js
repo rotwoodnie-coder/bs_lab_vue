@@ -1,7 +1,8 @@
 /**
  * API 地址解析
- * - 后端托管 /m/ 时：同源 /api（8010 单端口，PC端+移动端共用）
- * - Vite 开发模式时：走 devServer 代理（移动端 Vite 5174/5173）
+ * - 生产 /m/（Nginx 或 8010 托管）：同源 /api
+ * - Vite 开发模式：走 devServer 代理
+ * - LAN 直连：http://IP:8010/api（仅内网调试）
  */
 
 function lanHostname() {
@@ -11,11 +12,10 @@ function lanHostname() {
   return hostname
 }
 
-function isBackendHosted() {
+/** 访问路径在 /m/ 下（Nginx 静态或后端 8010 托管）→ 同源 /api */
+function isMobileDeployed() {
   if (typeof window === 'undefined') return false
-  const { port, pathname } = window.location
-  // 后端 Spring Boot 托管 /m/ 路径（单端口方案：8010）
-  return port === '8010' && pathname.startsWith('/m')
+  return window.location.pathname.startsWith('/m')
 }
 
 function isViteDevServer() {
@@ -29,7 +29,7 @@ export function getApiBaseURL() {
   const fromEnv = import.meta.env.VITE_API_BASE
   if (fromEnv) return fromEnv.replace(/\/$/, '')
 
-  if (isBackendHosted()) {
+  if (isMobileDeployed()) {
     return '/api'
   }
 

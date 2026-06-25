@@ -26,7 +26,7 @@ export function createWork(payload) {
 
 /** 编辑作品 */
 export function updateWork(workId, payload) {
-  return request.put(`/mobile/works/${workId}`, payload)
+  return request.post(`/mobile/works/${workId}/save`, payload)
 }
 
 /** 解析上传接口返回（axios 已 unwrap 为 { code, data }） */
@@ -42,7 +42,7 @@ export function uploadFile(file, onProgress) {
   const formData = new FormData()
   formData.append('file', file)
   return request.post('/mobile/files/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    // 勿手动设 Content-Type，须由浏览器带 boundary
     onUploadProgress: onProgress
   })
 }

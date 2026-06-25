@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-quiz-flow>
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/tasks?status=pending&category=quiz" />
       <h1 class="topbar-title">🧠 每日答题</h1>

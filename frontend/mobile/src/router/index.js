@@ -112,6 +112,16 @@ const routes = [
 
   { path: '/parent-binds', name: 'parent-binds', component: () => import('@/views/teacher/ParentBindAuditView.vue'), meta: { roles: ['teacher'] } },
 
+  { path: '/admin', name: 'admin-hub', component: () => import('@/views/admin/AdminHubView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/badges', name: 'admin-badges', component: () => import('@/views/admin/AdminBadgeRulesView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/quiz-config', name: 'admin-quiz-config', component: () => import('@/views/admin/AdminQuizConfigView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/parent-registrations', name: 'admin-parent-registrations', component: () => import('@/views/admin/AdminParentRegistrationsView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/work-reviews', name: 'admin-work-reviews', component: () => import('@/views/admin/AdminWorkReviewsView.vue'), meta: { roles: ['admin'] } },
+
   { path: '/profile', name: 'profile', component: () => import('@/views/profile/ProfileView.vue') },
 
   { path: '/settings', name: 'settings', component: () => import('@/views/settings/SettingsView.vue') },
@@ -148,6 +158,12 @@ function tasksEntryGuard() {
   const userInfo = getUserInfo()
 
   const role = normalizeRole(userInfo?.userRoleId)
+
+  if (role === 'admin') {
+
+    return { path: '/admin', replace: true }
+
+  }
 
   if (role === 'researcher') {
 

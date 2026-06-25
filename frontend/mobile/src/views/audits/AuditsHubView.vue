@@ -21,14 +21,14 @@
           <div class="px-4 pb-28 stack-4">
             <div v-if="loading" class="py-12 text-center muted-2">加载中…</div>
             <template v-else>
-              <!-- 教师：作品批阅 -->
+              <!-- 教师：作品评价 -->
               <router-link
                 v-if="showTeacherWorkReviews"
                 :to="workReviewLink"
                 class="card card-link card-pad row items-center justify-between"
               >
                 <div>
-                  <div class="text-sm font-bold">作品待批阅</div>
+                  <div class="text-sm font-bold">作品待评价</div>
                   <div class="text-xs muted mt-1">在班级任务中审核学生提交</div>
                 </div>
                 <span v-if="summary.pendingWorkReviews > 0" class="badge badge-warning">{{ summary.pendingWorkReviews }}</span>

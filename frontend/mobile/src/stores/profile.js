@@ -4,6 +4,7 @@ import { fetchProfile, updateProfile } from '@/api/profile'
 import { uploadFile, parseUploadResponse } from '@/api/work'
 import { resolveFileUrl } from '@/utils/fileUrl'
 import { avatarGradByRole } from '@/utils/avatar'
+import { apiMessage } from '@/utils/apiError'
 import { useUserStore } from './user'
 
 export const useProfileStore = defineStore('profile', () => {
@@ -99,7 +100,7 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       const up = await uploadFile(file)
       if (up?.code !== 200) {
-        throw new Error(up?.message || '上传失败')
+        throw new Error(up?.message || '文件上传失败')
       }
 
       const { fileUrl, previewUrl } = parseUploadResponse(up)
@@ -109,12 +110,16 @@ export const useProfileStore = defineStore('profile', () => {
 
       const res = await patchProfile({ userLogo: fileUrl })
       if (res?.code !== 200) {
-        throw new Error(res?.message || '头像更新失败')
+        throw new Error(res?.message || '头像保存失败')
       }
       return res
     } catch (e) {
       syncAvatarPreview()
-      throw e
+      const status = e?.response?.status
+      if (status === 404) {
+        throw new Error('保存头像接口不存在(404)，请更新后端 JAR 并重启服务')
+      }
+      throw new Error(apiMessage(e, '头像上传失败，请检查网络'))
     } finally {
       URL.revokeObjectURL(localPreview)
       avatarUploading.value = false

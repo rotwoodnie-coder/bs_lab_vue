@@ -113,12 +113,12 @@
             <router-link to="/audits" class="card rounded-xl card-pad text-center anim-fade-up delay-1">
               <div class="mb-1"><i data-lucide="file-check" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
               <div class="stat-num text-brand">{{ stats.pendingReview }}</div>
-              <div class="text-xs muted mt-1">待批阅</div>
+              <div class="text-xs muted mt-1">待评价</div>
             </router-link>
             <router-link to="/assign" class="card rounded-xl card-pad text-center anim-fade-up delay-2">
               <div class="mb-1"><i data-lucide="clipboard-list" class="icon icon-lg" style="color:var(--c-amber-600);"></i></div>
               <div class="stat-num text-warning">{{ stats.assigned }}</div>
-              <div class="text-xs muted mt-1">已布置</div>
+              <div class="text-xs muted mt-1">已发布</div>
             </router-link>
             <router-link :to="teacherSubmittedLink" class="card rounded-xl card-pad text-center anim-fade-up delay-3">
               <div class="mb-1"><i data-lucide="check-circle" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
@@ -196,11 +196,11 @@
           <template v-if="isTeacher">
             <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-1 relative" @click="navigateTo('/assign')">
               <div class="mb-1"><i data-lucide="pen-square" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
-              <span class="text-xs font-bold">布置实验任务</span>
+              <span class="text-xs font-bold">发布实验任务</span>
             </button>
             <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-2" @click="navigateTo('/audits')">
               <div class="mb-1"><i data-lucide="check-circle" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
-              <span class="text-xs font-bold">批阅</span>
+              <span class="text-xs font-bold">评价</span>
             </button>
             <button type="button" class="card rounded-xl card-pad text-center anim-fade-up delay-3" @click="navigateTo(boardLink)">
               <div class="mb-1"><i data-lucide="bar-chart-3" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
@@ -289,7 +289,7 @@
                   <p class="text-xl font-bold text-success">{{ stats.submitRate }}%</p>
                 </div>
                 <div class="surface-2 rounded-xl py-3 px-3 text-center">
-                  <p class="text-xs muted">待批阅</p>
+                  <p class="text-xs muted">待评价</p>
                   <p class="text-xl font-bold text-brand">{{ stats.pendingReview }}</p>
                 </div>
                 <div class="surface-2 rounded-xl py-3 px-3 text-center">
@@ -361,12 +361,12 @@
             <router-link to="/audits" class="card rounded-xl card-pad text-center">
               <div class="mb-1"><i data-lucide="file-check" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
               <div class="stat-num text-brand">{{ stats.pendingReview }}</div>
-              <div class="text-xs muted mt-1">待批阅</div>
+              <div class="text-xs muted mt-1">待评价</div>
             </router-link>
             <router-link to="/assign" class="card rounded-xl card-pad text-center">
               <div class="mb-1"><i data-lucide="clipboard-list" class="icon icon-lg" style="color:var(--c-amber-600);"></i></div>
               <div class="stat-num text-warning">{{ stats.assigned }}</div>
-              <div class="text-xs muted mt-1">已布置</div>
+              <div class="text-xs muted mt-1">已发布</div>
             </router-link>
             <router-link :to="teacherSubmittedLink" class="card rounded-xl card-pad text-center">
               <div class="mb-1"><i data-lucide="check-circle" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
@@ -392,7 +392,7 @@
                   <p class="text-xl font-bold text-success">{{ stats.submitRate }}%</p>
                 </div>
                 <div class="surface-2 rounded-xl py-3 px-3 text-center">
-                  <p class="text-xs muted">待批阅</p>
+                  <p class="text-xs muted">待评价</p>
                   <p class="text-xl font-bold text-brand">{{ stats.pendingReview }}</p>
                 </div>
                 <div class="surface-2 rounded-xl py-3 px-3 text-center">
@@ -452,11 +452,11 @@
               <template v-if="isTeacher">
                 <button type="button" class="card rounded-xl card-pad text-center relative" @click="navigateTo('/assign')">
                   <div class="mb-1"><i data-lucide="pen-square" class="icon icon-lg" style="color:var(--c-blue-600);"></i></div>
-                  <span class="text-xs font-bold">布置实验任务</span>
+                  <span class="text-xs font-bold">发布实验任务</span>
                 </button>
                 <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo('/audits')">
                   <div class="mb-1"><i data-lucide="check-circle" class="icon icon-lg" style="color:var(--c-emerald-600);"></i></div>
-                  <span class="text-xs font-bold">批阅</span>
+                  <span class="text-xs font-bold">评价</span>
                 </button>
                 <button type="button" class="card rounded-xl card-pad text-center" @click="navigateTo(boardLink)">
                   <div class="mb-1"><i data-lucide="bar-chart-3" class="icon icon-lg" style="color:var(--c-violet-600);"></i></div>
@@ -759,7 +759,7 @@ onMounted(async () => {
   border-radius: var(--radius-full);
   background: var(--c-rose-600);
   color: #fff;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: var(--weight-bold);
   line-height: 16px;
   text-align: center;

@@ -84,7 +84,7 @@ public class MobileInboxService {
         item.setCategory("class");
         item.setKind("teacher-class-cancelled");
         item.setTitle(task.getTitle());
-        String classLabel = StringUtils.hasText(task.getClassName()) ? task.getClassName() : "班级任务";
+        String classLabel = StringUtils.hasText(task.getClassName()) ? task.getClassName() : "班级实验任务";
         int submitted = task.getSubmitted();
         int total = task.getTotalStudents();
         StringBuilder desc = new StringBuilder(classLabel);
@@ -104,20 +104,20 @@ public class MobileInboxService {
         item.setCategory("class");
         item.setKind("teacher-class");
         item.setTitle(task.getTitle());
-        String classLabel = StringUtils.hasText(task.getClassName()) ? task.getClassName() : "班级任务";
+        String classLabel = StringUtils.hasText(task.getClassName()) ? task.getClassName() : "班级实验任务";
         int submitted = task.getSubmitted();
         int total = task.getTotalStudents();
         int pendingReview = task.getPendingReview();
         StringBuilder desc = new StringBuilder(classLabel);
         desc.append(" · 已提交 ").append(submitted).append("/").append(total);
         if (pendingReview > 0) {
-            desc.append(" · ").append(pendingReview).append(" 份待批阅");
+            desc.append(" · ").append(pendingReview).append(" 份待评价");
         }
         item.setDesc(desc.toString());
         item.setLink("/tasks/" + task.getTaskId() + "/summary");
         item.setState(needsAction ? "pending" : "done");
         if (pendingReview > 0) {
-            item.setStateLabel("待批阅");
+            item.setStateLabel("待评价");
             item.setBadgeClass("badge-warning");
         } else if (submitted < total) {
             item.setStateLabel("待跟进");

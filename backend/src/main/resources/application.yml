@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://10.0.181.204:13306/bs_exp_vue?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: ZHTKFc5ta7tPTeyx
+    url: jdbc:mysql://192.168.102.16:3306/bs_exp_vue?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    username: bslab_app
+    password: Bslab_app@2026
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
@@ -26,11 +26,11 @@ app:
     upload-dir: D:/java/apache-tomcat-file/webapps/ROOT/uploads
     url-prefix: http://127.0.0.1:7080/uploads
   minio:
-    endpoint: http://10.0.181.204:19000
-    access-key: minio
-    secret-key: KCfK6d2e7JkJWkEp
-    bucket: bslab-media-dev
-    url-prefix: http://10.0.181.204:19000/bslab-media-dev
+    endpoint: http://192.168.102.83:9000
+    access-key: adminminio
+    secret-key: 12345678Abc
+    bucket: bslab-media
+    url-prefix: http://sysj.bsedu.org.cn/media/bslab-media
     max-file-size: 1048576000
   mobile:
     enabled: true
@@ -44,7 +44,7 @@ app:
     client-secret: ${DINGTALK_CLIENT_SECRET:}
     # 生产域名示例：https://school.example.com/m ；开发/LAN 示例：http://10.0.1.103:8011/m
     # 完整回调地址：{frontend-origin}/#/settings/dingtalk/callback
-    frontend-origin: ${DINGTALK_FRONTEND_ORIGIN:http://10.0.1.103:8011/m}
+    frontend-origin: ${DINGTALK_FRONTEND_ORIGIN:http://sysj.bsedu.org.cn/m}
   jwt:
     secret: ${JWT_SECRET:bs-lab-mobile-dev-secret-change-before-production-2026}
     access-token-seconds: 7200

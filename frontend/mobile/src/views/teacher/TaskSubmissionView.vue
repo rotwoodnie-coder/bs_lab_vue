@@ -19,7 +19,7 @@
         <div class="text-xs muted">{{ work.author }} · {{ work.className }} · {{ work.time }}</div>
         <p v-if="work.desc" class="text-sm">{{ work.desc }}</p>
         <div v-if="work.teacherReview" class="surface-2 rounded-xl p-3 text-sm stack-2">
-          <div class="font-bold text-brand">已批阅</div>
+          <div class="font-bold text-brand">已评价</div>
           <div>评级：{{ gradeLabel(work.grade) }}</div>
           <div v-if="work.teacherReview.text">评语：{{ work.teacherReview.text }}</div>
         </div>
@@ -100,9 +100,9 @@ async function submitReview() {
       router.replace(`/tasks/${taskId.value}/summary`)
       return
     }
-    alert(res?.message || '批阅失败')
+    alert(res?.message || '评价失败')
   } catch (e) {
-    alert(e?.response?.data?.message || '批阅失败')
+    alert(e?.response?.data?.message || '评价失败')
   } finally {
     submitting.value = false
   }

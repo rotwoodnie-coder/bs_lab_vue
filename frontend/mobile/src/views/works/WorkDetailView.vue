@@ -13,10 +13,11 @@
 
         <div class="lab-watch__summary">
           <div class="lab-watch__meta">
-            <div class="flex items-center justify-between gap-2">
-              <h1 class="lab-watch__title">{{ work.title }}</h1>
+            <div class="lab-watch__meta-head">
+              <h1 class="lab-watch__title flex-1 min-w-0">{{ work.title }}</h1>
               <span v-if="gradeBadge" class="badge shrink-0" :class="gradeBadge.class">{{ gradeBadge.label }}</span>
             </div>
+            <p v-if="work.time" class="lab-watch__meta-time">{{ work.time }}</p>
 
             <div class="lab-watch__toolbar">
               <div class="lab-watch__uploader">
@@ -28,7 +29,6 @@
                 />
                 <div class="min-w-0">
                   <div v-if="authorLine" class="text-sm font-bold">{{ authorLine }}</div>
-                  <div v-if="work.time" class="text-xs muted">{{ work.time }}</div>
                 </div>
               </div>
               <div class="lab-watch__actions row gap-2">
@@ -41,13 +41,13 @@
                 <button
                   v-if="isAuthor"
                   type="button"
-                  class="btn btn-sm lab-watch__action lab-watch__action--edit"
+                  class="btn btn-sm btn-outline lab-watch__action lab-watch__action--edit"
                   @click="onEditClick"
                 >编辑</button>
               </div>
             </div>
 
-            <p v-if="work.desc" class="text-sm leading-tight mt-2">{{ work.desc }}</p>
+            <p v-if="work.desc" class="text-sm leading-snug mt-3">{{ work.desc }}</p>
           </div>
 
           <div class="lab-watch__social" aria-label="互动">
@@ -78,65 +78,65 @@
               <span>{{ commentCount }}</span>
             </button>
           </div>
-        </div>
 
-        <div v-if="work.teacherReview" class="mx-4 p-3 tint-blue rounded">
-          <div class="flex items-start gap-2">
-            <span class="text-lg shrink-0">👩‍🏫</span>
-            <div>
-              <p class="text-sm font-bold text-brand">{{ work.teacherReview.name }}评语：</p>
-              <p class="text-sm mt-1">{{ work.teacherReview.text }}</p>
+          <div v-if="work.teacherReview" class="lab-watch__teacher-review tint-blue">
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">👩‍🏫</span>
+              <div>
+                <p class="text-sm font-bold text-brand">{{ work.teacherReview.name }}评语：</p>
+                <p class="text-sm mt-1">{{ work.teacherReview.text }}</p>
+              </div>
             </div>
           </div>
+
+          <section ref="commentsSection" class="lab-watch__comments" aria-label="评论">
+            <div class="lab-comments__head row items-center justify-between">
+              <h2 class="text-sm font-bold">评论 <span class="muted font-normal">{{ commentCount }}</span></h2>
+              <button type="button" class="text-xs font-medium" :class="commentSortOrder === 'hot' ? 'text-brand' : 'muted'" @click="toggleCommentSort">
+                {{ commentSortOrder === 'hot' ? '最热' : '最新' }}
+              </button>
+            </div>
+
+            <form class="comment-compose" @submit.prevent="submitComment">
+              <UserAvatar size="sm" shrink />
+              <input v-model="commentText" type="text" class="comment-compose__input" placeholder="写下你的看法或提问…" aria-label="发表评论">
+              <button type="submit" class="btn btn-sm btn-gradient shrink-0">发送</button>
+            </form>
+
+            <ul v-if="displayedComments.length" class="comment-list">
+              <li v-for="c in displayedComments" :key="c.id || c.text" class="comment-item">
+                <UserAvatar
+                  size="sm"
+                  shrink
+                  :name="c.author"
+                  :src="c.avatarUrl"
+                  :role="c.isTeacher ? 'teacher' : 'student'"
+                />
+                <div class="comment-item__body">
+                  <div class="comment-item__head">
+                    <span class="text-xs font-bold" :class="{ 'text-brand': c.isAuthor }">{{ c.author }}</span>
+                    <span v-if="c.isAuthor" class="pill text-xs" style="padding:1px 6px">作者</span>
+                    <span v-if="c.isTeacher" class="pill text-xs" style="padding:1px 6px;margin-left:4px">老师</span>
+                    <span class="text-xs muted">{{ c.time }}</span>
+                  </div>
+                  <p class="comment-item__text">{{ c.text }}</p>
+                  <div class="comment-item__actions">
+                    <button
+                      type="button"
+                      class="comment-action"
+                      :class="{ 'comment-action--active': c.liked }"
+                      @click="toggleCommentLike(c)"
+                    >
+                      <i data-lucide="thumbs-up" class="icon"></i> {{ c.likes }}
+                    </button>
+                    <button type="button" class="comment-action">回复</button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+            <p v-else class="text-xs muted text-center py-4">暂无评论</p>
+          </section>
         </div>
-
-        <section ref="commentsSection" class="lab-watch__comments px-4 pb-4" aria-label="评论">
-          <div class="lab-comments__head row items-center justify-between">
-            <h2 class="text-sm font-bold">评论 <span class="muted font-normal">{{ commentCount }}</span></h2>
-            <button type="button" class="text-xs font-medium" :class="commentSortOrder === 'hot' ? 'text-brand' : 'muted'" @click="toggleCommentSort">
-              {{ commentSortOrder === 'hot' ? '最热' : '最新' }}
-            </button>
-          </div>
-
-          <form class="comment-compose" @submit.prevent="submitComment">
-            <UserAvatar size="sm" shrink />
-            <input v-model="commentText" type="text" class="comment-compose__input" placeholder="写下你的看法或提问…" aria-label="发表评论">
-            <button type="submit" class="btn btn-sm btn-gradient shrink-0">发送</button>
-          </form>
-
-          <ul v-if="displayedComments.length" class="comment-list">
-            <li v-for="c in displayedComments" :key="c.id || c.text" class="comment-item">
-              <UserAvatar
-                size="sm"
-                shrink
-                :name="c.author"
-                :src="c.avatarUrl"
-                :role="c.isTeacher ? 'teacher' : 'student'"
-              />
-              <div class="comment-item__body">
-                <div class="comment-item__head">
-                  <span class="text-xs font-bold" :class="{ 'text-brand': c.isAuthor }">{{ c.author }}</span>
-                  <span v-if="c.isAuthor" class="pill text-xs" style="padding:1px 6px">作者</span>
-                  <span v-if="c.isTeacher" class="pill text-xs" style="padding:1px 6px;margin-left:4px">老师</span>
-                  <span class="text-xs muted">{{ c.time }}</span>
-                </div>
-                <p class="comment-item__text">{{ c.text }}</p>
-                <div class="comment-item__actions">
-                  <button
-                    type="button"
-                    class="comment-action"
-                    :class="{ 'comment-action--active': c.liked }"
-                    @click="toggleCommentLike(c)"
-                  >
-                    <i data-lucide="thumbs-up" class="icon"></i> {{ c.likes }}
-                  </button>
-                  <button type="button" class="comment-action">回复</button>
-                </div>
-              </div>
-            </li>
-          </ul>
-          <p v-else class="text-xs muted text-center py-4">暂无评论</p>
-        </section>
       </div>
 
       <ExpDetailRail

@@ -3,6 +3,7 @@ package com.xuanyue.exp.mobile.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -19,12 +20,17 @@ import java.util.*;
 public class MobileChatProxyService {
 
     private static final Logger log = LoggerFactory.getLogger(MobileChatProxyService.class);
+    /** agents_service 当前仅注册 student（石头老师） */
+    private static final Set<String> SUPPORTED_AGENT_ROLES = Collections.singleton("student");
 
     private final RestTemplate restTemplate;
     private final String agentsBaseUrl;
 
     public MobileChatProxyService(MobileWebProperties mobileWebProperties) {
-        this.restTemplate = new RestTemplate();
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10_000);
+        factory.setReadTimeout(120_000);
+        this.restTemplate = new RestTemplate(factory);
         this.agentsBaseUrl = normalizeBaseUrl(mobileWebProperties.getAgentsBaseUrl());
         log.info("Mobile AI chat proxy target: {}", agentsBaseUrl);
     }
@@ -34,6 +40,17 @@ public class MobileChatProxyService {
             return "http://127.0.0.1:5001";
         }
         return raw.trim().replaceAll("/+$", "");
+    }
+
+    static String normalizeAgentRole(String role) {
+        String normalized = role == null ? "" : role.trim().toLowerCase();
+        if (SUPPORTED_AGENT_ROLES.contains(normalized)) {
+            return normalized;
+        }
+        if (StringUtils.hasText(normalized)) {
+            log.info("Agent 角色 {} 尚未上线，回退为 student", normalized);
+        }
+        return "student";
     }
 
     /**
@@ -52,7 +69,7 @@ public class MobileChatProxyService {
                                          String role) {
         Map<String, Object> body = new HashMap<>();
         body.put("message", message);
-        body.put("role", (role != null && !role.isEmpty()) ? role : "student");
+        body.put("role", normalizeAgentRole(role));
         if (threadId != null && !threadId.isEmpty()) {
             body.put("thread_id", threadId);
         }

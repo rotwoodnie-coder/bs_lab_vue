@@ -34,7 +34,7 @@ const typeLabel = computed(() => {
   if (t.category === 'quiz') return '🧠 答题'
   if (t.category === 'remix') return '📷 拍同款'
   if (t.category === 'creative') return '💡 创意'
-  if (t.category === 'class') return '📋 班级任务'
+  if (t.category === 'class') return '📋 班级实验任务'
   if (t.category === 'audit') return '📑 实验审核'
   if (t.subType === 'simulator') return '🖥️ 模拟实验'
   return '🔬 实验'

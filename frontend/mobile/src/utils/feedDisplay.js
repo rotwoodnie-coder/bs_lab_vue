@@ -45,11 +45,13 @@ export function tagIcon(item) {
   return map[item.tagType] || 'play-circle'
 }
 
+import { workTypeTagLabel } from '@/utils/workLabels'
+
 export function metaLineParts(item) {
   const parts = []
   if (item.type === 'work') {
     if (item.grade) parts.push(item.grade)
-    if (item.tagLabel) parts.push(item.tagLabel)
+    if (item.tagLabel) parts.push(workTypeTagLabel(item.tagLabel))
     parts.push(item.playCount ? `${item.playCount}赞` : '0赞')
     return parts
   }

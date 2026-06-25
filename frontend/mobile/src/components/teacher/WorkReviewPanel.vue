@@ -53,7 +53,7 @@ const props = defineProps({
     default: () => ({ rating: '', comment: '', featured: false })
   },
   submitting: { type: Boolean, default: false },
-  submitLabel: { type: String, default: '提交批阅' }
+  submitLabel: { type: String, default: '提交评价' }
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])

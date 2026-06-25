@@ -24,8 +24,10 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const lanIp = resolveLanIp()
   const port = 5174
-  const base = env.VITE_BASE || '/'
-
+  //const base = env.VITE_BASE || '/admin/'
+  const base ='admin'
+  // 防止打包后点击刷新后页面空白  
+ // constpublicPath = process.env.NODE_ENV === 'production' ? './' : '/'
   return {
     base,
     plugins: [

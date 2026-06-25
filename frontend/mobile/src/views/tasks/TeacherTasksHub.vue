@@ -32,20 +32,20 @@
         </router-link>
         <router-link to="/assign" class="btn btn-primary btn-block">
           <i data-lucide="pen-square" class="icon"></i>
-          布置新任务
+          发布新任务
         </router-link>
       </nav>
 
       <section class="pad-teacher__feed">
         <div class="row items-center justify-between mb-3 px-1">
-          <h2 class="text-sm font-bold">班级任务</h2>
+          <h2 class="text-sm font-bold">班级实验任务</h2>
           <span class="text-xs muted">共 {{ tasks.length }} 项</span>
         </div>
         <div v-if="!tasks.length" class="teacher-empty card card-pad text-center">
           <div class="text-2xl mb-2">📋</div>
-          <p class="text-sm font-bold">还没有布置任务</p>
+          <p class="text-sm font-bold">还没有发布任务</p>
           <p class="text-xs muted mt-2">点击下方按钮创建第一个班级实验任务</p>
-          <router-link to="/assign" class="btn btn-primary btn-sm mt-4">去布置</router-link>
+          <router-link to="/assign" class="btn btn-primary btn-sm mt-4">去发布</router-link>
         </div>
         <div v-else class="pad-home__grid">
           <router-link
@@ -74,7 +74,7 @@
             </div>
             <router-link to="/assign" class="btn btn-sm teacher-hub-banner__cta">
               <i data-lucide="pen-square" class="icon icon-sm"></i>
-              布置
+              发布
             </router-link>
           </div>
         </div>
@@ -93,7 +93,7 @@
             <div class="grid-2 gap-2 flex-1">
               <div class="stat surface-2 rounded-lg p-3">
                 <div class="stat-num text-brand">{{ dashboard?.pendingReview || 0 }}</div>
-                <div class="stat-label">待批阅</div>
+                <div class="stat-label">待评价</div>
               </div>
               <div class="stat surface-2 rounded-lg p-3">
                 <div class="stat-num text-warning">{{ dashboard?.pendingParentBinds || 0 }}</div>
@@ -145,14 +145,14 @@
 
         <div class="px-4 mt-5">
           <div class="row items-center justify-between mb-3">
-            <h2 class="text-sm font-bold">班级任务</h2>
+            <h2 class="text-sm font-bold">班级实验任务</h2>
             <span class="text-xs muted">{{ tasks.length }} 项</span>
           </div>
 
           <div v-if="!tasks.length" class="teacher-empty card card-pad text-center py-8">
             <div class="text-2xl mb-2">📋</div>
-            <p class="text-sm muted-2">暂无布置的任务</p>
-            <router-link to="/assign" class="btn btn-primary btn-sm mt-4">布置新任务</router-link>
+            <p class="text-sm muted-2">暂无发布的任务</p>
+            <router-link to="/assign" class="btn btn-primary btn-sm mt-4">发布新任务</router-link>
           </div>
 
           <div v-else class="stack-3">
@@ -203,7 +203,7 @@ const TeacherTaskCardBody = defineComponent({
     return () => h('div', { class: 'teacher-task-card__body stack-3' }, [
       h('div', { class: 'row items-start justify-between gap-2' }, [
         h('div', { class: 'min-w-0 flex-1' }, [
-          h('span', { class: 'task-type-badge task-type-badge--homework' }, '📋 班级任务'),
+          h('span', { class: 'task-type-badge task-type-badge--homework' }, '📋 班级实验任务'),
           h('div', { class: 'text-base font-bold mt-2 truncate' }, props.task.title || '未命名任务'),
           props.task.className
             ? h('p', { class: 'text-xs muted mt-1 truncate' }, props.task.className)
@@ -278,7 +278,7 @@ const overviewStats = computed(() => [
     color: 'var(--c-blue-600)',
     numClass: 'text-brand',
     value: dashboard.value?.pendingReview || 0,
-    label: '待批阅',
+    label: '待评价',
     to: reviewTaskLink.value
   },
   {
@@ -296,7 +296,7 @@ const overviewStats = computed(() => [
     color: 'var(--c-violet-600)',
     numClass: 'text-accent',
     value: dashboard.value?.assigned || tasks.value.length || 0,
-    label: '已布置',
+    label: '已发布',
     to: '/tasks'
   },
   {
@@ -323,7 +323,7 @@ const quickActions = computed(() => [
   {
     key: 'assign',
     icon: 'pen-square',
-    label: '布置实验任务',
+    label: '发布实验任务',
     color: 'var(--c-emerald-600)',
     bg: 'color-mix(in srgb, var(--brand) 12%, var(--color-surface))',
     to: '/assign',
@@ -439,7 +439,7 @@ defineExpose({ reload: load })
   border-radius: 999px;
   background: var(--color-warning);
   color: #fff;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 700;
   line-height: 18px;
   text-align: center;
