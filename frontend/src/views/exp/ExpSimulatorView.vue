@@ -29,7 +29,8 @@
           <template #default="scope">
             <el-image
               v-if="scope.row.coverImageUrl"
-              :src="withFilePrefix(scope.row.coverImagePreviewUrl)"
+              :key="`${scope.row.simulatorId}-${scope.row.coverImageUrl}`"
+              :src="withFilePrefix(scope.row.coverImagePreviewUrl, scope.row.coverImageUrl)"
               fit="contain"
               style="width: 72px; height: 48px; border-radius: 6px; background: #fafafa"
             />
@@ -119,32 +120,33 @@
                 <span class="cover-tip">仅支持上传图片，上传后自动保存为图片地址</span>
               </div>
               <div v-if="form.coverImageUrl" class="cover-preview">
-                <img :src="withFilePrefix(form.coverImagePreviewUrl)" alt="封面预览" />
+                <img :src="withFilePrefix(form.coverImagePreviewUrl, form.coverImageUrl)" alt="封面预览" />
               </div>
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
             <el-form-item label="模拟器URL" prop="simulatorUrl">
-              <div class="simulator-url-field">
-                <el-input  :maxlength="150"
-                  v-model="form.simulatorUrl"
-                  placeholder="请输入以 http/https 开头的地址，或上传 html/htm 文件后自动生成"
-                />
-                <el-upload
-                  class="simulator-upload"
-                  action="#"
-                  :show-file-list="false"
-                  :auto-upload="false"
-                  accept=".html,.htm,text/html,application/xhtml+xml"
-                  :before-upload="beforeSimulatorUpload"
-                  :on-change="handleSimulatorSelected"
-                >
-                  <el-button type="primary">上传模拟器HTML</el-button>
-                </el-upload>
-                <el-button v-if="form.simulatorUrl" @click="clearSimulatorUrl">清空</el-button>
+              <div class="simulator-url-block">
+                <div class="simulator-url-row">
+                  <el-input
+                    v-model="form.simulatorUrl"
+                    class="simulator-url-input"
+                    :maxlength="200"
+                    placeholder="可直接填写第三方 http/https 链接，或上传 html/htm 文件"
+                  />
+                  <MinioButtonUploader
+                    v-model="form.simulatorUrl"
+                    accept=".html,.htm"
+                    button-text="上传HTML"
+                    :show-file-actions="false"
+                    class="simulator-upload"
+                    @uploaded="handleSimulatorUploaded"
+                  />
+                  <el-button v-if="form.simulatorUrl" @click="clearSimulatorUrl">清空</el-button>
+                </div>
+                <div class="simulator-url-tip">支持填写第三方模拟器链接（http/https），也支持上传本地 html/htm 文件，二选一即可。</div>
               </div>
-              <div class="simulator-url-tip">支持直接输入 http/https 开头的地址，或上传 html/htm 文件。</div>
             </el-form-item>
           </el-col>
 
@@ -183,6 +185,9 @@ import {
   updateExpSimulator,
   uploadMinioFile as uploadSimulatorFile
 } from '../../api/index'
+import MinioButtonUploader from '../../components/MinioButtonUploader.vue'
+import { resolveDisplayUrl, resolveMinioPreviewApiUrl } from '../../utils/fileUrl'
+import { formatUploadError } from '../../utils/uploadError'
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -196,30 +201,16 @@ const tableData = ref([])
 const pageSizes = [10, 20, 30, 40, 50]
 const subjectOptions = ref([])
 
-const fileUrlPrefix = (import.meta.env.VITE_File_URL_PREFIX || '').trim()
-
 const query = reactive({ keyword: '', status: '', pageNum: 1, pageSize: 10 })
-const form = reactive({ simulatorName: '', subjectId: '', coverImageUrl: '',coverImagePreviewUrl:'', simulatorUrl: '', comments: '', status: 'y' })
+const form = reactive({ simulatorName: '', subjectId: '', coverImageUrl: '', coverImagePreviewUrl: '', simulatorUrl: '', comments: '', status: 'y' })
 
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim())
 const isHtmlFile = (value) => {
   const v = String(value || '').trim().toLowerCase()
   return v.endsWith('.html') || v.endsWith('.htm') || v.startsWith('data:text/html') || v.startsWith('data:application/xhtml+xml')
 }
-const isHtmlUrl = (value) => isHttpUrl(value) || isHtmlFile(value) || /^\/uploads\//i.test(String(value || '').trim())
 
-const normalizeUrl = (value) => {
-  const v = String(value || '').trim()
-  if (!v) return ''
-  if (/^(https?:)?\/\//i.test(v) || /^data:/i.test(v)) return v
-  if (!fileUrlPrefix) return v
-  const prefix = fileUrlPrefix.endsWith('/') ? fileUrlPrefix.slice(0, -1) : fileUrlPrefix
-  const suffix = v.startsWith('/') ? v : `/${v}`
-  return `${prefix}${suffix}`
-}
-
-const displaySimulatorUrl = (value) => normalizeUrl(value)
-const withFilePrefix = (value) => normalizeUrl(value)
+const withFilePrefix = (previewUrl, fileUrl) => resolveDisplayUrl(previewUrl, fileUrl)
 
 const validateSimulatorUrlPattern = (value) => {
   const v = String(value || '').trim()
@@ -230,7 +221,7 @@ const validateSimulatorUrl = (_rule, value, callback) => {
   const v = String(value || '').trim()
   if (!v) return callback(new Error('请输入模拟器URL'))
   if (validateSimulatorUrlPattern(v)) return callback()
-  callback(new Error('请输入以 http/https 开头的地址，或上传 html/htm 文件'))
+  callback(new Error('请填写 http/https 开头的第三方链接，或上传 html/htm 文件'))
 }
 
 const rules = {
@@ -238,8 +229,8 @@ const rules = {
   subjectId: [{ required: true, message: '请选择学科', trigger: 'change' }],
   coverImageUrl: [{ required: true, message: '请上传封面图片', trigger: 'change' }],
   simulatorUrl: [
-    { required: true, message: '请输入模拟器URL', trigger: 'blur' },
-    { validator: validateSimulatorUrl, trigger: 'blur' }
+    { required: true, message: '请填写模拟器访问地址', trigger: 'blur' },
+    { validator: validateSimulatorUrl, trigger: ['blur', 'change'] }
   ],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }]
 }
@@ -271,14 +262,8 @@ const beforeCoverUpload = (file) => {
   return true
 }
 
-const beforeSimulatorUpload = (file) => {
-  const name = (file.name || '').toLowerCase()
-  const ok = name.endsWith('.html') || name.endsWith('.htm') || file.type === 'text/html' || file.type === 'application/xhtml+xml'
-  if (!ok) {
-    ElMessage.error('请选择 html 或 htm 文件')
-    return false
-  }
-  return true
+const handleSimulatorUploaded = () => {
+  formRef.value?.validateField('simulatorUrl')
 }
 
 const normalizeOptions = (rows, valueKey, labelKey) => (rows || [])
@@ -364,9 +349,12 @@ const handleSubmit = async () => {
     submitLoading.value = true
     try {
       const payload = {
-        ...form,
-        coverImageUrl: normalizeUrl(form.coverImageUrl),
-        simulatorUrl: form.simulatorUrl,
+        simulatorName: form.simulatorName,
+        subjectId: form.subjectId,
+        coverImageUrl: form.coverImageUrl.trim(),
+        simulatorUrl: form.simulatorUrl.trim(),
+        comments: form.comments,
+        status: form.status,
         subjectName: subjectLabel.value
       }
       const res = isEdit.value ? await updateExpSimulator(editId.value, payload) : await createExpSimulator(payload)
@@ -402,38 +390,22 @@ const handleCoverSelected = async (uploadFile) => {
       ElMessage.error(res.data.message || '上传失败')
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || '上传失败')
-  } finally {
-    submitLoading.value = false
-  }
-}
-
-const handleSimulatorSelected = async (uploadFile) => {
-  const rawFile = uploadFile.raw
-  if (!rawFile) return
-  submitLoading.value = true
-  try {
-    const res = await uploadSimulatorFile(rawFile)
-    if (res.data.code === 200) {
-      const data = res.data.data || {}
-      const fileUrl = data.fileUrl || data.url || data.path || ''
-      form.simulatorUrl = fileUrl ? normalizeUrl(fileUrl) : ''
-      if (!form.simulatorUrl) {
-        ElMessage.error('上传成功，但未返回文件地址')
-      }
-    } else {
-      ElMessage.error(res.data.message || '上传失败')
-    }
-  } catch (error) {
-    ElMessage.error(error?.response?.data?.message || '上传失败')
+    ElMessage.error(formatUploadError(error))
   } finally {
     submitLoading.value = false
   }
 }
 
 const openSimulator = async (row) => {
-  const url = normalizeUrl(row.simulatorPreviewUrl)
-  if (!validateSimulatorUrlPattern(url)) {
+  const storedUrl = String(row.simulatorUrl || '').trim()
+  if (!validateSimulatorUrlPattern(storedUrl)) {
+    ElMessage.warning('模拟器URL无效')
+    return
+  }
+  const url = /^https?:\/\//i.test(storedUrl)
+    ? storedUrl
+    : resolveMinioPreviewApiUrl(storedUrl)
+  if (!url) {
     ElMessage.warning('模拟器URL无效')
     return
   }
@@ -469,5 +441,86 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.simulator-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.simulator-toolbar-left,.simulator-toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.simulator-search{width:260px}.simulator-select{width:140px}.simulator-url-link{color:#409eff;cursor:pointer;text-decoration:underline}.cover-field{display:flex;align-items:center;gap:12px;width:100%;flex-wrap:wrap}.cover-upload{flex-shrink:0}.cover-tip,.simulator-url-tip{color:#909399;font-size:12px}.cover-preview{margin-top:10px;width:180px;height:108px;border:1px solid #ebeef5;border-radius:8px;overflow:hidden;background:#fafafa}.cover-preview img{width:100%;height:100%;object-fit:cover;display:block}.simulator-url-field{display:flex;align-items:center;gap:12px;width:100%;flex-wrap:wrap}.simulator-url-field :deep(.el-input){flex:1}.simulator-upload{flex-shrink:0}@media (max-width:768px){.simulator-search,.simulator-select{width:100%}.simulator-toolbar,.simulator-toolbar-left,.simulator-toolbar-right{width:100%}.cover-field,.simulator-url-field{flex-direction:column;align-items:stretch}.cover-upload,.simulator-upload{width:100%}.cover-upload :deep(.el-button),.simulator-upload :deep(.el-button){width:100%}.cover-preview{width:100%}}
+.simulator-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.simulator-toolbar-left,
+.simulator-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.simulator-search { width: 260px; }
+.simulator-select { width: 140px; }
+.cover-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.cover-upload { flex-shrink: 0; }
+.cover-tip,
+.simulator-url-tip {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.cover-preview {
+  margin-top: 10px;
+  width: 180px;
+  height: 108px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fafafa;
+}
+.cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.simulator-url-block {
+  width: 100%;
+}
+.simulator-url-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.simulator-url-input {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.simulator-upload {
+  flex: 0 0 auto;
+}
+.simulator-url-block :deep(.minio-btn-uploader__progress) {
+  max-width: none;
+  margin-top: 4px;
+}
+@media (max-width: 768px) {
+  .simulator-search,
+  .simulator-select { width: 100%; }
+  .simulator-toolbar,
+  .simulator-toolbar-left,
+  .simulator-toolbar-right { width: 100%; }
+  .cover-field,
+  .simulator-url-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cover-upload :deep(.el-button),
+  .simulator-upload :deep(.el-button) { width: 100%; }
+  .cover-preview { width: 100%; }
+}
 </style>

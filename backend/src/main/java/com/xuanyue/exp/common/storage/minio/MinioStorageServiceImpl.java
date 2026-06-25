@@ -38,13 +38,18 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
 
     @Override
     public Map<String, Object> upload(MultipartFile file) throws IOException {
+        return upload(file, null);
+    }
+
+    @Override
+    public Map<String, Object> upload(MultipartFile file, String originalFilename) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("文件不能为空");
         }
         if (file.getSize() > properties.getMaxFileSize()) {
             throw new RuntimeException("文件不能超过" + properties.getMaxFileSize() + "字节");
         }
-        String originalName = file.getOriginalFilename() == null ? "file" : file.getOriginalFilename();
+        String originalName = resolveOriginalName(file, originalFilename);
         String ext = getFileExtension(originalName);
         String dateFolder = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String objectName = buildObjectName(dateFolder, UUID.randomUUID().toString().replace("-", ""), ext);
@@ -54,14 +59,14 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
                             .bucket(properties.getBucket())
                             .object(objectName)
                             .stream(inputStream, file.getSize(), -1)
-                            .contentType(file.getContentType())
+                            .contentType(resolveContentType(file.getContentType(), originalName))
                             .build()
             );
         } catch (Exception e) {
             if (e instanceof IOException) {
                 throw (IOException) e;
             }
-            throw new RuntimeException("MinIO上传失败", e);
+            throw new RuntimeException("MinIO上传失败，请检查对象存储连接与配置：" + rootMessage(e), e);
         }
         String fileUrl = buildFileUrl(objectName);
         System.out.println("minio upload fileUrl: " + fileUrl);
@@ -207,6 +212,30 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
     }
 
     @Override
+    public Map<String, Object> checkHealth() {
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("endpoint", properties.getEndpoint());
+        result.put("bucket", properties.getBucket());
+        try {
+            boolean exists = minioClient.bucketExists(io.minio.BucketExistsArgs.builder()
+                    .bucket(properties.getBucket())
+                    .build());
+            result.put("reachable", true);
+            result.put("bucketExists", exists);
+            result.put("ok", exists);
+            if (!exists) {
+                result.put("message", "MinIO 可连接，但 bucket 不存在: " + properties.getBucket());
+            }
+        } catch (Exception e) {
+            result.put("reachable", false);
+            result.put("bucketExists", false);
+            result.put("ok", false);
+            result.put("message", rootMessage(e));
+        }
+        return result;
+    }
+
+    @Override
     public InputStream getObjectStream(String fileUrl) throws Exception {
         if (!StringUtils.hasText(fileUrl)) {
             return null;
@@ -227,16 +256,37 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
 
     private String resolveObjectName(String fileUrl) {
         String prefix = normalizeUrlPrefix(properties.getUrlPrefix());
-        System.out.println("minio upload normalizeUrlPrefix: " + prefix);
         String result = fileUrl.trim();
         if (StringUtils.hasText(prefix) && result.startsWith(prefix)) {
             result = result.substring(prefix.length());
         }
+        String relativePrefix = extractRelativePathFromPrefix(prefix);
+        if (StringUtils.hasText(relativePrefix) && result.startsWith(relativePrefix)) {
+            result = result.substring(relativePrefix.length());
+        }
         while (result.startsWith("/")) {
             result = result.substring(1);
         }
-        System.out.println("minio uploadresolveObjectName: " + result);
         return result;
+    }
+
+    private String extractRelativePathFromPrefix(String prefix) {
+        if (!StringUtils.hasText(prefix)) {
+            return "";
+        }
+        String value = prefix.trim();
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            try {
+                java.net.URI uri = java.net.URI.create(value);
+                String path = uri.getPath();
+                if (StringUtils.hasText(path)) {
+                    return path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+                }
+            } catch (Exception ignored) {
+                // fall through
+            }
+        }
+        return value.startsWith("/") ? value : "/" + value;
     }
 
     private String normalizeUrlPrefix(String prefix) {
@@ -251,11 +301,43 @@ public class MinioStorageServiceImpl implements MinioStorageService, Initializin
     }
 
 
+    private String resolveOriginalName(MultipartFile file, String originalFilename) {
+        if (StringUtils.hasText(originalFilename)) {
+            return originalFilename.trim();
+        }
+        return file.getOriginalFilename() == null ? "file" : file.getOriginalFilename();
+    }
+
     private String getFileExtension(String fileName) {
         int lastDotIndex = fileName == null ? -1 : fileName.lastIndexOf('.');
         if (lastDotIndex < 0 || lastDotIndex >= fileName.length() - 1) {
             return "";
         }
         return fileName.substring(lastDotIndex + 1);
+    }
+
+    private String resolveContentType(String rawContentType, String fileName) {
+        if (StringUtils.hasText(rawContentType)) {
+            return rawContentType.trim();
+        }
+        String ext = getFileExtension(fileName == null ? "" : fileName).toLowerCase();
+        if ("html".equals(ext) || "htm".equals(ext) || "sim".equals(ext)) {
+            return "text/html";
+        }
+        if ("css".equals(ext)) {
+            return "text/css";
+        }
+        if ("js".equals(ext)) {
+            return "application/javascript";
+        }
+        return "application/octet-stream";
+    }
+
+    private String rootMessage(Throwable ex) {
+        Throwable root = ex;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        return root.getMessage() == null ? ex.getMessage() : root.getMessage();
     }
 }

@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'node:path'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/admin/' : '/',
   plugins: [vue()],
   resolve: {
     alias: {
@@ -17,8 +18,10 @@ export default defineConfig({
         target: 'http://127.0.0.1:8011',
         //http://10.0.181.203:8011
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        timeout: 7200000,
+        proxyTimeout: 7200000
       }
     }
   }
-})
+}))

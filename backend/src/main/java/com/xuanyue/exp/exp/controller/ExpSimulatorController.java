@@ -6,12 +6,12 @@ import com.xuanyue.exp.exp.dto.ExpSimulatorListItem;
 import com.xuanyue.exp.exp.dto.ExpSimulatorPageQuery;
 import com.xuanyue.exp.exp.dto.ExpSimulatorSaveRequest;
 import com.xuanyue.exp.exp.dto.ExpSimulatorUpdateRequest;
+import com.xuanyue.exp.exp.service.ExpSimulatorLogService;
 import com.xuanyue.exp.exp.service.ExpSimulatorService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,9 +24,11 @@ import javax.servlet.http.HttpServletRequest;
 public class ExpSimulatorController {
 
     private final ExpSimulatorService service;
+    private final ExpSimulatorLogService logService;
 
-    public ExpSimulatorController(ExpSimulatorService service) {
+    public ExpSimulatorController(ExpSimulatorService service, ExpSimulatorLogService logService) {
         this.service = service;
+        this.logService = logService;
     }
 
     @GetMapping
@@ -58,6 +60,12 @@ public class ExpSimulatorController {
     @PostMapping("/{simulatorId}")
     public ApiResponse<Void> update(@PathVariable String simulatorId, @RequestBody ExpSimulatorUpdateRequest request, HttpServletRequest httpServletRequest) {
         service.update(simulatorId, request, httpServletRequest.getHeader("X-User-Id"));
+        return ApiResponse.success(null);
+    }
+
+    @PostMapping("/{simulatorId}/logs")
+    public ApiResponse<Void> recordLog(@PathVariable String simulatorId, HttpServletRequest httpServletRequest) {
+        logService.record(simulatorId, httpServletRequest.getHeader("X-User-Id"));
         return ApiResponse.success(null);
     }
 

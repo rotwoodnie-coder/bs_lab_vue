@@ -133,15 +133,20 @@
         <div class="data-file-form-layout">
           <div class="data-file-form-left">
             <div class="data-file-form-section-title">封面图片</div>
+            <p class="data-file-cover-hint">可选：上传精美封面；未上传时，图片/视频素材将自动生成默认封面（大图自动压缩）。</p>
             <MinioUploader
               :key="coverUploaderKey"
               v-model="form.coverImageUrl"
               v-model:file-name="form.coverImageName"
-              :preview-url="form.coverImagePreviewUrl"
+              :preview-url="getDisplayUrl(form.coverImagePreviewUrl)"
               accept=".png,.jpg,.jpeg,.webp,.gif"
               button-text="上传封面"
+              :compress-image-before-upload="true"
               @uploaded="handleCoverUploaded"
+              @cleared="handleCoverCleared"
             />
+            <p v-if="autoCoverGenerating" class="data-file-cover-status">正在从视频前 5 秒挑选最佳封面…</p>
+            <p v-else-if="coverSource === 'auto' && form.coverImageUrl" class="data-file-cover-status is-auto">已使用自动封面，上传新图可替换</p>
           </div>
 
           <div class="data-file-form-right">
@@ -194,38 +199,23 @@
                 :key="fileUploaderKey"
                 v-model="form.fileUrl"
                 v-model:file-name="form.fileName"
-                :preview-url="form.previewUrl"
+                :preview-url="getDisplayUrl(form.previewUrl)"
                 :accept="acceptExt"
                 button-text="上传文件"
                 @uploaded="handleFileUploaded"
                 @update:fileName="handleMaterialFileNameUpdate"
               />
             </div>
-            <div v-if="getDisplayUrl(form.previewUrl)" class="data-file-form-preview">
-              <template v-if="getPreviewMediaType(form.previewUrl, form.fileName) === 'image'">
-                <el-image
-                  class="data-file-form-preview-image"
-                  :src="getDisplayUrl(form.previewUrl)"
-                  fit="contain"
-                  :preview-src-list="[getDisplayUrl(form.previewUrl)]"
-                  preview-teleported
-                />
-              </template>
-              <template v-else-if="getPreviewMediaType(form.previewUrl, form.fileName) === 'video'">
-                <video class="data-file-form-preview-media" controls :src="getDisplayUrl(form.previewUrl)" />
-              </template>
-              <template v-else-if="getPreviewMediaType(form.previewUrl, form.fileName) === 'audio'">
-                <audio class="data-file-form-preview-audio" controls :src="getDisplayUrl(form.previewUrl)" />
-              </template>
-              <el-button
-                v-else
-                class="data-file-preview-button"
-                type="primary"
-                plain
-                @click="previewFile({ previewUrl: form.previewUrl})"
+            <div v-if="materialPreviewUrl" class="data-file-form-preview">
+              <MediaPreview
+                :preview-url="form.previewUrl"
+                :file-url="form.fileUrl"
+                :file-name="form.fileName"
               >
-                文件预览
-              </el-button>
+                <template #fallback>
+                  <el-button type="primary" plain @click="previewFile({ previewUrl: form.previewUrl })">在新窗口打开</el-button>
+                </template>
+              </MediaPreview>
             </div>
           </div>
         </div>
@@ -239,10 +229,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import MinioUploader from '../../components/MinioUploader.vue'
+import MediaPreview from '../../components/MediaPreview.vue'
 import { createDataFile, deleteDataFile, fetchDataFileLogs, fetchDataFileTypes, fetchMyDataFiles, updateDataFile } from '../../api/index'
+import { resolveDisplayUrl, resolveFileUrl } from '../../utils/fileUrl'
+import {
+  captureVideoPosterBlob,
+  compressImageToBlob,
+  isImageFileType,
+  isVideoFileType,
+  shouldCompressForCover
+} from '../../utils/mediaProcessing'
+import { uploadCoverToMinio } from '../../utils/minioCoverUpload'
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -256,11 +256,14 @@ const editId = ref('')
 const pageSizes = [10, 20, 50, 100]
 const coverUploaderKey = ref(0)
 const fileUploaderKey = ref(0)
+/** manual=用户上传封面；auto=素材自动生成 */
+const coverSource = ref('')
+const autoCoverGenerating = ref(false)
+const lastMaterialSourceFile = ref(null)
 const tableData = ref([])
 const logTableData = ref([])
 const total = ref(0)
 const queryForm = reactive({ keyword: '', status: '', isPublic: '', fileTypeId: '', pageNum: 1, pageSize: 10 })
-const urlPrefix = import.meta.env.VITE_File_URL_PREFIX || ''
 
 const form = reactive({
   fileId: '',
@@ -312,7 +315,6 @@ const acceptExt = computed(() => '.png,.jpg,.jpeg,.webp,.gif,.bmp,.svg,.mp4,.mov
 const rules = {
   fileName: [{ required: true, message: '请输入文件名称', trigger: 'blur' }],
   fileUrl: [{ required: true, message: '请上传文件', trigger: 'change' }],
-  coverImageUrl: [{ required: true, message: '请上传封面图片', trigger: 'change' }],
   fileTypeId: [{ required: true, message: '请选择文件类型', trigger: 'change' }],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
   isPublic: [{ required: true, message: '请选择是否公开', trigger: 'change' }]
@@ -334,6 +336,9 @@ const resetForm = () => {
   form.isPublic = 'n'
   form.comments = ''
   form.coverImageName = ''
+  coverSource.value = ''
+  autoCoverGenerating.value = false
+  lastMaterialSourceFile.value = null
 }
 
 const resetUploaderState = () => {
@@ -356,13 +361,14 @@ const initDialogForm = (row = null) => {
   form.status = row.status || 'y'
   form.ownerUserId = row.ownerUserId || ''
   form.coverImageUrl = row.coverImageUrl || ''
-  form.coverImagePreviewUrl = getDisplayUrl(row.coverImagePreviewUrl || row.coverImageUrl || '')
+  form.coverImagePreviewUrl = row.coverImagePreviewUrl || row.coverImageUrl || ''
   form.fileSize = row.fileSize ?? null
   form.fileExt = row.fileExt || getExtFromFileName(row.fileName || row.fileUrl)
   form.isPublic = row.isPublic || 'n'
   form.comments = row.comments || ''
   form.coverImageName = ''
-  form.previewUrl = getDisplayUrl(row.previewUrl || row.fileUrl || '')
+  form.previewUrl = row.previewUrl || row.fileUrl || ''
+  coverSource.value = ''
 
   syncFileTypeByFileName(row.fileName || row.fileUrl)
   if (row.fileTypeId) form.fileTypeId = row.fileTypeId
@@ -405,30 +411,18 @@ const loadFileTypes = async () => {
 
 const getFileTypeName = (fileTypeId) => fileTypeNameMap.value[fileTypeId] || fileTypeId || '-'
 const isPublicItem = (row) => String(row?.isPublic || '').toLowerCase() === 'y'
-const getPreviewMediaType = (url, fileName) => {
-  const ext = getExtFromFileName(fileName || url)
-  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) return 'image'
-  if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'video'
-  if (['mp3', 'wav', 'flac', 'aac', 'ogg'].includes(ext)) return 'audio'
-  return 'link'
-}
-const getDisplayUrl = (url) => {
-  if (!url) return ''
-  const raw = String(url).trim()
-  if (/^https?:\/\//i.test(raw)) return raw
-  if (raw.startsWith('/')) return `${urlPrefix}${raw}`
-  return `${urlPrefix}/${raw}`
-}
+const getDisplayUrl = (url) => resolveDisplayUrl(url, '')
+const materialPreviewUrl = computed(() => resolveDisplayUrl(form.previewUrl, form.fileUrl))
 
 const previewFile = (row) => {
-  const url = getDisplayUrl(row.previewUrl)
+  const url = resolveDisplayUrl(row.previewUrl, row.fileUrl)
   if (!url) return
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 
 const downloadFile = (row) => {
-  const url = getDisplayUrl(row.fileUrl)
+  const url = resolveDisplayUrl(row.previewUrl, row.fileUrl)
   if (!url) return
   const link = document.createElement('a')
   link.href = url
@@ -507,13 +501,74 @@ const handleDialogClosed = () => {
   formRef.value?.clearValidate?.()
 }
 
-const handleCoverUploaded = (payload) => {
+const applyCoverPayload = (payload, source = 'manual') => {
   form.coverImageUrl = payload?.fileUrl || ''
   form.coverImagePreviewUrl = payload?.previewUrl || payload?.fileUrl || ''
   form.coverImageName = payload?.fileName || ''
+  coverSource.value = source
+  formRef.value?.clearValidate?.()
 }
 
-const handleFileUploaded = (payload) => {
+const handleCoverUploaded = (payload) => {
+  applyCoverPayload(payload, 'manual')
+}
+
+const handleCoverCleared = () => {
+  form.coverImagePreviewUrl = ''
+  form.coverImageName = ''
+  coverSource.value = ''
+}
+
+const tryAutoCoverFromMaterial = async (sourceFile, payload) => {
+  if (coverSource.value === 'manual' && form.coverImageUrl) return true
+  const file = sourceFile || lastMaterialSourceFile.value
+  if (!file && !payload?.fileUrl) return false
+
+  if (isImageFileType(file)) {
+    autoCoverGenerating.value = true
+    try {
+      const needCompress = await shouldCompressForCover(file)
+      if (needCompress) {
+        const blob = await compressImageToBlob(file)
+        const base = String(payload?.fileName || file.name || 'cover').replace(/\.[^.]+$/, '') || 'cover'
+        const uploaded = await uploadCoverToMinio(blob, `${base}_cover.jpg`)
+        applyCoverPayload(uploaded, 'auto')
+      } else {
+        applyCoverPayload({
+          fileUrl: payload?.fileUrl,
+          previewUrl: payload?.previewUrl || payload?.fileUrl,
+          fileName: payload?.fileName || file.name
+        }, 'auto')
+      }
+      return true
+    } catch (error) {
+      ElMessage.warning(error?.message || '自动生成图片封面失败，请手动上传封面')
+      return false
+    } finally {
+      autoCoverGenerating.value = false
+    }
+  }
+
+  if (isVideoFileType(file)) {
+    autoCoverGenerating.value = true
+    try {
+      const blob = await captureVideoPosterBlob(file)
+      const base = String(payload?.fileName || file.name || 'cover').replace(/\.[^.]+$/, '') || 'cover'
+      const uploaded = await uploadCoverToMinio(blob, `${base}_poster.jpg`)
+      applyCoverPayload(uploaded, 'auto')
+      return true
+    } catch (error) {
+      ElMessage.warning(error?.message || '视频首帧封面生成失败，请手动上传封面')
+      return false
+    } finally {
+      autoCoverGenerating.value = false
+    }
+  }
+
+  return Boolean(form.coverImageUrl)
+}
+
+const handleFileUploaded = async (payload) => {
   const fileName = payload?.fileName || ''
   const fileUrl = payload?.fileUrl || ''
   const previewUrl = payload?.previewUrl || fileUrl
@@ -522,7 +577,12 @@ const handleFileUploaded = (payload) => {
   form.fileName = resolvedFileName
   form.fileUrl = fileUrl
   form.previewUrl = previewUrl
+  form.fileSize = payload?.fileSize ?? payload?.sourceFile?.size ?? form.fileSize
+  lastMaterialSourceFile.value = payload?.sourceFile || null
   syncFileTypeByFileName(resolvedFileName)
+  await tryAutoCoverFromMaterial(payload?.sourceFile, payload)
+  await nextTick()
+  formRef.value?.clearValidate?.('fileName')
 }
 
 const handleMaterialFileNameUpdate = (fileName) => {
@@ -531,9 +591,17 @@ const handleMaterialFileNameUpdate = (fileName) => {
 }
 
 const buildPayload = () => ({
-  ...form,
   fileId: String(form.fileId || '').trim(),
-  fileExt: form.fileExt || getExtFromFileName(form.fileName)
+  fileName: form.fileName,
+  fileTag: form.fileTag,
+  fileUrl: form.fileUrl,
+  fileTypeId: form.fileTypeId,
+  status: form.status,
+  coverImageUrl: form.coverImageUrl,
+  fileSize: form.fileSize,
+  fileExt: form.fileExt || getExtFromFileName(form.fileName),
+  isPublic: form.isPublic,
+  comments: form.comments
 })
 
 const handleSubmit = async () => {
@@ -541,7 +609,14 @@ const handleSubmit = async () => {
   try {
     await formRef.value.validate()
     if (!form.coverImageUrl) {
-      ElMessage.warning('请上传封面图片')
+      await tryAutoCoverFromMaterial(lastMaterialSourceFile.value, {
+        fileUrl: form.fileUrl,
+        previewUrl: form.previewUrl,
+        fileName: form.fileName
+      })
+    }
+    if (!form.coverImageUrl) {
+      ElMessage.warning('请上传封面，或上传图片/视频素材以自动生成封面')
       return
     }
     if (!form.fileUrl) {
@@ -680,6 +755,23 @@ onMounted(async () => {
   margin-bottom: 12px;
 }
 
+.data-file-cover-hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #909399;
+}
+
+.data-file-cover-status {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #909399;
+}
+
+.data-file-cover-status.is-auto {
+  color: #67c23a;
+}
+
 .data-file-material-section {
   margin-top: 18px;
   border-top: 1px solid #ebeef5;
@@ -701,8 +793,9 @@ onMounted(async () => {
 .data-file-form-preview {
   margin-top: 0;
   margin-bottom: 0;
-  flex: 0 0 260px;
-  width: 260px;
+  flex: 1;
+  min-width: 260px;
+  max-width: 480px;
 }
 
 .data-file-cover-preview-wrap {
@@ -733,43 +826,6 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.data-file-form-preview-image,
-.data-file-form-preview-media,
-.data-file-form-preview-audio,
-.data-file-preview-button {
-  width: 240px;
-  border-radius: 10px;
-  border: 1px solid #ebeef5;
-  background: #fafafa;
-}
-
-.data-file-form-preview-image,
-.data-file-form-preview-media {
-  height: 140px;
-  overflow: hidden;
-}
-
-.data-file-form-preview-audio {
-  height: 54px;
-}
-
-.data-file-form-preview-media {
-  object-fit: contain;
-  background: #000;
-}
-
-.data-file-preview-button {
-  height: 140px;
-}
-
-.data-file-preview-button :deep(span) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
 }
 
 @media (max-width: 960px) {

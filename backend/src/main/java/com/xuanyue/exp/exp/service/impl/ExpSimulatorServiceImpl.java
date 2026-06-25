@@ -67,15 +67,7 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
         }
         PageResult<ExpSimulatorListItem> page = new PageResult<ExpSimulatorListItem>(filtered.size(), list);
         for (ExpSimulatorListItem record : page.getRecords()) {
-            String coverImageUrl = record.getCoverImageUrl();
-            if (StringUtils.hasText(coverImageUrl)) {
-                record.setCoverImagePreviewUrl(minioStorageService.buildPreviewUrl(coverImageUrl));
-            }
-            String simulatorUrl = record.getSimulatorUrl();
-            record.setSimulatorPreviewUrl(simulatorUrl);
-            if (StringUtils.hasText(simulatorUrl) && !simulatorUrl.startsWith("http")) {
-                record.setSimulatorPreviewUrl(minioStorageService.buildPreviewUrl(simulatorUrl));
-            }
+            enrichPreviewUrls(record);
         }
         return page;
     }
@@ -91,7 +83,24 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
                 createUserName = StringUtils.hasText(user.getUserName()) ? user.getUserName() : user.getLoginName();
             }
         }
-        return toItem(simulator, createUserName);
+        ExpSimulatorListItem item = toItem(simulator, createUserName);
+        enrichPreviewUrls(item);
+        return item;
+    }
+
+    private void enrichPreviewUrls(ExpSimulatorListItem record) {
+        if (record == null) {
+            return;
+        }
+        String coverImageUrl = record.getCoverImageUrl();
+        if (StringUtils.hasText(coverImageUrl)) {
+            record.setCoverImagePreviewUrl(minioStorageService.buildPreviewUrl(coverImageUrl));
+        }
+        String simulatorUrl = record.getSimulatorUrl();
+        record.setSimulatorPreviewUrl(simulatorUrl);
+        if (StringUtils.hasText(simulatorUrl) && !simulatorUrl.trim().toLowerCase().startsWith("http")) {
+            record.setSimulatorPreviewUrl(minioStorageService.buildPreviewUrl(simulatorUrl));
+        }
     }
 
     @Override
@@ -119,12 +128,49 @@ public class ExpSimulatorServiceImpl implements ExpSimulatorService {
     }
 
     private void fill(ExpSimulator simulator, String simulatorName, String subjectId, String coverImageUrl, String simulatorUrl, String comments, String status) {
-        simulator.setSimulatorName(simulatorName);
+        simulator.setSimulatorName(truncateText(simulatorName, 60));
         simulator.setSubjectId(subjectId);
-        simulator.setCoverImageUrl(coverImageUrl);
-        simulator.setSimulatorUrl(simulatorUrl);
-        simulator.setComments(comments);
+        simulator.setCoverImageUrl(normalizeStorageUrl(coverImageUrl, "封面图片地址"));
+        simulator.setSimulatorUrl(normalizeSimulatorUrl(simulatorUrl));
+        simulator.setComments(truncateText(comments, 100));
         simulator.setStatus(StringUtils.hasText(status) ? status : "y");
+    }
+
+    private String normalizeSimulatorUrl(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            throw new RuntimeException("模拟器URL不能为空");
+        }
+        String trimmed = raw.trim();
+        String lower = trimmed.toLowerCase();
+        if (lower.startsWith("http://") || lower.startsWith("https://")) {
+            if (trimmed.length() > 200) {
+                throw new RuntimeException("模拟器URL过长");
+            }
+            return trimmed;
+        }
+        return normalizeStorageUrl(trimmed, "模拟器URL");
+    }
+
+    private String normalizeStorageUrl(String raw, String fieldLabel) {
+        if (!StringUtils.hasText(raw)) {
+            return null;
+        }
+        String objectKey = minioStorageService.normalizeStorageKey(raw.trim());
+        if (!StringUtils.hasText(objectKey)) {
+            throw new RuntimeException(fieldLabel + "无效");
+        }
+        String stored = "/" + objectKey;
+        if (stored.length() > 200) {
+            throw new RuntimeException(fieldLabel + "过长，请重新上传");
+        }
+        return stored;
+    }
+
+    private String truncateText(String value, int maxLength) {
+        if (!StringUtils.hasText(value) || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     private Map<String, String> loadUserNameMap(List<ExpSimulator> list) {

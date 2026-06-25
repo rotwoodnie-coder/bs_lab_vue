@@ -99,6 +99,7 @@ import ChangePasswordDialog from '../components/ChangePasswordDialog.vue'
 import MessageBell from '../components/MessageBell.vue'
 import { Aim, ArrowDown, Avatar, ChatDotRound, Collection, DataAnalysis, Document, EditPen, Files, FolderOpened, HomeFilled, List, Memo, Menu, Notebook, OfficeBuilding, Picture, Reading, Setting, User, UserFilled, VideoPlay, WarningFilled } from '@element-plus/icons-vue'
 import { fetchVisibleMenus } from '../api/system'
+import { publicUrl } from '@/utils/publicUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -142,13 +143,16 @@ const iconMap = {
 const resolveIcon = (name) => iconMap[name] || HomeFilled
 
 const resolveMenuIcon = (componentName) => {
-  const iconName = componentName || 'default'
-  return iconName.startsWith('/') ? iconName : `/icons/${iconName}.svg`
+  const iconName = String(componentName || 'default').replace(/^\//, '')
+  if (iconName.includes('/')) {
+    return publicUrl(iconName)
+  }
+  return publicUrl(`icons/${iconName}.svg`)
 }
 
 const handleIconError = (event) => {
   if (event?.target) {
-    event.target.src = '/icons/default.svg'
+    event.target.src = publicUrl('icons/default.svg')
   }
 }
 

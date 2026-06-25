@@ -133,6 +133,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { fetchDataFileLogs, fetchDataFileTypes, fetchPublicDataFiles, updateDataFile } from '../../api/index'
+import { FILE_TYPE_ICON_MAP } from '@/utils/publicUrl'
 
 const loading = ref(false)
 const logDialogVisible = ref(false)
@@ -144,15 +145,6 @@ const currentPlayingFileId = ref('')
 const mediaElements = reactive({})
 const queryForm = reactive({ keyword: '', isPublic: 'y', fileTypeId: '', status: 'y', pageNum: 1, pageSize: 10 })
 const urlPrefix = import.meta.env.VITE_File_URL_PREFIX || ''
-const iconMap = {
-  image: '/icons/image.svg',
-  video: '/icons/video.svg',
-  audio: '/icons/audio.svg',
-  pdf: '/icons/pdf.svg',
-  word: '/icons/word.svg',
-  ppt: '/icons/ppt.svg',
-  excel: '/icons/excel.svg'
-}
 const fileTypeOptions = ref([])
 const fileTypeNameMap = computed(() => Object.fromEntries(fileTypeOptions.value.map(item => [item.typeId, item.typeName])))
 
@@ -186,7 +178,7 @@ const togglePublicStatus = async (row, value) => {
 }
 
 const getFileTypeName = (fileTypeId) => fileTypeNameMap.value[fileTypeId] || fileTypeId || '-'
-const getTypeIconUrl = (logoClass) => iconMap[String(logoClass || '').trim().toLowerCase()] || ''
+const getTypeIconUrl = (logoClass) => FILE_TYPE_ICON_MAP[String(logoClass || '').trim().toLowerCase()] || ''
 const isPublicItem = (row) => String(row?.isPublic || '').toLowerCase() === 'y'
 const isVideoFile = (row) => {
   const raw = String(row?.fileExt || row?.fileName || '').trim().toLowerCase()

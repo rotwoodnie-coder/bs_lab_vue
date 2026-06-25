@@ -1,5 +1,10 @@
 server:
   port: 8010
+  tomcat:
+    connection-timeout: 7200000
+    # 默认仅 2MB，超过后 Tomcat 直接断开连接，Nginx 表现为 502（与 spring.servlet.multipart 需同时放开）
+    max-http-form-post-size: -1
+    max-swallow-size: -1
 
 spring:
   datasource:
@@ -11,6 +16,8 @@ spring:
     multipart:
       max-file-size: 1GB
       max-request-size: 1GB
+      file-size-threshold: 2MB
+      location: ${java.io.tmpdir}
   jpa:
     hibernate:
       ddl-auto: none

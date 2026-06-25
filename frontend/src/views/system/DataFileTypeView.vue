@@ -94,16 +94,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { createDataFileType, deleteDataFileType, fetchDataFileTypes, updateDataFileType } from '../../api/index'
-
-const iconMap = {
-  image: '/icons/image.svg',
-  video: '/icons/video.svg',
-  audio: '/icons/audio.svg',
-  pdf: '/icons/pdf.svg',
-  word: '/icons/word.svg',
-  ppt: '/icons/ppt.svg',
-  excel: '/icons/excel.svg'
-}
+import { FILE_TYPE_ICON_MAP } from '@/utils/publicUrl'
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -133,7 +124,7 @@ const rules = {
 
 const getIconUrl = (logoClass) => {
   const key = String(logoClass || '').trim().toLowerCase()
-  return iconMap[key] || ''
+  return FILE_TYPE_ICON_MAP[key] || ''
 }
 
 const resetForm = () => {

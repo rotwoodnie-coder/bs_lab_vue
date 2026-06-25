@@ -135,7 +135,7 @@ export function deleteExpSimulator(id) {
 }
 
 export function recordExpSimulatorLog(simulatorId) {
-  return request.post(`/exp/simulators/${simulatorId}/logs`)
+  return request.post('/exp/simulators/logs', null, { params: { simulatorId } })
 }
 
 //exp steps

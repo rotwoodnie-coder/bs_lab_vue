@@ -115,7 +115,15 @@ public class DataFileServiceImpl implements DataFileService {
 
     @Override
     public Object get(String id) {
-        return dataFileRepository.findById(id).orElseThrow(() -> new RuntimeException("记录不存在"));
+        DataFile item = dataFileRepository.findById(id).orElseThrow(() -> new RuntimeException("记录不存在"));
+        Map<String, Object> view = toView(item, loadUserNameMap());
+        if (StringUtils.hasText(item.getFileUrl())) {
+            view.put("previewUrl", minioStorageService.buildPreviewUrl(item.getFileUrl()));
+        }
+        if (StringUtils.hasText(item.getCoverImageUrl())) {
+            view.put("coverImagePreviewUrl", minioStorageService.buildPreviewUrl(item.getCoverImageUrl()));
+        }
+        return view;
     }
 
     @Override
@@ -204,22 +212,73 @@ public class DataFileServiceImpl implements DataFileService {
 
     @Override
     public void delete(String id) {
+        DataFile item = dataFileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("记录不存在"));
+        String fileUrl = item.getFileUrl();
+        String coverImageUrl = item.getCoverImageUrl();
         dataFileRepository.deleteById(id);
+        safeDeleteMinioObject(fileUrl);
+        if (StringUtils.hasText(coverImageUrl) && !sameStorageKey(fileUrl, coverImageUrl)) {
+            safeDeleteMinioObject(coverImageUrl);
+        }
+    }
+
+    private void safeDeleteMinioObject(String fileUrl) {
+        if (!StringUtils.hasText(fileUrl)) {
+            return;
+        }
+        try {
+            minioStorageService.deleteByUrl(fileUrl);
+        } catch (Exception ignored) {
+            // 对象可能已被清理，忽略删除失败
+        }
+    }
+
+    private boolean sameStorageKey(String left, String right) {
+        if (!StringUtils.hasText(left) || !StringUtils.hasText(right)) {
+            return false;
+        }
+        String leftKey = minioStorageService.normalizeStorageKey(left);
+        String rightKey = minioStorageService.normalizeStorageKey(right);
+        return StringUtils.hasText(leftKey) && leftKey.equals(rightKey);
     }
 
     private void applyPayload(DataFile item, Map<String, Object> payload, String currentUserId) {
-        item.setFileName(asString(payload.get("fileName")));
-        item.setFileTag(asString(payload.get("fileTag")));
-        item.setFileUrl(asString(payload.get("fileUrl")));
+        item.setFileName(truncateText(asString(payload.get("fileName")), 60));
+        item.setFileTag(truncateText(asString(payload.get("fileTag")), 60));
+        item.setFileUrl(normalizeStorageUrl(asString(payload.get("fileUrl")), "文件地址"));
         item.setFileTypeId(asString(payload.get("fileTypeId")));
         item.setStatus(defaultStatus(payload.get("status")));
         item.setUpdateUserId(StringUtils.hasText(currentUserId) ? currentUserId : item.getUpdateUserId());
         item.setUpdateTime(new Date());
-        item.setCoverImageUrl(asString(payload.get("coverImageUrl")));
+        String coverUrl = asString(payload.get("coverImageUrl"));
+        item.setCoverImageUrl(StringUtils.hasText(coverUrl) ? normalizeStorageUrl(coverUrl, "封面地址") : null);
         item.setFileSize(asLong(payload.get("fileSize")));
         item.setFileExt(resolveFileExt(payload.get("fileExt"), item.getFileName(), item.getFileUrl()));
         item.setIsPublic(defaultPublic(payload.get("isPublic")));
-        item.setComments(asString(payload.get("comments")));
+        item.setComments(truncateText(asString(payload.get("comments")), 300));
+    }
+
+    private String normalizeStorageUrl(String raw, String fieldLabel) {
+        if (!StringUtils.hasText(raw)) {
+            return null;
+        }
+        String objectKey = minioStorageService.normalizeStorageKey(raw.trim());
+        if (!StringUtils.hasText(objectKey)) {
+            throw new RuntimeException(fieldLabel + "无效");
+        }
+        String stored = "/" + objectKey;
+        if (stored.length() > 200) {
+            throw new RuntimeException(fieldLabel + "过长，请重新上传");
+        }
+        return stored;
+    }
+
+    private String truncateText(String value, int maxLength) {
+        if (!StringUtils.hasText(value) || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     private Map<String, String> loadUserNameMap() {
@@ -285,6 +344,9 @@ public class DataFileServiceImpl implements DataFileService {
 
     private String defaultPublic(Object value) {
         String v = asString(value);
-        return StringUtils.hasText(v) ? v : "n";
+        if (!StringUtils.hasText(v) || "0".equals(v)) {
+            return "n";
+        }
+        return v;
     }
 }

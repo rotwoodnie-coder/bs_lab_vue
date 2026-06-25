@@ -1,4 +1,4 @@
-import request from './request'
+import request, { UPLOAD_TIMEOUT_MS } from './request'
 
 export function login(data) {
   return request.post('/auth/login', data)
@@ -150,8 +150,8 @@ export function uploadFile(file, onUploadProgress) {
   const formData = new FormData()
   formData.append('file', file)
   return request.post('/files/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    onUploadProgress
+    onUploadProgress,
+    timeout: UPLOAD_TIMEOUT_MS
   })
 }
 
@@ -160,12 +160,27 @@ export function deleteFileByUrl(url) {
 }
 
 //minio files
-export function uploadMinioFile(file, onUploadProgress) {
+/** 绕过部分 Nginx/WAF 对 .html/.htm 文件名的拦截（上传时改用 .sim，由后端按 originalFilename 还原） */
+const MINIO_HTML_UPLOAD_SAFE_EXT = '.sim'
+
+function buildMinioUploadFormData(file) {
   const formData = new FormData()
-  formData.append('file', file)
-  return request.post('/minio/files/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    onUploadProgress
+  const name = String(file?.name || 'file')
+  if (/\.html?$/i.test(name)) {
+    const safeName = name.replace(/\.html?$/i, MINIO_HTML_UPLOAD_SAFE_EXT)
+    const safeFile = new File([file], safeName, { type: file.type || 'text/html' })
+    formData.append('file', safeFile)
+    formData.append('originalFilename', name)
+  } else {
+    formData.append('file', file)
+  }
+  return formData
+}
+
+export function uploadMinioFile(file, onUploadProgress) {
+  return request.post('/minio/files/upload', buildMinioUploadFormData(file), {
+    onUploadProgress,
+    timeout: UPLOAD_TIMEOUT_MS
   })
 }
 

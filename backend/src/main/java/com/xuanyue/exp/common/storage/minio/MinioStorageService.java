@@ -10,6 +10,8 @@ public interface MinioStorageService {
 
     Map<String, Object> upload(MultipartFile file) throws IOException;
 
+    Map<String, Object> upload(MultipartFile file, String originalFilename) throws IOException;
+
     boolean deleteByUrl(String fileUrl);
     String buildPreviewUrl(String fileUrlOrObjectName);
     String resolveAccessibleUrl(String fileUrl);
@@ -19,4 +21,7 @@ public interface MinioStorageService {
     InputStream getObjectStream(String fileUrl) throws Exception;
 
     String getBucket();
+
+    /** 探测 MinIO 是否可达（上传前诊断用） */
+    Map<String, Object> checkHealth();
 }
