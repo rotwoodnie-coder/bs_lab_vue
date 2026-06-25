@@ -1,0 +1,23 @@
+{
+  "name": "bs-lab-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "宝山小实验社区 - 统一启动入口",
+  "scripts": {
+    "dev": "concurrently -n BE,PC -c blue,green \"pnpm dev:backend\" \"pnpm dev:frontend-pc\"",
+    "dev:all": "concurrently -n BE,PC,MOBILE,AI -c blue,green,yellow,magenta \"pnpm dev:backend\" \"pnpm dev:frontend-pc\" \"pnpm dev:frontend-mobile\" \"pnpm dev:agents\"",
+    "dev:backend": "cd backend && mvn spring-boot:run -Dspring.profiles.active=dev",
+    "dev:frontend-pc": "cd frontend && pnpm dev",
+    "dev:frontend-mobile": "cd frontend/mobile && pnpm dev:lan",
+    "dev:agents": "cd agents_service && uvicorn main:app --host 0.0.0.0 --port 5001 --reload",
+    "build:mobile": "cd frontend/mobile && pnpm build:lan",
+    "install:all": "cd frontend && pnpm install && cd ../frontend/mobile && pnpm install",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "packageManager": "pnpm@10.32.1"
+}
