@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+  <MobilePageShell class="safe-top safe-bottom" data-layout="detail">
     <div class="topbar safe-top">
       <PageBackButton fallback="/content-audits" />
       <h1 class="topbar-title flex-1 truncate">{{ detail.expName || '实验审核' }}</h1>
@@ -47,12 +47,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchResearcherExpAuditDetail, auditResearcherExp } from '@/api/researcher'
 

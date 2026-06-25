@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top" data-layout="detail">
+  <MobilePageShell class="safe-top" data-layout="detail">
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/profile" />
       <h1 class="topbar-title">积分明细</h1>
@@ -44,14 +44,12 @@
         @click="loadMore"
       >{{ loading ? '加载中…' : '加载更多' }}</button>
     </div>
-
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchPointsLedger } from '@/api/points'
 import { useProfileStore } from '@/stores/profile'

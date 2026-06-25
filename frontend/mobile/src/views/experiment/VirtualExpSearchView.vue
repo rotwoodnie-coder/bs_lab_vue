@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell theme-primary" data-layout="search-home">
+  <MobilePageShell class="theme-primary" data-layout="search-home">
     <div class="pad-main search-page" data-search-page data-search-scope="exp">
       <header class="search-page__bar">
         <router-link to="/experiments" class="search-page__back" aria-label="返回模拟实验">
@@ -81,12 +81,13 @@
         </section>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 import SimCard from '@/components/SimCard.vue'
 import { fetchSimulators } from '@/api/simulator'

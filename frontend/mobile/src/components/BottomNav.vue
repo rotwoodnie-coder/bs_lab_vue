@@ -29,12 +29,10 @@
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue'
 import { useAppStore } from '@/stores/app'
-import { useScrollRevealBottomNav } from '@/composables/useScrollRevealBottomNav'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 import UserAvatar from '@/components/UserAvatar.vue'
 
 const navRef = ref(null)
-useScrollRevealBottomNav(navRef)
 
 const appStore = useAppStore()
 const { initIcons } = useLucideIcons()

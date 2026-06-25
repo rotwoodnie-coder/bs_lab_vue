@@ -1,15 +1,12 @@
 <template>
-  <div
-    class="prototype-container pad-shell"
+  <MobilePageShell
     :class="{ 'theme-teacher': isTeacherView }"
     :data-layout="pageLayout"
     data-tasks-list
   >
-    <BottomNav />
 
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
-        <PageBackButton />
         <h1 class="pad-workbench__title">{{ pageTitle }}</h1>
         <div class="pad-workbench__topbar-actions">
           <router-link v-if="isTeacherView" to="/assign" class="icon-btn" aria-label="发布任务">
@@ -32,7 +29,6 @@
         <div class="pad-workbench__main">
           <div class="pad-workbench__mobile-head px-4 safe-top stack-4">
             <header class="topbar page-topbar">
-              <PageBackButton />
               <h1 class="topbar-title text-xl flex-1 min-w-0">{{ pageTitle }}</h1>
               <router-link v-if="isTeacherView" to="/assign" class="icon-btn" aria-label="发布任务">
                 <i data-lucide="pen-square" class="icon"></i>
@@ -106,15 +102,14 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch, provide } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
-import BottomNav from '@/components/BottomNav.vue'
-import PageBackButton from '@/components/PageBackButton.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import ChildPicker from '@/views/home/ChildPicker.vue'
 import TaskCardInner from '@/components/tasks/TaskCardInner.vue'
 import TaskStatusTabs from '@/components/tasks/TaskStatusTabs.vue'

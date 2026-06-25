@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-quiz-flow>
+  <MobilePageShell class="safe-top safe-bottom" data-layout="detail" data-quiz-flow>
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/quiz" />
       <h1 class="topbar-title">🧠 每日答题</h1>
@@ -35,15 +35,13 @@
         </div>
       </div>
     </template>
-
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTodayQuiz, fetchQuizRecord, submitQuiz } from '@/api/quiz'
 import { useLucideIcons } from '@/composables/useLucideIcons'

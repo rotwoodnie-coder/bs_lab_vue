@@ -1,16 +1,15 @@
 <template>
-  <div class="prototype-container pad-shell" :class="themeClass" data-layout="explore-home" data-home-feed data-home-notices>
+  <MobilePageShell :class="themeClass" data-layout="explore-home" data-home-feed data-home-notices>
     <HomeStudent @notice-loaded="onNoticeLoaded" />
 
     <HomeNoticeModal :notice="latestNotice" />
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import HomeNoticeModal from '@/components/HomeNoticeModal.vue'
 import HomeStudent from './HomeStudent.vue'
 

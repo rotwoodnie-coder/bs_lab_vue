@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-notification-detail>
+  <MobilePageShell class="safe-top safe-bottom" data-layout="detail" data-notification-detail>
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/notifications" />
       <h1 class="topbar-title">消息详情</h1>
@@ -28,15 +28,13 @@
         class="btn btn-gradient btn-block notif-detail__cta--task"
       >{{ notificationActionLabel }}</router-link>
     </div>
-
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import FormattedText from '@/components/FormattedText.vue'
 import { FORMAT_EXP_LONG } from '@/utils/richText'

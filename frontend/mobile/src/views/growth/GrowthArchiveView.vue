@@ -1,8 +1,6 @@
 <template>
 
-  <div class="prototype-container theme-primary safe-top pad-shell" data-layout="growth-archive">
-
-    <BottomNav />
+  <MobilePageShell class="theme-primary safe-top" data-layout="growth-archive">
 
 
 
@@ -195,7 +193,7 @@
 
 
 
-  </div>
+  </MobilePageShell>
 
 </template>
 
@@ -206,7 +204,7 @@
 import { ref, computed, onMounted, nextTick, defineComponent, h } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 

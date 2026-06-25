@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell theme-teacher safe-top safe-bottom" data-layout="detail">
+  <MobilePageShell class="theme-teacher safe-top safe-bottom" data-layout="detail">
     <div class="topbar safe-top">
       <PageBackButton :fallback="`/tasks/${taskId}/summary`" />
       <h1 class="topbar-title flex-1">提交详情</h1>
@@ -32,12 +32,13 @@
         @submit="submitReview"
       />
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import WorkReviewPanel from '@/components/teacher/WorkReviewPanel.vue'
 import WorkMediaViewer from '@/components/works/WorkMediaViewer.vue'

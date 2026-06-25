@@ -5,19 +5,24 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { goBack } from '@/utils/navBack'
 import { useLucideIcons } from '@/composables/useLucideIcons'
+import { usePageNav } from '@/composables/usePageNav'
 
 const props = defineProps({
-  fallback: { type: String, default: '/home' }
+  fallback: { type: String, default: '' }
 })
 
 const router = useRouter()
+const route = useRoute()
+const { backFallback } = usePageNav()
+
+const resolvedFallback = computed(() => props.fallback || backFallback.value || '/home')
 
 function handleBack() {
-  goBack(router, props.fallback)
+  goBack(router, resolvedFallback.value)
 }
 
 const { initIcons } = useLucideIcons()

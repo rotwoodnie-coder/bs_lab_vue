@@ -34,7 +34,9 @@ import { initLucideIcons } from './utils/lucideIcons'
 
 import { bootstrapAuthSession } from './bootstrap/auth'
 import { useProfileStore } from './stores/profile'
-import { isLoggedIn } from './utils/authStorage'
+import { useAppStore } from './stores/app'
+import { isLoggedIn, getUserInfo } from './utils/authStorage'
+import { isTabRootRoute, syncActiveTabFromRoute } from './utils/syncActiveTab'
 
 
 
@@ -58,7 +60,16 @@ async function startApp() {
 
   app.use(router)
 
-  router.afterEach(async () => {
+  router.afterEach(async (to) => {
+    if (isTabRootRoute(to)) {
+      try {
+        const appStore = useAppStore()
+        const userInfo = getUserInfo()
+        syncActiveTabFromRoute(to.path, userInfo?.userRoleId, appStore.setActiveTab.bind(appStore))
+      } catch {
+        // pinia not ready
+      }
+    }
     await nextTick()
     initLucideIcons()
   })

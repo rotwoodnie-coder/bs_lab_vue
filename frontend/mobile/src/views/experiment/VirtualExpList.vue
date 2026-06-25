@@ -3,7 +3,6 @@
     <div class="pad-home__header-shell">
       <div class="pad-home__header">
         <header class="pad-home__topbar">
-          <PageBackButton fallback="/home" />
           <h1 class="pad-home__topbar-title flex-1 min-w-0">模拟实验</h1>
           <div class="pad-home__topbar-actions">
             <router-link to="/experiments/search" class="pad-home__topbar-search-btn" aria-label="搜索">
@@ -64,7 +63,6 @@ import { useAppStore } from '@/stores/app'
 import { fetchSimulators } from '@/api/simulator'
 import { fetchDictItems } from '@/api/dict'
 import SimCard from '@/components/SimCard.vue'
-import PageBackButton from '@/components/PageBackButton.vue'
 import { GRADE_FILTERS, gradeEmptyHint } from '@/utils/gradeFilters'
 import { buildSubjectMap, mapSimulatorItem } from '@/utils/simulatorDisplay'
 import { useLucideIcons } from '@/composables/useLucideIcons'

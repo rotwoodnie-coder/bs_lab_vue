@@ -1,6 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell" data-layout="lab-bench">
-    <BottomNav />
+  <MobilePageShell data-layout="lab-bench">
 
     <div class="pad-main lab-watch">
       <div class="lab-watch__main">
@@ -151,13 +150,13 @@
         :head-sub="railHeadSub"
       />
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import WorkMediaViewer from '@/components/works/WorkMediaViewer.vue'
 import UserAvatar from '@/components/UserAvatar.vue'

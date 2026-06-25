@@ -1,6 +1,6 @@
 <template>
 
-  <div class="prototype-container pad-shell theme-teacher safe-top" data-layout="list-workbench">
+  <MobilePageShell class="theme-teacher safe-top" data-layout="list-workbench">
 
     <div class="pad-main pad-workbench">
 
@@ -237,7 +237,7 @@
 
     </div>
 
-  </div>
+  </MobilePageShell>
 
 </template>
 
@@ -249,6 +249,7 @@ import { ref, computed, onMounted, nextTick, watch, reactive } from 'vue'
 
 import { useRoute, useRouter } from 'vue-router'
 
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 
 import UserAvatar from '@/components/UserAvatar.vue'

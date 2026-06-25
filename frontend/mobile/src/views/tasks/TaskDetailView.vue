@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-task-detail>
+  <MobilePageShell class="safe-top safe-bottom" data-layout="detail" data-task-detail>
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/home" />
       <h1 class="topbar-title">任务详情</h1>
@@ -116,7 +116,7 @@
         <p v-else-if="task.state === 'reviewed'" class="text-xs muted mt-2">评价已完成，可在「我的作品」查看评级与评语</p>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
@@ -124,6 +124,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import FormattedText from '@/components/FormattedText.vue'
 import { FORMAT_EXP_BRIEF } from '@/utils/richText'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTaskDetail } from '@/api/task'
 import { useLucideIcons } from '@/composables/useLucideIcons'

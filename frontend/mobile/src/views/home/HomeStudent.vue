@@ -3,7 +3,6 @@
     <div class="pad-home__header-shell">
       <div class="pad-home__header">
         <header class="pad-home__topbar">
-          <PageBackButton />
           <router-link to="/home" class="pad-home__brand" aria-label="宝山小实验社区">
             <span class="pad-home__topbar-icon pad-home__brand-mark" aria-hidden="true">
               <i data-lucide="flask-conical" class="icon"></i>
@@ -82,7 +81,6 @@ import { useAppStore } from '@/stores/app'
 import { fetchHomeBootstrap, fetchHomeFeed } from '@/api/home'
 import { GRADE_FILTERS, gradeEmptyHint } from '@/utils/gradeFilters'
 import FeedCard from '@/components/FeedCard.vue'
-import PageBackButton from '@/components/PageBackButton.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const emit = defineEmits(['notice-loaded'])

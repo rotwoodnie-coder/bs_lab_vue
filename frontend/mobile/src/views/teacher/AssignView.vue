@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell theme-teacher safe-top" data-layout="teacher-form">
+  <MobilePageShell class="theme-teacher safe-top" data-layout="teacher-form">
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
         <PageBackButton fallback="/home" />
@@ -111,9 +111,7 @@
         </div>
       </div>
     </div>
-
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
@@ -121,7 +119,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { createTask } from '@/api/task'
 import { fetchTeacherAssignOptions } from '@/api/teacher'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import AssignOptionSections from '@/components/teacher/AssignOptionSections.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'

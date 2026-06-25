@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell theme-teacher safe-top" data-layout="list-workbench">
+  <MobilePageShell class="theme-teacher safe-top" data-layout="list-workbench">
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
         <PageBackButton fallback="/profile" />
@@ -109,13 +109,14 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onActivated, nextTick } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { fetchTeacherParentBinds, auditTeacherParentBind } from '@/api/teacher'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'

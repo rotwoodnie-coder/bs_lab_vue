@@ -1,6 +1,5 @@
 <template>
-  <div class="prototype-container theme-primary safe-top pad-shell" data-layout="badge-wall">
-    <BottomNav />
+  <MobilePageShell class="theme-primary safe-top" data-layout="badge-wall">
 
     <!-- Pad -->
     <div class="pad-main pad-badges">
@@ -84,12 +83,12 @@
         <BadgeWallGrid v-else :badges="filteredBadges" mobile />
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import BadgeWallGrid from '@/components/BadgeWallGrid.vue'
 import { fetchBadges } from '@/api/badge'

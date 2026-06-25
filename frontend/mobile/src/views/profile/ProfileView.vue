@@ -1,14 +1,12 @@
 <template>
-  <div
-    class="prototype-container safe-top pad-shell"
+  <MobilePageShell
+    class="safe-top"
     :class="themeClass"
     data-layout="profile-hub"
   >
-    <BottomNav />
 
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
-        <PageBackButton />
         <h1 class="pad-workbench__title">个人中心</h1>
         <div class="pad-workbench__topbar-actions">
           <router-link to="/notifications" class="icon-btn profile-notify-btn" aria-label="消息通知">
@@ -24,7 +22,6 @@
       <div class="pad-workbench__body">
         <div class="pad-profile__mobile-head-wrap px-4 safe-top">
           <header class="topbar page-topbar">
-            <PageBackButton />
             <h1 class="topbar-title text-xl flex-1 min-w-0">个人中心</h1>
             <router-link to="/notifications" class="icon-btn profile-notify-btn" aria-label="消息通知">
               <i data-lucide="bell" class="icon"></i>
@@ -537,7 +534,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
@@ -547,8 +544,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useProfileStore } from '@/stores/profile'
 import { useAppStore } from '@/stores/app'
-import BottomNav from '@/components/BottomNav.vue'
-import PageBackButton from '@/components/PageBackButton.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { fetchParentDashboard } from '@/api/home'
 import { fetchTeacherDashboard, remindTeacherTask } from '@/api/teacher'

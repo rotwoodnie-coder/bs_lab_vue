@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell theme-teacher safe-top" data-layout="teacher-home">
+  <MobilePageShell class="theme-teacher safe-top" data-layout="teacher-home">
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
         <PageBackButton fallback="/home" />
@@ -160,8 +160,7 @@
       </div>
     </div>
 
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
@@ -169,7 +168,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { fetchTeacherTaskBoard, fetchTeacherTasks, remindTeacherTask } from '@/api/teacher'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'

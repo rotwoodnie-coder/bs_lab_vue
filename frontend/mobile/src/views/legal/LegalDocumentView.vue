@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+  <MobilePageShell class="safe-top safe-bottom" data-layout="detail">
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/login" />
       <h1 class="topbar-title">{{ doc.title }}</h1>
@@ -14,12 +14,13 @@
         </section>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 
 const route = useRoute()

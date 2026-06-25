@@ -1,6 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top theme-primary" data-layout="list-workbench">
-    <BottomNav />
+  <MobilePageShell class="safe-top theme-primary" data-layout="list-workbench">
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
         <PageBackButton fallback="/admin" />
@@ -107,12 +106,12 @@
         </footer>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { useAppStore } from '@/stores/app'
 import { useLucideIcons } from '@/composables/useLucideIcons'

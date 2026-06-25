@@ -1,9 +1,7 @@
 <template>
-  <div class="prototype-container pad-shell safe-top theme-primary" data-layout="list-workbench">
-    <BottomNav />
+  <MobilePageShell class="safe-top theme-primary" data-layout="list-workbench">
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
-        <PageBackButton fallback="/profile" />
         <h1 class="pad-workbench__title flex-1">管理后台</h1>
       </header>
 
@@ -11,7 +9,6 @@
         <div class="pad-workbench__main">
           <div class="pad-workbench__mobile-head px-4 safe-top">
             <header class="topbar page-topbar">
-              <PageBackButton fallback="/profile" />
               <h1 class="topbar-title text-xl flex-1 min-w-0">管理后台</h1>
             </header>
           </div>
@@ -48,14 +45,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { computed, onMounted, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
-import BottomNav from '@/components/BottomNav.vue'
-import PageBackButton from '@/components/PageBackButton.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import { useUserStore } from '@/stores/user'
 import { useProfileStore } from '@/stores/profile'
 import { useAppStore } from '@/stores/app'

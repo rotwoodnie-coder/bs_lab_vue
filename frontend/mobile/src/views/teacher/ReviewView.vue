@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail">
+  <MobilePageShell class="safe-top safe-bottom" data-layout="detail">
     <div class="topbar safe-top">
       <PageBackButton fallback="/home" />
       <div class="flex-1 min-w-0">
@@ -77,12 +77,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { fetchTeacherReviewQueue, submitTeacherReview } from '@/api/teacher'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'

@@ -1,6 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top" data-layout="list-workbench">
-    <BottomNav />
+  <MobilePageShell class="safe-top" data-layout="list-workbench">
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
         <PageBackButton :fallback="hubFallback" />
@@ -92,12 +91,12 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchAuditSummary } from '@/api/audits'
 import { fetchTeacherDashboard, fetchTeacherTasks } from '@/api/teacher'

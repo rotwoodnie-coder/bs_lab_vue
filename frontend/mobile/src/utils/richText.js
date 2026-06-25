@@ -6,6 +6,9 @@ import { rewriteRichTextMediaUrls } from './fileUrl'
 
 const HTML_TAG_RE = /<[a-z][\s\S]*>/i
 const COMPLEX_HTML_RE = /<(ul|ol|table|thead|tbody|tr|th|td|img|iframe|video|embed|a)\b/i
+const STRUCTURED_HTML_RE = /<(ul|ol|table|thead|tbody|tr|th|td)\b/i
+/** 富文本中需原位保留的媒体块（含 Quill 常见的 p>img 包裹） */
+const MEDIA_BLOCK_RE = /<p[^>]*>\s*<img\b[\s\S]*?<\/p>|<img\b[^>]*\/?>|<iframe\b[\s\S]*?<\/iframe>|<video\b[\s\S]*?<\/video>|<embed\b[^>]*\/?>/gi
 const SERIAL_MARKER_RE = /(\d+[\.．、]|[（(]\d+[）)]|[①-⑳])/g
 const SERIAL_ITEM_RE = /^(\d+[\.．、]\s*|[（(]\d+[）)]\s*|[①-⑳])\s*(.*)$/s
 const BULLET_LINE_RE = /^\s*[-•*·]\s+/
@@ -15,7 +18,7 @@ const VALID_MARKER_BEFORE_RE = /[\s，。；：、！？;,]/
 export const FORMAT_EXP_LONG = {
   mode: 'auto',
   paragraph: 'strict',
-  minItems: 2,
+  minItems: 1,
   minCharsForIndent: 12
 }
 
@@ -23,7 +26,7 @@ export const FORMAT_EXP_LONG = {
 export const FORMAT_EXP_STEP = {
   mode: 'auto',
   paragraph: 'loose',
-  minItems: 2,
+  minItems: 1,
   minCharsForIndent: 8
 }
 
@@ -31,7 +34,7 @@ export const FORMAT_EXP_STEP = {
 export const FORMAT_EXP_BRIEF = {
   mode: 'auto',
   paragraph: 'off',
-  minItems: 2
+  minItems: 1
 }
 
 /** 单行短文本 */
@@ -73,16 +76,22 @@ export function formatDisplayHtml(value, options = {}) {
     return enhanceHtml(raw)
   }
 
-  let text = raw
   if (opts.mode === 'auto' && HTML_TAG_RE.test(raw)) {
     if (COMPLEX_HTML_RE.test(raw)) {
-      return enhanceHtml(raw)
+      return formatMixedHtml(raw, opts)
     }
-    text = stripSimpleHtml(raw)
+    const text = stripSimpleHtml(raw)
     if (!text) return enhanceHtml(raw)
+    return formatPlainText(text, opts)
   }
 
-  text = normalizeSerialSeparators(text)
+  return formatPlainText(raw, opts)
+}
+
+/** 纯文本（或已剥离标签）格式化 */
+function formatPlainText(text, opts) {
+  text = normalizeSerialSeparators(String(text ?? '').trim())
+  if (!text) return ''
 
   if (opts.mode !== 'plain') {
     const serial = splitSerialList(text, opts.minItems)
@@ -103,16 +112,62 @@ export function formatDisplayHtml(value, options = {}) {
   return escapeHtml(text).replace(/\r?\n/g, '<br>')
 }
 
+/** 含图片等媒体时：文本块做序号拆分，媒体块原位保留 */
+function formatMixedHtml(html, opts) {
+  const blocks = splitHtmlPreservingMedia(html)
+  return blocks
+    .map((block) => {
+      if (block.type === 'media') {
+        return enhanceHtml(block.content)
+      }
+      if (STRUCTURED_HTML_RE.test(block.content)) {
+        return enhanceHtml(block.content)
+      }
+      return formatPlainText(stripSimpleHtml(block.content), opts)
+    })
+    .filter(Boolean)
+    .join('')
+}
+
+function splitHtmlPreservingMedia(html) {
+  const blocks = []
+  let lastIndex = 0
+  MEDIA_BLOCK_RE.lastIndex = 0
+  let match
+
+  while ((match = MEDIA_BLOCK_RE.exec(html)) !== null) {
+    if (match.index > lastIndex) {
+      const chunk = html.slice(lastIndex, match.index)
+      if (chunk.trim()) {
+        blocks.push({ type: 'text', content: chunk })
+      }
+    }
+    blocks.push({ type: 'media', content: match[0] })
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < html.length) {
+    const chunk = html.slice(lastIndex)
+    if (chunk.trim()) {
+      blocks.push({ type: 'text', content: chunk })
+    }
+  }
+
+  return blocks.length ? blocks : [{ type: 'text', content: html }]
+}
+
 /** @deprecated 请使用 formatDisplayHtml；保留兼容 */
 export function normalizeHtml(value, options) {
   return formatDisplayHtml(value, options ?? { mode: 'auto' })
 }
 
-/** 将 ;2. / ，3. 等整理为可识别的序号分隔 */
+/** 将 ;2. / ，3. / 中文后2、 等整理为可识别的序号分隔 */
 function normalizeSerialSeparators(text) {
   return String(text)
     .replace(/([;；,，])\s*(?=\d+[\.．、])/g, ' ')
     .replace(/([。！？])\s*(?=\d+[\.．、])/g, '$1 ')
+    .replace(/([\u4e00-\u9fff])\s*(?=\d+[\.．、])/g, '$1 ')
+    .replace(/([)）\]】])\s*(?=\d+[\.．、])/g, '$1 ')
 }
 
 function stripSimpleHtml(html) {
@@ -138,6 +193,8 @@ function isValidSerialMarker(text, index) {
   if (index === 0) return true
   const prev = text[index - 1]
   if (VALID_MARKER_BEFORE_RE.test(prev)) return true
+  if (/[\u4e00-\u9fff]/.test(prev)) return true
+  if (/[)）\]】]/.test(prev)) return true
 
   const slice = text.slice(Math.max(0, index - 4), index)
   if (/[a-zA-Z]$/.test(slice)) return false
@@ -245,6 +302,12 @@ export function __formatDisplayHtmlFixtures() {
     { in: '1.看一看：A。2.看一看：B。3.闻一闻：C。', expect: 'text-serial-line', count: 3 },
     { in: '1.严禁品尝 ;2.尝水时 ;3.将水倒入', expect: 'text-serial-line', count: 3 },
     { in: '<p>1.第一项 2.第二项 3.第三项</p>', expect: 'text-serial-line', count: 3 },
+    {
+      in: '<p>1、第一项 2、第二项</p><p><img src="/a.png" /></p><p>3、第三项</p>',
+      expect: 'text-serial-line',
+      count: 3
+    },
+    { in: '1、拼接在一起2、双手挤压3、继续用力', expect: 'text-serial-line', count: 3 },
     { in: '第一段\n\n第二段', expect: 'text-para', count: 2 },
     { in: '- A\n- B', expect: 'text-bullet-line', count: 2 },
     { in: '注意安全', expect: 'text-plain', count: 1 }

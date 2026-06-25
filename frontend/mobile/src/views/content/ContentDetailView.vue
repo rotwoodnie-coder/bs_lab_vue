@@ -1,6 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell" data-layout="lab-bench">
-    <BottomNav />
+  <MobilePageShell data-layout="lab-bench">
 
     <div class="pad-main lab-watch">
       <div class="lab-watch__main">
@@ -185,12 +184,19 @@
         </div>
 
         <div class="lab-rail__scroll">
-          <section v-if="curriculumRows.length" class="lab-detail__section lab-detail__curriculum-block">
-            <h2 class="lab-detail__heading">
-              <i data-lucide="book-open" class="icon lab-detail__heading-icon"></i>
-              对照教材
+          <section v-if="curriculumRows.length" class="lab-detail__section lab-detail__section--collapsible">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('curriculum')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="book-open" class="icon lab-detail__heading-icon"></i>
+                对照教材
+              </span>
+              <i
+                :data-lucide="collapsed.curriculum ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
             </h2>
-            <ol class="lab-detail__curriculum-list">
+            <transition name="collapse">
+              <ol v-show="!collapsed.curriculum" class="lab-detail__curriculum-list">
               <li
                 v-for="(row, idx) in curriculumRows"
                 :key="row.key"
@@ -204,16 +210,40 @@
                 </div>
               </li>
             </ol>
+            </transition>
           </section>
 
-          <section v-if="hasPrinciple" class="lab-detail__section">
-            <h2 class="lab-detail__heading">实验原理</h2>
-            <FormattedText :value="detail.expPrinciple" :options="FORMAT_EXP_LONG" />
+          <section v-if="hasPrinciple" class="lab-detail__section lab-detail__section--collapsible">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('principle')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="lightbulb" class="icon lab-detail__heading-icon"></i>
+                实验原理
+              </span>
+              <i
+                :data-lucide="collapsed.principle ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
+            </h2>
+            <transition name="collapse">
+              <div v-show="!collapsed.principle">
+                <FormattedText :value="detail.expPrinciple" :options="FORMAT_EXP_LONG" />
+              </div>
+            </transition>
           </section>
 
-          <section v-if="materials.length" id="section-materials" class="lab-detail__section">
-            <h2 class="lab-detail__heading">实验材料</h2>
-            <div class="lab-detail__material-grid">
+          <section v-if="materials.length" id="section-materials" class="lab-detail__section lab-detail__section--collapsible">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('materials')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="package" class="icon lab-detail__heading-icon"></i>
+                实验材料
+              </span>
+              <i
+                :data-lucide="collapsed.materials ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
+            </h2>
+            <transition name="collapse">
+              <div v-show="!collapsed.materials" class="lab-detail__material-grid">
               <div
                 v-for="(item, idx) in materials"
                 :key="item.expMaterialId || idx"
@@ -237,11 +267,22 @@
                 </div>
               </div>
             </div>
+            </transition>
           </section>
 
-          <section v-if="steps.length" id="section-steps" class="lab-detail__section">
-            <h2 class="lab-detail__heading">实验步骤</h2>
-            <div class="lab-detail__card-list">
+          <section v-if="steps.length" id="section-steps" class="lab-detail__section lab-detail__section--collapsible">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('steps')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="list-ordered" class="icon lab-detail__heading-icon"></i>
+                实验步骤
+              </span>
+              <i
+                :data-lucide="collapsed.steps ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
+            </h2>
+            <transition name="collapse">
+              <div v-show="!collapsed.steps" class="lab-detail__card-list">
               <article
                 v-for="(step, idx) in steps"
                 :key="step.stepId || idx"
@@ -256,11 +297,22 @@
                 <p v-else class="text-sm muted-2">暂无步骤说明</p>
               </article>
             </div>
+            </transition>
           </section>
 
-          <section v-if="results.length" id="section-results" class="lab-detail__section">
-            <h2 class="lab-detail__heading">实验结果</h2>
-            <div class="lab-detail__card-list">
+          <section v-if="results.length" id="section-results" class="lab-detail__section lab-detail__section--collapsible">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('results')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="clipboard-check" class="icon lab-detail__heading-icon"></i>
+                实验结果
+              </span>
+              <i
+                :data-lucide="collapsed.results ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
+            </h2>
+            <transition name="collapse">
+              <div v-show="!collapsed.results" class="lab-detail__card-list">
               <article v-for="(item, idx) in results" :key="item.resultId || idx" class="lab-detail__card">
                 <h3 class="lab-detail__card-title">结果 {{ idx + 1 }}：{{ item.resultName || '未命名结果' }}</h3>
                 <FormattedText
@@ -270,10 +322,22 @@
                 />
               </article>
             </div>
+            </transition>
           </section>
 
-          <section v-if="hasCaution || hasDanger" id="section-safety" class="lab-detail__section">
-            <h2 class="lab-detail__heading">安全提示</h2>
+          <section v-if="hasCaution || hasDanger" id="section-safety" class="lab-detail__section lab-detail__section--collapsible">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('safety')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="shield-alert" class="icon lab-detail__heading-icon"></i>
+                安全提示
+              </span>
+              <i
+                :data-lucide="collapsed.safety ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
+            </h2>
+            <transition name="collapse">
+              <div v-show="!collapsed.safety">
             <div v-if="hasCaution" class="lab-detail__safety lab-detail__safety--caution">
               <p class="lab-detail__safety-label">注意事项</p>
               <FormattedText :value="detail.expCaution" :options="FORMAT_EXP_LONG" />
@@ -282,11 +346,23 @@
               <p class="lab-detail__safety-label">危险提示</p>
               <FormattedText :value="detail.expDanger" :options="FORMAT_EXP_LONG" />
             </div>
+            </div>
+            </transition>
           </section>
 
-          <section v-if="references.length" id="section-references" class="lab-detail__section">
-            <h2 class="lab-detail__heading">参考资料</h2>
-            <div class="lab-detail__card-list">
+          <section v-if="references.length" id="section-references" class="lab-detail__section lab-detail__section--collapsible">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('references')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="library" class="icon lab-detail__heading-icon"></i>
+                参考资料
+              </span>
+              <i
+                :data-lucide="collapsed.references ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
+            </h2>
+            <transition name="collapse">
+              <div v-show="!collapsed.references" class="lab-detail__card-list">
               <article v-for="(item, idx) in references" :key="item.referenceId || idx" class="lab-detail__card">
                 <h3 class="lab-detail__card-title">{{ item.referenceName || '参考资料' }}</h3>
                 <p v-if="item.referenceSource" class="text-xs muted lab-detail__card-sub">出处：{{ item.referenceSource }}</p>
@@ -297,11 +373,22 @@
                 />
               </article>
             </div>
+            </transition>
           </section>
 
-          <section v-if="scientists.length" id="section-scientists" class="lab-detail__section lab-detail__section--last">
-            <h2 class="lab-detail__heading">科学家故事</h2>
-            <div class="lab-detail__card-list">
+          <section v-if="scientists.length" id="section-scientists" class="lab-detail__section lab-detail__section--collapsible lab-detail__section--last">
+            <h2 class="lab-detail__heading lab-detail__heading--clickable" @click="toggleSection('scientists')">
+              <span class="lab-detail__heading-label">
+                <i data-lucide="users" class="icon lab-detail__heading-icon"></i>
+                科学家故事
+              </span>
+              <i
+                :data-lucide="collapsed.scientists ? 'chevron-down' : 'chevron-up'"
+                class="icon lab-detail__collapse-icon"
+              ></i>
+            </h2>
+            <transition name="collapse">
+              <div v-show="!collapsed.scientists" class="lab-detail__card-list">
               <article v-for="(item, idx) in scientists" :key="item.scientistId || idx" class="lab-detail__card">
                 <h3 class="lab-detail__card-title">{{ item.storyName || '科学家故事' }}</h3>
                 <p v-if="item.scientistName" class="text-xs muted lab-detail__card-sub">科学家：{{ item.scientistName }}</p>
@@ -312,10 +399,10 @@
                 />
               </article>
             </div>
+            </transition>
           </section>
 
           <section
-            v-if="!hasContentSections"
             class="lab-detail__section lab-detail__empty text-center muted-2 text-sm"
           >
             暂无更多实验内容
@@ -323,13 +410,13 @@
         </div>
       </aside>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, reactive, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import {
   fetchExpDetail,
@@ -367,6 +454,22 @@ const references = ref([])
 const scientists = ref([])
 const activeSlide = ref(0)
 const remixLoading = ref(false)
+
+// 折叠状态：true=折叠收起（显示▼），false=展开（显示▲）
+const collapsed = reactive({
+  curriculum: true,
+  principle: true,
+  materials: true,
+  steps: true,
+  results: true,
+  safety: true,
+  references: true,
+  scientists: true
+})
+function toggleSection(key) {
+  collapsed[key] = !collapsed[key]
+  nextTick(initIcons)
+}
 
 const liked = ref(false)
 const starred = ref(false)

@@ -1,6 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell" data-layout="explore" data-works-wall>
-    <BottomNav />
+  <MobilePageShell data-layout="explore" data-works-wall>
 
     <div class="pad-main pad-explore">
       <header class="pad-explore__topbar">
@@ -177,13 +176,13 @@
       </div>
       <button type="button" class="works-submit-sheet__cancel" @click="submitSheetOpen = false">取消</button>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { fetchWorks } from '@/api/work'

@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top safe-bottom" data-layout="detail" data-notifications-list>
+  <MobilePageShell class="safe-top safe-bottom" data-layout="detail" data-notifications-list>
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/home" />
       <h1 class="topbar-title">消息通知</h1>
@@ -58,14 +58,12 @@
         </router-link>
       </template>
     </div>
-
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchMessages, fetchUnreadCount, markMessageRead, markAllMessagesRead } from '@/api/notification'
 import { fetchLatestNotice } from '@/api/home'

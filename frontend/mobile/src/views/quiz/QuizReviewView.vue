@@ -1,6 +1,6 @@
 <template>
 
-  <div class="prototype-container pad-shell safe-top" data-layout="detail" data-quiz-flow>
+  <MobilePageShell class="safe-top" data-layout="detail" data-quiz-flow>
 
     <div class="topbar page-topbar safe-top">
 
@@ -52,7 +52,7 @@
 
     </div>
 
-  </div>
+  </MobilePageShell>
 
 </template>
 
@@ -65,6 +65,7 @@ import { computed, onMounted, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { fetchQuizReview } from '@/api/quiz'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 

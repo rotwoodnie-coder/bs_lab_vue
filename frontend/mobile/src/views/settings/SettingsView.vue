@@ -1,11 +1,10 @@
 <template>
-  <div
-    class="prototype-container safe-top pad-shell"
+  <MobilePageShell
+    class="safe-top"
     data-layout="settings-split"
     :data-settings-role="roleKey"
     :class="{ 'pad-settings--mobile-pane-open': isMobileSettingsLayout && !!activeSection }"
   >
-    <BottomNav />
 
     <div class="pad-main pad-workbench">
       <header class="pad-workbench__topbar">
@@ -554,7 +553,7 @@
         @change="onAvatarSelected"
       />
     </Teleport>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
@@ -564,7 +563,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useProfileStore } from '@/stores/profile'
 import { useAppStore } from '@/stores/app'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import SettingsEditSection from '@/components/settings/SettingsEditSection.vue'
 import { changePassword } from '@/api/profile'

@@ -1,6 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top theme-primary" data-layout="detail">
-    <BottomNav />
+  <MobilePageShell class="safe-top theme-primary" data-layout="detail">
     <div class="topbar safe-top">
       <PageBackButton fallback="/admin" />
       <div class="flex-1 min-w-0">
@@ -77,12 +76,12 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { fetchAdminWorkReviews, submitAdminWorkReview } from '@/api/admin'

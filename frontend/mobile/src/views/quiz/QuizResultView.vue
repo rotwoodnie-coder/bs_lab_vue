@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top" data-layout="detail" data-quiz-flow>
+  <MobilePageShell class="safe-top" data-layout="detail" data-quiz-flow>
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/quiz" />
       <h1 class="topbar-title">{{ pageTitle }}</h1>
@@ -41,15 +41,13 @@
         <router-link to="/profile" class="btn btn-ghost btn-block">返回个人中心</router-link>
       </div>
     </div>
-
-    <BottomNav />
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
 import { computed, onMounted, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import BottomNav from '@/components/BottomNav.vue'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchQuizRecord } from '@/api/quiz'
 import { useLucideIcons } from '@/composables/useLucideIcons'

@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top" :class="shellThemeClass" data-layout="assistant-chat" data-assistant-chat>
+  <MobilePageShell class="safe-top" :class="shellThemeClass" data-layout="assistant-chat" data-assistant-chat>
     <div class="pad-main pad-chat">
       <header class="pad-chat__topbar safe-top">
         <PageBackButton fallback="/home" />
@@ -123,7 +123,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </MobilePageShell>
 </template>
 
 <script setup>
@@ -134,6 +134,7 @@ import { useAppStore } from '@/stores/app'
 import { normalizeRole } from '@/utils/role'
 import { sendChatMessage, fetchChatHistory, clearChatSession } from '@/api/chat'
 import { createSpeechRecognizer, isSpeechRecognitionSupported } from '@/utils/speechRecognition'
+import MobilePageShell from '@/components/layout/MobilePageShell.vue'
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useProfileStore } from '@/stores/profile'
