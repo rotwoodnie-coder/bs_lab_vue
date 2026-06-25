@@ -3,6 +3,7 @@ package com.xuanyue.exp.system.controller;
 import com.xuanyue.exp.common.ApiResponse;
 import com.xuanyue.exp.system.service.SysMsgService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -34,7 +35,7 @@ public class SysMsgController {
         return ApiResponse.success(service.unreadCount(currentUserId));
     }
 
-    @PutMapping("/{msgId}/read")
+    @PostMapping("/{msgId}/read")
     public ApiResponse<Void> markRead(@PathVariable String msgId,
                                       @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
         service.markRead(msgId, currentUserId);

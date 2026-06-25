@@ -48,7 +48,7 @@ public class ExpHomeworkStudentController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable("id") String id, @RequestBody Map<String, Object> payload) {
         service.update(id, payload);
         return ApiResponse.success(null);

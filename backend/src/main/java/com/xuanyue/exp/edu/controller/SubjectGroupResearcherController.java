@@ -4,7 +4,7 @@ import com.xuanyue.exp.common.ApiResponse;
 import com.xuanyue.exp.edu.service.SubjectGroupResearcherService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +27,7 @@ public class SubjectGroupResearcherController {
         return ApiResponse.success(service.get(groupId));
     }
 
-    @PutMapping("/{groupId}/researchers")
+    @PostMapping("/{groupId}/researchers")
     public ApiResponse<Void> save(@PathVariable String groupId,
                                   @RequestBody Map<String, Object> payload,
                                   @RequestHeader(value = "X-User-Id", required = false) String currentUserId,

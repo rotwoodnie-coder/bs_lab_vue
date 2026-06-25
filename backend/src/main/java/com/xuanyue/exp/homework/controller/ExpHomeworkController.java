@@ -48,13 +48,13 @@ public class ExpHomeworkController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable("id") String id, @RequestBody Map<String, Object> payload) {
         service.update(id, payload);
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}/assign")
+    @PostMapping("/{id}/assign")
     public ApiResponse<Void> assign(@PathVariable("id") String id) {
         service.assign(id);
         return ApiResponse.success(null);

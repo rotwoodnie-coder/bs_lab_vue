@@ -55,7 +55,7 @@ public class CoursebookController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id, @RequestBody Map<String, Object> payload) {
         coursebookService.update(id, payload);
         return ApiResponse.success(null);

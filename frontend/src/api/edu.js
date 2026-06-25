@@ -10,7 +10,7 @@ export function createCoursebook(data) {
 }
 
 export function updateCoursebook(id, data) {
-  return request.put(`/edu/coursebooks/${id}`, data)
+  return request.post(`/edu/coursebooks/${id}`, data)
 }
 
 export function deleteCoursebook(id) {
@@ -27,7 +27,7 @@ export function createCoursebookContent(data) {
 }
 
 export function updateCoursebookContent(id, data) {
-  return request.put(`/edu/coursebook-content/${id}`, data)
+  return request.post(`/edu/coursebook-content/${id}`, data)
 }
 
 export function deleteCoursebookContent(id) {
@@ -35,7 +35,7 @@ export function deleteCoursebookContent(id) {
 }
 
 export function reorderCoursebookContents(coursebookId, tree) {
-  return request.put(`/edu/coursebook-content/${coursebookId}/reorder`, tree)
+  return request.post(`/edu/coursebook-content/${coursebookId}/reorder`, tree)
 }
 
 //teacher subjects
@@ -48,7 +48,7 @@ export function fetchTeacherSubject(teacherId) {
 }
 
 export function saveTeacherSubject(teacherId, data) {
-  return request.put(`/edu/teacher-subjects/${teacherId}`, data)
+  return request.post(`/edu/teacher-subjects/${teacherId}`, data)
 }
 
 export function fetchTeacherClasses(params) {
@@ -56,7 +56,7 @@ export function fetchTeacherClasses(params) {
 }
 
 export function saveTeacherClasses(teacherId, data) {
-  return request.put(`/edu/teacher-classes/${teacherId}`, data)
+  return request.post(`/edu/teacher-classes/${teacherId}`, data)
 }
 
 
@@ -78,7 +78,7 @@ export function createSubjectGroup(data) {
 }
 
 export function updateSubjectGroup(groupId, data) {
-  return request.put(`/edu/subject-groups/${groupId}`, data)
+  return request.post(`/edu/subject-groups/${groupId}`, data)
 }
 
 export function deleteSubjectGroup(groupId) {
@@ -90,7 +90,7 @@ export function fetchSubjectGroupResearchers(groupId) {
 }
 
 export function saveSubjectGroupResearchers(groupId, data) {
-  return request.put(`/edu/subject-groups/${groupId}/researchers`, data)
+  return request.post(`/edu/subject-groups/${groupId}/researchers`, data)
 }
 
 export function fetchSubjectGroupTeachers(groupId) {
@@ -98,7 +98,7 @@ export function fetchSubjectGroupTeachers(groupId) {
 }
 
 export function saveSubjectGroupTeachers(groupId, data) {
-  return request.put(`/edu/subject-groups/${groupId}/teachers`, data)
+  return request.post(`/edu/subject-groups/${groupId}/teachers`, data)
 }
 
 //school notices
@@ -115,10 +115,10 @@ export function createSchoolNotice(data) {
 }
 
 export function updateSchoolNotice(id, data) {
-  return request.put(`/edu/school-notices/${id}`, data)
+  return request.post(`/edu/school-notices/${id}`, data)
 }
 export function publishSchoolNotice(id, data) {
-  return request.put(`/edu/school-notices/${id}/publish`, data)
+  return request.post(`/edu/school-notices/${id}/publish`, data)
 }
 
 export function deleteSchoolNotice(id) {

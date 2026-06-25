@@ -10,7 +10,7 @@ export function createDataDictItem(type, data) {
 }
 
 export function updateDataDictItem(type, id, data) {
-  return request.put(`/data/dict/${type}/${id}`, data)
+  return request.post(`/data/dict/${type}/${id}`, data)
 }
 
 export function deleteDataDictItem(type, id) {
@@ -41,7 +41,7 @@ export function createDataFileType(data) {
 }
 
 export function updateDataFileType(id, data) {
-  return request.put(`/sys/data-file-types/${id}`, data)
+  return request.post(`/sys/data-file-types/${id}`, data)
 }
 
 export function deleteDataFileType(id) {
@@ -82,11 +82,11 @@ export function createDataFile(data) {
 }
 
 export function updateDataFile(id, data) {
-  return request.put(`/data/files/${id}`, data)
+  return request.post(`/data/files/${id}`, data)
 }
 
 export function updateDataFilePublic(id, data) {
-  return request.put(`/data/files/${id}/public`, data)
+  return request.post(`/data/files/${id}/public`, data)
 }
 
 export function deleteDataFile(id) {
@@ -127,11 +127,11 @@ export function createMaterialMsg(data) {
 }
 
 export function updateMaterialMsg(id, data) {
-  return request.put(`/data/material-msgs/${id}`, data)
+  return request.post(`/data/material-msgs/${id}`, data)
 }
 
 export function updateMaterialMsgPublic(id, data) {
-  return request.put(`/data/material-msgs/${id}/public`, data)
+  return request.post(`/data/material-msgs/${id}/public`, data)
 }
 
 export function deleteMaterialMsg(id) {

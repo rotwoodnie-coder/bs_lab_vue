@@ -39,7 +39,7 @@ public class DataFileTypeController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id, @RequestBody Map<String, Object> payload) {
         dataFileTypeService.update(id, payload);
         return ApiResponse.success(null);

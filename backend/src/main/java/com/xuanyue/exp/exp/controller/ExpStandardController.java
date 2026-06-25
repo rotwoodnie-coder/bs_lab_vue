@@ -78,13 +78,13 @@ public class ExpStandardController {
         return ApiResponse.success(service.create(payload));
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id, @RequestBody Map<String, Object> payload) {
         service.update(id, payload);
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}/audit")
+    @PostMapping("/{id}/audit")
     public ApiResponse<Void> updateAudit(@PathVariable String id, @RequestBody Map<String, Object> payload) {
         service.updateAudit(id, payload);
         return ApiResponse.success(null);

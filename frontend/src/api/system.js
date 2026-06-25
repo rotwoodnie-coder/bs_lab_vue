@@ -13,11 +13,11 @@ export function createUser(data) {
 }
 
 export function updateUser(id, data) {
-  return request.put(`/sys/users/${id}`, data)
+  return request.post(`/sys/users/${id}`, data)
 }
 
 export function updateUserStatus(id, status) {
-  return request.patch(`/sys/users/${id}/status`, null, { params: { status } })
+  return request.post(`/sys/users/${id}/status`, null, { params: { status } })
 }
 
 export function changeUserPassword(userId, data) {
@@ -45,7 +45,7 @@ export function createOrg(data) {
 }
 
 export function updateOrg(id, data) {
-  return request.put(`/sys/orgs/${id}`, data)
+  return request.post(`/sys/orgs/${id}`, data)
 }
 
 export function deleteOrg(id) {
@@ -65,7 +65,7 @@ export function createMenu(data) {
 }
 
 export function updateMenu(id, data) {
-  return request.put(`/sys/menus/${id}`, data)
+  return request.post(`/sys/menus/${id}`, data)
 }
 
 export function deleteMenu(id) {
@@ -73,7 +73,7 @@ export function deleteMenu(id) {
 }
 
 export function updateMenuStatus(id, status) {
-  return request.patch(`/sys/menus/${id}/status`, null, { params: { status } })
+  return request.post(`/sys/menus/${id}/status`, null, { params: { status } })
 }
 
 export function fetchRoles(params) {
@@ -85,7 +85,7 @@ export function createRole(data) {
 }
 
 export function updateRole(id, data) {
-  return request.put(`/sys/roles/${id}`, data)
+  return request.post(`/sys/roles/${id}`, data)
 }
 
 export function deleteRole(id) {
@@ -93,7 +93,7 @@ export function deleteRole(id) {
 }
 
 export function updateRoleStatus(id, status) {
-  return request.patch(`/sys/roles/${id}/status`, null, { params: { status } })
+  return request.post(`/sys/roles/${id}/status`, null, { params: { status } })
 }
 
 export function fetchRoleMenus(roleId) {
@@ -113,7 +113,7 @@ export function fetchUnreadSystemMessageCount() {
 }
 
 export function markSystemMessageRead(msgId) {
-  return request.put(`/system/messages/${msgId}/read`)
+  return request.post(`/system/messages/${msgId}/read`)
 }
 
 export function fetchSystemLogs(params) {
@@ -138,7 +138,7 @@ export function createDictionaryItem(type, data) {
 }
 
 export function updateDictionaryItem(type, id, data) {
-  return request.put(`/sys/data-dictionaries/${type}/${id}`, data)
+  return request.post(`/sys/data-dictionaries/${type}/${id}`, data)
 }
 
 export function deleteDictionaryItem(type, id) {
