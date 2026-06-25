@@ -53,13 +53,13 @@ public class UserController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{userId}")
+    @PostMapping("/{userId}")
     public ApiResponse<Void> update(@PathVariable String userId, @Validated @RequestBody UserUpdateRequest request) {
         userService.update(userId, request);
         return ApiResponse.success(null);
     }
 
-    @PatchMapping("/{userId}/status")
+    @PostMapping("/{userId}/status")
     public ApiResponse<Void> updateStatus(@PathVariable String userId, @RequestParam String status) {
         userService.updateStatus(userId, status);
         return ApiResponse.success(null);

@@ -82,7 +82,7 @@ public class MaterialMsgController {
         return ApiResponse.success(msgMaterial);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id,
                                     @RequestBody Map<String, Object> payload,
                                     @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
@@ -90,7 +90,7 @@ public class MaterialMsgController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}/public")
+    @PostMapping("/{id}/public")
     public ApiResponse<Void> updatePublic(@PathVariable String id,
                                     @RequestBody Map<String, Object> payload,
                                     @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {

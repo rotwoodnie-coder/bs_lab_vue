@@ -5,6 +5,7 @@ import com.xuanyue.exp.system.entity.SysLog;
 import com.xuanyue.exp.system.service.SysLogService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,6 +41,7 @@ public class SysLogController {
         return ApiResponse.success(null);
     }
 
+    @PostMapping("/save-login-log")
     public ApiResponse<Void> saveLoginLog(@RequestParam String userId) {
         SysLog log = new SysLog();
         log.setUserId(userId);

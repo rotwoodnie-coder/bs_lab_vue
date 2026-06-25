@@ -22,17 +22,17 @@
       </div>
 
       <el-table :data="tableData" border stripe v-loading="loading" class="user-table">
-        <el-table-column prop="userName" label="教师姓名" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="loginName" label="登录账号" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="100" align="center">
+        <el-table-column prop="userName" label="教师姓名" min-width="100" show-overflow-tooltip />
+        <el-table-column prop="loginName" label="登录账号" min-width="100" show-overflow-tooltip />
+        <el-table-column prop="status" label="状态" width="60" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.status === 'y' ? 'success' : 'danger'">{{ scope.row.status === 'y' ? '启用' : '停用' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="subjectNames" label="授课学科" min-width="180" show-overflow-tooltip>
+        <el-table-column prop="subjectNames" label="授课学科" min-width="150" show-overflow-tooltip>
           <template #default="scope">{{ getSubjectNames(scope.row).join('、') || '-' }}</template>
         </el-table-column>
-        <el-table-column prop="classNames" label="授课班级" min-width="250" show-overflow-tooltip>
+        <el-table-column prop="classNames" label="授课班级" min-width="350" show-overflow-tooltip>
           <template #default="scope">{{ getClassNames(scope.row).join('、') || '-' }}</template>
         </el-table-column>
         <el-table-column label="操作" width="260" fixed="right" align="center">
@@ -142,7 +142,8 @@ const treeProps = { children: 'children', label: 'orgName', disabled: 'disabled'
 const subjectRules = { subjectIds: [{ required: true, message: '请选择学科', trigger: 'change' }] }
 
 const getSubjectNames = (row) => (Array.isArray(row?.subjectIds) ? row.subjectIds : []).map(id => subjectNameMap.value[id] || id).filter(Boolean)
-const getClassNames = (row) => (Array.isArray(row?.classIds) ? row.classIds : []).map(id => classNameMap.value[id] || id).filter(Boolean)
+const resolveClassName = (id) => classNameMap.value[id] || orgTreeRef.value?.getNode?.(id)?.data?.orgName || id
+const getClassNames = (row) => (Array.isArray(row?.classIds) ? row.classIds : []).map(id => resolveClassName(id)).filter(Boolean)
 
 const normalizeTree = (nodes = []) => nodes.map((node) => {
   const children = normalizeTree(node.children || [])
@@ -215,5 +216,5 @@ const handleClassSubmit = async () => {
 
 watch(classDialogVisible, (visible) => { if (visible) applyCheckedClassIds() })
 
-onMounted(async () => { await loadSubjects(); await loadItems() })
+onMounted(async () => { await loadSubjects(); await loadOrgTree(); await loadItems() })
 </script>

@@ -27,10 +27,10 @@ export function createExpTeachesFromStandard(data) {
   return request.post('/exp/teaches/from', data)
 }
 export function updateExpTeachSimulator(id, simulatorId) {
-  return request.put(`/exp/teaches/${id}/simulator`, { simulatorId })
+  return request.post(`/exp/teaches/${id}/simulator`, { simulatorId })
 }
 export function updateExpTeach(id, data) {
-  return request.put(`/exp/teaches/${id}`, data)
+  return request.post(`/exp/teaches/${id}`, data)
 }
 export function fetchExpStandard(id) {
   return request.get(`/exp/standards/${id}`)
@@ -45,11 +45,11 @@ export function createExpStandard(data) {
 }
 
 export function updateExpStandard(id, data) {
-  return request.put(`/exp/standards/${id}`, data)
+  return request.post(`/exp/standards/${id}`, data)
 }
 
 export function auditExpStandard(id, data) {
-  return request.put(`/exp/standards/${id}/audit`, data)
+  return request.post(`/exp/standards/${id}/audit`, data)
 }
 
 export function deleteExpStandard(id) {
@@ -81,7 +81,7 @@ export function saveExpVideo(expId, video) {
 }
 
 export function updateExpVideos(expId, videos) {
-  return request.put(`/exp/videos/${expId}`, videos)
+  return request.post(`/exp/videos/${expId}`, videos)
 }
 
 export function deleteExpVideo(seqId) {
@@ -127,7 +127,7 @@ export function createExpSimulator(data) {
 }
 
 export function updateExpSimulator(id, data) {
-  return request.put(`/exp/simulators/${id}`, data)
+  return request.post(`/exp/simulators/${id}`, data)
 }
 
 export function deleteExpSimulator(id) {
@@ -220,7 +220,7 @@ export function createExpQuestion(data) {
 }
 
 export function updateExpQuestion(id, data) {
-  return request.put(`/exp/questions/${id}`, data)
+  return request.post(`/exp/questions/${id}`, data)
 }
 
 export function deleteExpQuestion(id) {
@@ -228,7 +228,7 @@ export function deleteExpQuestion(id) {
 }
 
 export function saveExpQuestionSelects(questionId, data) {
-  return request.put(`/exp/questions/${questionId}/selects`, data)
+  return request.post(`/exp/questions/${questionId}/selects`, data)
 }
 
 export function deleteExpQuestionSelect(questionId, selectId) {

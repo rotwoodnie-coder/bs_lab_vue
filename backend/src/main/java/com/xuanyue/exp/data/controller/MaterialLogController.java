@@ -47,7 +47,7 @@ public class MaterialLogController {
         return ApiResponse.success(null);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable String id,
                                     @RequestBody Map<String, Object> payload,
                                     @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
