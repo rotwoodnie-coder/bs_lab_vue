@@ -24,6 +24,10 @@ public class MobileProfileDto {
     private String prefTitleName;
     private Date createTime;
     private Date lastLoginTime;
+    /** 学生作品数（已提交：待审核/通过/未通过，不含草稿） */
+    private Integer worksCount;
+    /** 学生作品累计获赞数 */
+    private Integer totalLikes;
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -75,4 +79,10 @@ public class MobileProfileDto {
 
     public Date getLastLoginTime() { return lastLoginTime; }
     public void setLastLoginTime(Date lastLoginTime) { this.lastLoginTime = lastLoginTime; }
+
+    public Integer getWorksCount() { return worksCount; }
+    public void setWorksCount(Integer worksCount) { this.worksCount = worksCount; }
+
+    public Integer getTotalLikes() { return totalLikes; }
+    public void setTotalLikes(Integer totalLikes) { this.totalLikes = totalLikes; }
 }

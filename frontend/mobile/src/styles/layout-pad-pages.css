@@ -142,7 +142,7 @@
 }
 
 .pad-home__brand-text {
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 28px;
   letter-spacing: -0.01em;
@@ -167,7 +167,7 @@
 .pad-home__topbar-icon:hover { transform: scale(1.04); }
 .pad-home__topbar-icon:active { transform: scale(0.96); }
 .pad-home__topbar-icon .science-logo { color: var(--brand-on); }
-.pad-home__topbar-icon i { font-size: 16px; width: 16px; height: 16px; }
+.pad-home__topbar-icon i { font-size: var(--text-base); width: 16px; height: 16px; }
 
 /* 搜索框：固定高度，图标垂直居中 */
 .pad-home__topbar-search {
@@ -249,7 +249,7 @@
   transition: background var(--dur-fast) var(--ease);
 }
 .pad-home__bell:hover { background: var(--color-surface-2); }
-.pad-home__bell i { font-size: 22px; width: 22px; height: 22px; }
+.pad-home__bell i { font-size: var(--text-xl); width: 20px; height: 20px; }
 
 .pad-home__bell-badge {
   position: absolute;
@@ -261,7 +261,7 @@
   border-radius: var(--radius-full);
   background: var(--c-rose-500);
   color: #fff;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: var(--weight-bold);
   line-height: 16px;
   text-align: center;
@@ -958,22 +958,25 @@
     display: none !important;
   }
 
-  /* ── teacher-home：P17/P23 ── */
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__overview {
+  /* ── 教师任务工作台（teacher-home / data-tasks-list）：P17/P23 ── */
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__overview,
+  .pad-shell[data-tasks-list] .pad-teacher__overview {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher {
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher,
+  .pad-shell[data-tasks-list] .pad-workbench__body--teacher {
     flex: 1;
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__body {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__body,
+  .pad-shell[data-tasks-list] .pad-teacher__body {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
     gap: var(--space-4);
@@ -983,7 +986,8 @@
     overflow: hidden;
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__actions {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__actions,
+  .pad-shell[data-tasks-list] .pad-teacher__actions {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
@@ -991,19 +995,22 @@
     scrollbar-width: thin;
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__feed {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__feed,
+  .pad-shell[data-tasks-list] .pad-teacher__feed {
     overflow-y: auto;
     scrollbar-width: thin;
     min-height: 0;
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__feed .pad-home__grid {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__feed .pad-home__grid,
+  .pad-shell[data-tasks-list] .pad-teacher__feed .pad-home__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-3);
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only,
+  .pad-shell[data-tasks-list] .pad-teacher__mobile-only {
     display: none !important;
   }
 
@@ -1101,7 +1108,7 @@
 
   .pad-shell[data-layout="login-split"] .pad-login__product-name {
     margin: var(--space-4) 0 0;
-    font-size: 17px;
+    font-size: var(--text-base);
     font-weight: var(--weight-bold);
     line-height: 1.2;
     white-space: nowrap;
@@ -1275,6 +1282,121 @@
 @media (min-width: 768px) and (max-width: 959px) and (orientation: landscape) {
   .pad-shell[data-layout="badge-wall"] .pad-badges__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ── 教师任务工作台：平板竖屏 P0（Mini 768–1023 / Pro ≥1024）── */
+@media (min-width: 768px) and (orientation: portrait) {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only,
+  .pad-shell[data-tasks-list] .pad-teacher__mobile-only {
+    display: none !important;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher,
+  .pad-shell[data-tasks-list] .pad-workbench__body--teacher {
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher .pad-workbench__main,
+  .pad-shell[data-tasks-list] .pad-workbench__body--teacher .pad-workbench__main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .teacher-tasks-hub,
+  .pad-shell[data-tasks-list] .teacher-tasks-hub {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* iPad Mini 竖屏：2×2 统计 + 操作区与任务区上下堆叠 */
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__overview,
+  .pad-shell[data-tasks-list] .pad-teacher__overview {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    flex-shrink: 0;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__body,
+  .pad-shell[data-tasks-list] .pad-teacher__body {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    padding: 0 var(--space-4) var(--space-4);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__actions,
+  .pad-shell[data-tasks-list] .pad-teacher__actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    align-content: start;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__actions .btn-block,
+  .pad-shell[data-tasks-list] .pad-teacher__actions .btn-block {
+    grid-column: 1 / -1;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__feed,
+  .pad-shell[data-tasks-list] .pad-teacher__feed {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    min-height: 0;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__feed .pad-home__grid,
+  .pad-shell[data-tasks-list] .pad-teacher__feed .pad-home__grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+}
+
+@media (min-width: 1024px) and (orientation: portrait) {
+  /* iPad Pro 竖屏：与横屏工作台一致 */
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__overview,
+  .pad-shell[data-tasks-list] .pad-teacher__overview {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__body,
+  .pad-shell[data-tasks-list] .pad-teacher__body {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__actions,
+  .pad-shell[data-tasks-list] .pad-teacher__actions {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--space-2);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__feed .pad-home__grid,
+  .pad-shell[data-tasks-list] .pad-teacher__feed .pad-home__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pad-shell[data-layout="list-workbench"] .pad-list__grid,
+  .pad-shell[data-tasks-list] .pad-list__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
 
@@ -1489,18 +1611,21 @@ html.in-iframe-pad .pad-shell[data-layout="profile-hub"] .pad-profile__shortcuts
   padding: 0 var(--space-4);
 }
 
-html.in-iframe-pad .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only {
+html.in-iframe-pad .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only,
+html.in-iframe-pad .pad-shell[data-tasks-list] .pad-teacher__mobile-only {
   display: none !important;
 }
 
-html.in-iframe-pad .pad-shell[data-layout="teacher-home"] .pad-teacher__overview {
+html.in-iframe-pad .pad-shell[data-layout="teacher-home"] .pad-teacher__overview,
+html.in-iframe-pad .pad-shell[data-tasks-list] .pad-teacher__overview {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
 }
 
-html.in-iframe-pad .pad-shell[data-layout="teacher-home"] .pad-teacher__body {
+html.in-iframe-pad .pad-shell[data-layout="teacher-home"] .pad-teacher__body,
+html.in-iframe-pad .pad-shell[data-tasks-list] .pad-teacher__body {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: var(--space-4);
@@ -2427,7 +2552,7 @@ html.in-iframe-pad .pad-shell[data-layout="teacher-form"] .pad-form__mobile-only
   min-height: 2.4em;
   max-width: 320px;
   margin: 0;
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: var(--weight-bold);
   line-height: 1.35;
   color: var(--color-text-1);
@@ -2491,8 +2616,8 @@ html.in-iframe-pad .pad-shell[data-layout="teacher-form"] .pad-form__mobile-only
 
 .pad-shell[data-layout="assistant-chat"] .pad-chat__composer {
   flex-shrink: 0;
-  padding: var(--space-3) var(--space-4);
-  padding-bottom: max(var(--space-3), env(safe-area-inset-bottom, 0px));
+  padding: var(--space-2) var(--space-3);
+  padding-bottom: max(var(--space-2), env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--color-border-soft);
   background: var(--color-surface);
   display: block;
@@ -2640,6 +2765,45 @@ html.in-iframe-pad .pad-shell[data-layout="assistant-chat"] .pad-chat__composer 
 
 .pad-shell[data-layout="assistant-chat"] .pad-chat__composer .input-group {
   min-width: 0;
+}
+
+/* 底部输入栏：缩小话筒/发送，尽量给输入框留宽 */
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__row {
+  gap: 6px;
+  align-items: center;
+}
+
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__mic,
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__send {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__mic .icon,
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__send .icon {
+  --icon-size: 15px;
+}
+
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__mic.is-active {
+  background: var(--brand);
+  color: var(--brand-on);
+}
+
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pad-shell[data-layout="assistant-chat"] .assistant-composer__input .input {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: var(--text-base);
+  border-radius: var(--radius-md);
 }
 
 .pad-shell[data-layout="assistant-chat"] .input-mode-voice.input {

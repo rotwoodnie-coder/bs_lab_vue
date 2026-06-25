@@ -3,7 +3,7 @@ import { formatDateTime } from './feedDisplay'
 const TYPE_META = {
   task: { label: '实验任务', tab: 'study', icon: 'clipboard-list', tone: 'brand' },
   bind: { label: '绑定审核', tab: 'system', icon: 'user-check', tone: 'warning' },
-  grade: { label: '批阅反馈', tab: 'study', icon: 'check-circle', tone: 'success' },
+  grade: { label: '评价反馈', tab: 'study', icon: 'check-circle', tone: 'success' },
   achievement: { label: '成就提醒', tab: 'study', icon: 'award', tone: 'warning' },
   social: { label: '互动消息', tab: 'social', icon: 'message-circle', tone: 'violet' },
   system: { label: '系统公告', tab: 'system', icon: 'megaphone', tone: 'slate' }

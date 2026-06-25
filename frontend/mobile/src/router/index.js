@@ -23,6 +23,10 @@ const routes = [
 
   { path: '/login', name: 'mobile-login', component: () => import('@/views/LoginView.vue'), meta: { public: true } },
 
+  { path: '/legal/terms', name: 'legal-terms', component: () => import('@/views/legal/LegalDocumentView.vue'), meta: { public: true } },
+
+  { path: '/legal/privacy', name: 'legal-privacy', component: () => import('@/views/legal/LegalDocumentView.vue'), meta: { public: true } },
+
   { path: '/register/parent', name: 'parent-register', component: () => import('@/views/auth/ParentRegisterView.vue'), meta: { public: true } },
 
   { path: '/bind-child', name: 'bind-child', component: () => import('@/views/bind/BindChildView.vue') },
@@ -59,7 +63,7 @@ const routes = [
 
   { path: '/sim/:id', name: 'sim-detail', component: () => import('@/views/experiment/VirtualExpDetailView.vue') },
 
-  { path: '/tasks', name: 'tasks', component: () => import('@/views/tasks/TasksView.vue'), meta: { roles: ['student', 'parent', 'teacher', 'researcher', 'admin'] } },
+  { path: '/tasks', name: 'tasks', component: () => import('@/views/tasks/TasksView.vue'), beforeEnter: tasksEntryGuard, meta: { roles: ['student', 'parent', 'teacher', 'researcher'] } },
 
   { path: '/tasks/:taskId/summary', name: 'task-summary', component: () => import('@/views/teacher/TaskSummaryView.vue'), meta: { roles: ['teacher'] } },
 
@@ -74,6 +78,8 @@ const routes = [
   { path: '/upload', name: 'upload', component: () => import('@/views/upload/UploadView.vue'), meta: { roles: ['student', 'parent'] } },
 
   { path: '/badges', name: 'badges', component: () => import('@/views/badges/BadgeWallView.vue'), meta: { roles: ['student'] } },
+
+  { path: '/points', name: 'points-ledger', component: () => import('@/views/points/PointsLedgerView.vue'), meta: { roles: ['student'] } },
 
   { path: '/growth', name: 'growth', component: () => import('@/views/growth/GrowthArchiveView.vue'), meta: { roles: ['student', 'parent'] } },
 
@@ -106,6 +112,16 @@ const routes = [
 
   { path: '/parent-binds', name: 'parent-binds', component: () => import('@/views/teacher/ParentBindAuditView.vue'), meta: { roles: ['teacher'] } },
 
+  { path: '/admin', name: 'admin-hub', component: () => import('@/views/admin/AdminHubView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/badges', name: 'admin-badges', component: () => import('@/views/admin/AdminBadgeRulesView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/quiz-config', name: 'admin-quiz-config', component: () => import('@/views/admin/AdminQuizConfigView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/parent-registrations', name: 'admin-parent-registrations', component: () => import('@/views/admin/AdminParentRegistrationsView.vue'), meta: { roles: ['admin'] } },
+
+  { path: '/admin/work-reviews', name: 'admin-work-reviews', component: () => import('@/views/admin/AdminWorkReviewsView.vue'), meta: { roles: ['admin'] } },
+
   { path: '/profile', name: 'profile', component: () => import('@/views/profile/ProfileView.vue') },
 
   { path: '/settings', name: 'settings', component: () => import('@/views/settings/SettingsView.vue') },
@@ -128,13 +144,34 @@ const router = createRouter({
 
 
 
-function homeForRole(role) {
+function homeForRole() {
 
-  if (role === 'parent') return '/tasks'
-
-  if (role === 'researcher' || role === 'admin') return '/home'
-
+  // 首页对所有角色都是内容信息流（按角色范围个性化），统一落到 /home。
   return '/home'
+
+}
+
+
+
+function tasksEntryGuard() {
+
+  const userInfo = getUserInfo()
+
+  const role = normalizeRole(userInfo?.userRoleId)
+
+  if (role === 'admin') {
+
+    return { path: '/admin', replace: true }
+
+  }
+
+  if (role === 'researcher') {
+
+    return { path: '/content-audits', replace: true }
+
+  }
+
+  return true
 
 }
 
@@ -183,6 +220,8 @@ router.beforeEach(async (to) => {
     return '/login'
 
   }
+
+  if (to.meta?.public) return true
 
   try {
     useProfileStore().loadProfile()
@@ -233,8 +272,6 @@ router.beforeEach(async (to) => {
     }
 
   }
-
-  if (to.meta?.public) return true
 
   const roles = to.meta?.roles
 

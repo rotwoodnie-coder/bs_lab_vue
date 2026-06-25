@@ -3,7 +3,7 @@
     <div class="topbar safe-top">
       <PageBackButton fallback="/home" />
       <div class="flex-1 min-w-0">
-        <h1 class="topbar-title">✅ 审核批阅</h1>
+        <h1 class="topbar-title">✅ 作品评价</h1>
       </div>
       <div class="row items-center gap-1">
         <span class="text-lg"><i data-lucide="clipboard-list" class="icon"></i></span>
@@ -19,7 +19,7 @@
     </div>
     <div v-else-if="pending.length === 0" class="px-4 py-12 text-center">
       <div class="text-2xl mb-2">🎉</div>
-      <p class="text-sm font-bold">全部批阅完成</p>
+      <p class="text-sm font-bold">全部评价完成</p>
       <p class="text-xs muted mt-2">暂无待批作品</p>
     </div>
 
@@ -37,7 +37,7 @@
               <div class="text-base font-bold">{{ item.student }} · {{ item.title }}</div>
               <div class="text-xs muted">提交于 {{ item.time }}<span v-if="item.workTypeLabel"> · {{ item.workTypeLabel }}</span></div>
             </div>
-            <span class="badge badge-warning text-xs">待批阅</span>
+            <span class="badge badge-warning text-xs">待评价</span>
           </div>
 
           <div>
@@ -52,6 +52,7 @@
                 @click="item.rating = r.key"
               >{{ r.label }}</button>
             </div>
+            <p class="text-xs muted mt-2">合格及以上将审核通过并展示到首页；选择「不合格」则驳回，作品不在首页展示。</p>
           </div>
 
           <div>
@@ -71,7 +72,7 @@
             @click="submitReview(item)"
           >
             <i data-lucide="send" class="icon"></i>
-            {{ item.submitting ? '提交中…' : '提交批阅' }}
+            {{ item.submitting ? '提交中…' : '提交评价' }}
           </button>
         </div>
       </div>
@@ -113,7 +114,7 @@ async function loadQueue() {
       submitting: false
     }))
   } catch (e) {
-    loadError.value = '加载批阅队列失败'
+    loadError.value = '加载评价队列失败'
     pending.value = []
   } finally {
     loading.value = false
@@ -138,9 +139,9 @@ async function submitReview(item) {
       initIcons()
       return
     }
-    alert(res?.message || '批阅失败')
+    alert(res?.message || '评价失败')
   } catch (e) {
-    alert(e?.response?.data?.message || '批阅失败，请稍后重试')
+    alert(e?.response?.data?.message || '评价失败，请稍后重试')
   } finally {
     item.submitting = false
   }

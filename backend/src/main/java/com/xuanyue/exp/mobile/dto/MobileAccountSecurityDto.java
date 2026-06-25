@@ -10,6 +10,7 @@ public class MobileAccountSecurityDto {
     private boolean dingTalkBound;
     private String dingTalkLabel;
     private boolean wechatBound;
+    private boolean wechatSupported;
     private boolean parentBound;
     private int parentBindCount;
     private int parentPendingCount;
@@ -30,6 +31,8 @@ public class MobileAccountSecurityDto {
     public void setDingTalkLabel(String dingTalkLabel) { this.dingTalkLabel = dingTalkLabel; }
     public boolean isWechatBound() { return wechatBound; }
     public void setWechatBound(boolean wechatBound) { this.wechatBound = wechatBound; }
+    public boolean isWechatSupported() { return wechatSupported; }
+    public void setWechatSupported(boolean wechatSupported) { this.wechatSupported = wechatSupported; }
     public boolean isParentBound() { return parentBound; }
     public void setParentBound(boolean parentBound) { this.parentBound = parentBound; }
     public int getParentBindCount() { return parentBindCount; }

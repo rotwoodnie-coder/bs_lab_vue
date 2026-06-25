@@ -7,6 +7,7 @@ export function fetchHomeBootstrap(params = {}) {
   return request.get('/mobile/home/bootstrap', {
     params: {
       gradeKey: params.gradeKey || 'all',
+      type: params.type || 'all',
       size: params.size || 12
     }
   })
@@ -21,6 +22,7 @@ export function fetchHomeFeed(params = {}) {
   return request.get('/mobile/home/feed', {
     params: {
       gradeKey: params.gradeKey || 'all',
+      type: params.type || 'all',
       page: params.page || 1,
       size: params.size || 20
     }

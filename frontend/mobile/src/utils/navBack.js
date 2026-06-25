@@ -23,6 +23,7 @@ export const BOTTOM_TAB_ROUTES = [
   '/home',
   '/experiments',
   '/tasks',
+  '/admin',
   '/assign',
   '/chat',
   '/profile'

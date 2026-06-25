@@ -7,5 +7,5 @@ export function fetchGrowth(params = {}) {
 }
 
 export function saveGrowthPlan(payload) {
-  return request.put('/mobile/growth/plan', payload)
+  return request.post('/mobile/growth/plan/save', payload)
 }

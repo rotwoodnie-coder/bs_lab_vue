@@ -1,6 +1,8 @@
 package com.xuanyue.exp.mobile.repository;
 
 import com.xuanyue.exp.mobile.entity.MbPointsLedger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -14,4 +16,6 @@ public interface MbPointsLedgerRepository extends JpaRepository<MbPointsLedger, 
 
     @Query("SELECT COALESCE(SUM(l.delta), 0) FROM MbPointsLedger l WHERE l.userId = ?1 AND l.createTime >= ?2")
     long sumDeltaByUserIdSince(String userId, Date since);
+
+    Page<MbPointsLedger> findByUserIdOrderByCreateTimeDesc(String userId, Pageable pageable);
 }

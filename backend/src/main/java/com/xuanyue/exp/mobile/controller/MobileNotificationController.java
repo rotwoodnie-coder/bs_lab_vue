@@ -4,6 +4,7 @@ import com.xuanyue.exp.common.ApiResponse;
 import com.xuanyue.exp.system.service.SysMsgService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,8 +42,19 @@ public class MobileNotificationController {
         return ApiResponse.success(null);
     }
 
+    @PostMapping("/{msgId}/read")
+    public ApiResponse<Void> markReadViaPost(@PathVariable String msgId,
+                                            @RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
+        return markRead(msgId, currentUserId);
+    }
+
     @PutMapping("/read-all")
     public ApiResponse<?> markAllRead(@RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
         return ApiResponse.success(sysMsgService.markAllRead(currentUserId));
+    }
+
+    @PostMapping("/read-all")
+    public ApiResponse<?> markAllReadViaPost(@RequestHeader(value = "X-User-Id", required = false) String currentUserId) {
+        return markAllRead(currentUserId);
     }
 }

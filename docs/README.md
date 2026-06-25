@@ -15,6 +15,7 @@
 | API 是否存在 | **代码** `backend/.../mobile/controller/Mobile*Controller.java`（不在 doc 重复列表） |
 | 联调造数 | **[mobile-test-data-playbook.md](./mobile-test-data-playbook.md)** |
 | SQL 怎么跑 | **[../sql/mobile/README.md](../sql/mobile/README.md)** |
+| **服务器部署** | **[server-deployment.md](./server-deployment.md)** |
 
 ## 辅助文档
 

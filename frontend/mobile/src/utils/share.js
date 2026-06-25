@@ -1,6 +1,8 @@
 /**
  * 分享当前页面：优先 Web Share API，否则复制链接到剪贴板。
  */
+import { showToast } from '@/utils/toast'
+
 export async function sharePage({ title, text, url } = {}) {
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '')
   const shareTitle = title || document?.title || '宝山区小实验社区'
@@ -17,7 +19,7 @@ export async function sharePage({ title, text, url } = {}) {
 
   try {
     await navigator.clipboard.writeText(shareUrl)
-    alert('链接已复制')
+    showToast('链接已复制')
     return true
   } catch {
     window.prompt('复制链接', shareUrl)

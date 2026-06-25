@@ -4,7 +4,7 @@
       <button type="button" class="icon-btn" aria-label="返回" @click="goBack">
         <i data-lucide="arrow-left" class="icon"></i>
       </button>
-      <span class="topbar-title">成果上传</span>
+      <span class="topbar-title">{{ isEditMode ? '编辑作品' : '成果上传' }}</span>
     </div>
 
     <div v-if="isParentView && selectedChild" class="px-4 pt-3">
@@ -37,7 +37,7 @@
     />
 
     <div v-if="isCreative" class="px-4 safe-top" style="padding-top:8px;">
-      <p class="quiz-tip-banner">💡 <strong>创意实验</strong> · 自由上传实验成果，不关联老师作业，提交后由老师审核通过再展示在作品墙</p>
+      <p class="quiz-tip-banner">💡 <strong>创意实验</strong> · 自由上传实验成果，不关联老师发布任务，提交后由老师审核通过再展示在作品墙</p>
     </div>
 
     <div v-if="taskAlreadySubmitted && !submitted" class="px-4 pt-3">
@@ -62,10 +62,15 @@
         <div class="text-base font-bold text-success">{{ successTitle }}</div>
         <p class="text-xs muted mt-2">{{ successHint }}</p>
       </div>
-      <router-link v-if="createdWorkId" :to="`/works/${createdWorkId}`" class="btn btn-primary btn-block">查看本次成果</router-link>
-      <router-link v-if="isCreative" to="/works?scope=mine&type=creative&reviewStatus=pending" class="btn btn-outline btn-block">查看我的创意实验</router-link>
-      <router-link v-if="isRemix" to="/works?scope=mine&type=remix&reviewStatus=pending" class="btn btn-outline btn-block">查看我的拍同款</router-link>
-      <router-link v-if="isHomework" to="/works?scope=mine" class="btn btn-outline btn-block">查看我的作品</router-link>
+      <router-link v-if="createdWorkId" :to="`/works/${createdWorkId}`" class="btn btn-primary btn-block">
+        {{ isParentView ? '查看孩子本次成果' : '查看本次成果' }}
+      </router-link>
+      <template v-if="!isParentView">
+        <router-link v-if="isCreative" to="/works?scope=mine&type=creative&reviewStatus=pending" class="btn btn-outline btn-block">查看我的创意实验</router-link>
+        <router-link v-if="isRemix" to="/works?scope=mine&type=remix&reviewStatus=pending" class="btn btn-outline btn-block">查看我的拍同款</router-link>
+        <router-link v-if="isHomework" to="/works?scope=mine" class="btn btn-outline btn-block">查看我的作品</router-link>
+      </template>
+      <router-link v-else to="/tasks?status=done" class="btn btn-outline btn-block">查看孩子已完成任务</router-link>
       <router-link v-if="isHomework && linkedTaskId" :to="`/tasks/${linkedTaskId}`" class="btn btn-outline btn-block">返回关联任务</router-link>
       <router-link v-else to="/tasks" class="btn btn-outline btn-block">返回我的任务</router-link>
     </div>
@@ -134,11 +139,11 @@
             <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
           </div>
           <div v-else-if="taskLocked && taskContext" class="field">
-            <label class="label">📎 关联作业</label>
+            <label class="label">📎 关联作品</label>
             <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
           </div>
           <div v-else-if="!isCreative" class="field">
-            <label class="label">📎 关联作业</label>
+            <label class="label">📎 关联作品</label>
             <select v-model="relatedTaskId" class="select">
               <option v-if="!relatedTasks.length" value="" disabled>暂无待完成实验任务</option>
               <option v-for="t in relatedTasks" :key="t.id" :value="t.id">{{ t.title }}</option>
@@ -150,7 +155,7 @@
             class="btn btn-gradient btn-block btn-lg"
             :disabled="submitting || uploading || !hasReadyFiles || taskAlreadySubmitted"
             @click="submitUpload"
-          >📤 确认提交</button>
+          >📤 {{ isEditMode ? '保存修改' : '确认提交' }}</button>
           <p class="text-xs muted-2 text-center">提交后可在「我的作品」或任务详情中查看进度</p>
         </aside>
       </div>
@@ -190,11 +195,11 @@
           <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
         </div>
         <div v-else-if="taskLocked && taskContext" class="field">
-          <label class="label">📎 关联作业</label>
+          <label class="label">📎 关联作品</label>
           <div class="rounded-xl surface-2 px-4 py-3 text-sm font-medium">{{ taskContext.title }}</div>
         </div>
         <div v-else-if="!isCreative" class="field">
-          <label class="label">📎 关联作业</label>
+          <label class="label">📎 关联作品</label>
           <select v-model="relatedTaskId" class="select">
             <option v-if="!relatedTasks.length" value="" disabled>暂无待完成实验任务</option>
             <option v-for="t in relatedTasks" :key="t.id" :value="t.id">{{ t.title }}</option>
@@ -206,7 +211,7 @@
           class="btn btn-gradient btn-block btn-lg"
           :disabled="submitting || uploading || !hasReadyFiles || taskAlreadySubmitted"
           @click="submitUpload"
-        >📤 确认提交</button>
+        >📤 {{ isEditMode ? '保存修改' : '确认提交' }}</button>
         <p class="text-xs muted-2 text-center">提交后可在「我的作品」或任务详情中查看进度</p>
       </div>
     </div>
@@ -262,7 +267,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import UploadMediaGrid from '@/components/upload/UploadMediaGrid.vue'
 import UploadCameraCapture from '@/components/upload/UploadCameraCapture.vue'
-import { createWork, uploadFile, parseUploadResponse } from '@/api/work'
+import { createWork, updateWork, uploadFile, parseUploadResponse, fetchWorkDetail } from '@/api/work'
 import { fetchTaskDetail, fetchTasks } from '@/api/task'
 import { useParentContext } from '@/composables/useParentContext'
 import { isParentRole } from '@/utils/role'
@@ -303,6 +308,8 @@ const mobilePreviewFile = ref(null)
 const isCreative = computed(() => route.query.type === 'creative')
 const isRemix = computed(() => route.query.type === 'remix')
 const isHomework = computed(() => !isCreative.value && !isRemix.value)
+const isEditMode = computed(() => !!route.query.edit)
+const editWorkId = computed(() => route.query.edit || '')
 const taskLocked = computed(() => Boolean(route.query.taskId))
 const taskAlreadySubmitted = computed(() => {
   const state = taskContext.value?.state
@@ -329,7 +336,7 @@ const submitted = ref(false)
 const submitting = ref(false)
 const uploading = ref(false)
 
-const hasReadyFiles = computed(() => files.value.some((f) => f.status === 'done' && isServerUploadedUrl(f.url)))
+const hasReadyFiles = computed(() => files.value.some((f) => f.status === 'done' && (isMinioStorageUrl(f.url) || isServerUploadedUrl(f.url))))
 
 const stageFileIndex = computed(() => {
   if (previewIndex.value >= 0 && files.value[previewIndex.value]) return previewIndex.value
@@ -344,13 +351,13 @@ const stageFile = computed(() => {
 const successTitle = computed(() => {
   if (isRemix.value) return '拍同款已提交'
   if (isCreative.value) return '创意实验已提交'
-  return '作业已提交'
+  return '作品已提交'
 })
 
 const successHint = computed(() => {
   if (isRemix.value) return '老师审核通过后，作品将展示在作品墙「拍同款」'
   if (isCreative.value) return '老师审核通过后，作品将展示在作品墙「创意实验」'
-  return '老师将尽快批阅，可在「我的任务」中查看状态'
+  return '老师将尽快评价，可在「任务」中查看状态'
 })
 
 function newFileId() {
@@ -466,7 +473,7 @@ function readVideoDuration(sourceUrl) {
 }
 
 function normalizeDraftFile(raw) {
-  if (!raw || !isServerUploadedUrl(raw.url)) return null
+  if (!raw || !(isMinioStorageUrl(raw.url) || isServerUploadedUrl(raw.url))) return null
   return {
     id: raw.id || newFileId(),
     type: raw.type === 'video' ? 'video' : 'image',
@@ -478,6 +485,22 @@ function normalizeDraftFile(raw) {
     duration: raw.duration || '',
     grad: raw.grad,
     icon: raw.icon
+  }
+}
+
+/** 将作品详情中的文件转换为上传 editor 的文件格式 */
+function workFileToUploadItem(file) {
+  return {
+    id: file.id,
+    type: file.type === 'video' ? 'video' : 'image',
+    name: file.name || '文件',
+    size: '',
+    previewUrl: file.previewUrl || file.url || '',
+    url: file.url || '',
+    status: 'done',
+    duration: file.duration || '',
+    grad: file.type === 'video' ? 'card-media-grad-amber-rose' : 'card-media-grad-violet-blue',
+    icon: file.type === 'video' ? '🎬' : '📷'
   }
 }
 
@@ -648,6 +671,7 @@ async function submitUpload() {
     sourceExpId: taskContext.value?.videoId || undefined,
     studentUserId: isParentView.value ? childQueryParam() : undefined,
     files: readyFiles.map((f) => ({
+      id: f.id,
       type: f.type,
       name: f.name,
       size: f.size,
@@ -659,7 +683,12 @@ async function submitUpload() {
   }
 
   try {
-    const res = await createWork(payload)
+    let res
+    if (isEditMode.value && editWorkId.value) {
+      res = await updateWork(editWorkId.value, payload)
+    } else {
+      res = await createWork(payload)
+    }
     if (res?.code === 200) {
       createdWorkId.value = res.data?.id || res.data?.workId || ''
       linkedTaskId.value = resolvedTaskId || ''
@@ -690,6 +719,34 @@ watch([taskContext, relatedTaskId, relatedTasks, isCreative], () => {
 
 onMounted(async () => {
   if (isParentView.value) await loadChildren()
+
+  // 编辑模式：加载已有作品数据
+  if (isEditMode.value && editWorkId.value) {
+    try {
+      const res = await fetchWorkDetail(editWorkId.value)
+      if (res?.code === 200 && res.data) {
+        const data = res.data
+        workTitle.value = data.title || ''
+        workTitleTouched.value = true
+        note.value = data.desc || ''
+        // 加载已有文件
+        if (Array.isArray(data.files)) {
+          files.value = data.files
+            .filter(f => f?.url)
+            .map(workFileToUploadItem)
+        }
+        return
+      }
+      alert(res?.message || '作品不存在或无法编辑')
+      router.back()
+      return
+    } catch (e) {
+      console.warn('加载作品数据失败', e)
+      alert('加载作品数据失败')
+      router.back()
+      return
+    }
+  }
 
   const taskId = route.query.taskId
   if (taskId) {

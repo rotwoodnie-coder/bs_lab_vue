@@ -43,8 +43,8 @@
 
     <div class="text-center text-xs muted-2 mt-6" style="line-height:1.8;">
       登录即表示同意<br>
-      <a href="#" class="text-brand">《用户协议》</a>
-      <a href="#" class="text-brand">《隐私政策》</a>
+      <router-link to="/legal/terms" class="text-brand">《用户协议》</router-link>
+      <router-link to="/legal/privacy" class="text-brand">《隐私政策》</router-link>
     </div>
     <div class="text-center text-xs muted mt-5">首次使用？请联系学校获取账号</div>
     <div class="text-center text-xs muted-2 mt-3">— 或 —</div>

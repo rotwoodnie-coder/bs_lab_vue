@@ -31,12 +31,33 @@ public class MobileProfileController {
     }
 
     /**
-     * 更新个人资料（用户名、昵称、个人简介等）
+     * 更新个人资料
      * PUT /api/mobile/profile
      */
     @PutMapping
     public ApiResponse<Void> updateProfile(@RequestHeader("X-User-Id") String userId,
                                            @RequestBody Map<String, Object> payload) {
+        return doUpdateProfile(userId, payload);
+    }
+
+    /**
+     * 更新个人资料（POST，兼容外网仅放行 POST 的网关/WAF）
+     * POST /api/mobile/profile
+     */
+    @PostMapping
+    public ApiResponse<Void> saveProfile(@RequestHeader("X-User-Id") String userId,
+                                         @RequestBody Map<String, Object> payload) {
+        return doUpdateProfile(userId, payload);
+    }
+
+    /** POST /api/mobile/profile/save（兼容旧移动端包） */
+    @PostMapping("/save")
+    public ApiResponse<Void> saveProfileAlias(@RequestHeader("X-User-Id") String userId,
+                                              @RequestBody Map<String, Object> payload) {
+        return doUpdateProfile(userId, payload);
+    }
+
+    private ApiResponse<Void> doUpdateProfile(String userId, Map<String, Object> payload) {
         profileService.updateProfile(userId, payload);
         return ApiResponse.success(null);
     }

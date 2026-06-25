@@ -1,0 +1,94 @@
+# =============================
+#  科学实验云平台 - Docker 部署
+#  全部服务容器化，一键启动
+#
+#  使用前准备：
+#    1. 复制 backend/.env.example 为 .env 并修改
+#    2. docker compose up -d
+# =============================
+
+name: bslab
+
+services:
+  # =============================
+  #  后端 API 服务
+  # =============================
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+    environment:
+      - SPRING_PROFILE=prod
+      - DB_URL=jdbc:mysql://10.0.181.204:13306/bs_exp_vue?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      - DB_USER=root
+      - DB_PASS=ZHTKFc5ta7tPTeyx
+      - JWT_SECRET=${JWT_SECRET:-bs-lab-mobile-dev-secret-change-before-production-2026}
+      - MINIO_ENDPOINT=http://10.0.181.204:19000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=KCfK6d2e7JkJWkEp
+      - MINIO_BUCKET=bslab-media-dev
+      - MINIO_URL_PREFIX=http://10.0.181.204:19000/bslab-media-dev
+      - FILE_UPLOAD_DIR=/app/uploads
+      - FILE_URL_PREFIX=http://127.0.0.1:7080/uploads
+      - MOBILE_ENABLED=false
+      - LOG_LEVEL=warn
+      - LOG_LEVEL_APP=info
+      - JPA_LOG_LEVEL=warn
+      - JPA_SHOW_SQL=false
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8010/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # =============================
+  #  PC 管理端前端 (Nginx)
+  # =============================
+  frontend-pc:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  # =============================
+  #  移动端前端 (独立 Nginx)
+  #  如后端已启用 MOBILE_ENABLED=true 则不需要此服务
+  # =============================
+  frontend-mobile:
+    build:
+      context: ./frontend/mobile
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    profiles:
+      - mobile-only
+
+  # =============================
+  #  AI 对话服务
+  # =============================
+  agents:
+    build:
+      context: ./agents_service
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=5001
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.deepseek.com}
+      - LLM_MODEL=${LLM_MODEL:-deepseek-chat}
+      - DATABASE_URL=mysql+aiomysql://root:ZHTKFc5ta7tPTeyx@10.0.181.204:13306/bs_exp_vue
+      - LOG_LEVEL=INFO
+      - TZ=Asia/Shanghai
+    depends_on:
+      - backend

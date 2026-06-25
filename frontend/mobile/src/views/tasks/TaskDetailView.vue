@@ -112,18 +112,9 @@
         <div class="text-sm font-bold text-success">{{ taskCompletedLabel }}</div>
         <p v-if="task.type === 'remix'" class="text-xs muted mt-2">可在作品墙查看你的拍同款作品，或从实验详情再次发起新的拍同款</p>
         <p v-else-if="task.type === 'creative'" class="text-xs muted mt-2">可在作品墙查看你的创意实验作品</p>
-        <p v-else-if="task.state === 'submitted'" class="text-xs muted mt-2">老师将尽快批阅，可在「我的作品」查看成果</p>
-        <p v-else-if="task.state === 'reviewed'" class="text-xs muted mt-2">批阅已完成，可在「我的作品」查看评级与评语</p>
+        <p v-else-if="task.state === 'submitted'" class="text-xs muted mt-2">老师将尽快评价，可在「我的作品」查看成果</p>
+        <p v-else-if="task.state === 'reviewed'" class="text-xs muted mt-2">评价已完成，可在「我的作品」查看评级与评语</p>
       </div>
-
-      <router-link v-if="isTeacherAssigned && task.type === 'homework'" to="/quiz" class="card card-pad card-link quiz-nudge row items-center gap-3 mt-4">
-        <div class="tile-icon tile-sm tint-violet shrink-0">🧠</div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-bold">顺手完成每日答题</div>
-          <p class="text-xs muted mt-1">每日答题 · 巩固本课知识点</p>
-        </div>
-        <i data-lucide="chevron-right" class="icon muted-2 shrink-0"></i>
-      </router-link>
     </div>
   </div>
 </template>
@@ -136,8 +127,10 @@ import { FORMAT_EXP_BRIEF } from '@/utils/richText'
 import PageBackButton from '@/components/PageBackButton.vue'
 import { fetchTaskDetail } from '@/api/task'
 import { useLucideIcons } from '@/composables/useLucideIcons'
+import { useParentContext } from '@/composables/useParentContext'
 
 const route = useRoute()
+const { childQueryParam } = useParentContext()
 const loading = ref(true)
 const error = ref('')
 const task = ref(null)
@@ -156,8 +149,8 @@ const canUpload = computed(() => {
 
 const taskCompletedLabel = computed(() => {
   const state = task.value?.state
-  if (state === 'submitted') return '成果已提交，等待批阅'
-  if (state === 'reviewed') return '任务已批阅'
+  if (state === 'submitted') return '成果已提交，等待评价'
+  if (state === 'reviewed') return '任务已评价'
   return '任务已完成'
 })
 
@@ -236,7 +229,9 @@ async function loadDetail() {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetchTaskDetail(route.params.id)
+    const res = await fetchTaskDetail(route.params.id, {
+      childUserId: childQueryParam()
+    })
     if (res?.code === 200 && res.data) {
       task.value = { ...res.data }
     } else {
@@ -259,13 +254,13 @@ onMounted(loadDetail)
   border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.06));
 }
 .task-exp-brief__label {
-  font-size: 12px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   color: var(--color-muted-2, #64748b);
 }
 .task-exp-brief__text {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--text-2xs);
   line-height: 1.5;
   color: var(--color-muted, #475569);
   word-break: break-word;

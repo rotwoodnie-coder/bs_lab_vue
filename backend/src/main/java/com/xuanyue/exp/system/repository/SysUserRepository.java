@@ -20,6 +20,8 @@ public interface SysUserRepository extends JpaRepository<SysUser, String> {
 
     List<SysUser> findByStatus(String status);
 
+    List<SysUser> findByRootOrgId(String rootOrgId);
+
     List<SysUser> findByUserNameContainingOrLoginNameContainingAndStatus(String userName, String loginName, String status);
 
     Optional<SysUser> findByUserPhone(String userPhone);

@@ -8,6 +8,8 @@ import org.springframework.util.StringUtils;
 
 
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 
 import java.util.regex.Pattern;
@@ -24,10 +26,9 @@ public final class MobileMediaUrlSupport {
 
 
 
+    /** 匹配 HTML 中任意 src="…" 属性值，捕获前缀、URL、后缀 */
     private static final Pattern HTML_SRC_ATTR = Pattern.compile(
-
-            "(src\\s*=\\s*[\"'])(?!https?://)([^\"']+)([\"'])",
-
+            "(src\\s*=\\s*[\"'])([^\"']+)([\"'])",
             Pattern.CASE_INSENSITIVE);
 
 
@@ -208,8 +209,7 @@ public final class MobileMediaUrlSupport {
 
 
 
-    /** 富文本内嵌图片/资源：将非 http(s) 的 src 替换为可访问 URL */
-
+    /** 富文本内嵌图片/资源：src 统一改为移动端 MinIO 预览代理（&lt;img&gt; 无法携带 JWT） */
     public static String enrichRichText(MinioStorageService minio, String html) {
 
         if (!StringUtils.hasText(html)) {
@@ -224,7 +224,19 @@ public final class MobileMediaUrlSupport {
 
         while (matcher.find()) {
 
-            String resolved = resolve(minio, matcher.group(2));
+            String original = matcher.group(2).trim();
+
+            String resolved = original;
+
+            if (StringUtils.hasText(original)
+
+                    && !original.regionMatches(true, 0, "data:", 0, 5)
+
+                    && !original.contains("/mobile/files/preview")) {
+
+                resolved = buildMobilePreviewPath(original);
+
+            }
 
             matcher.appendReplacement(buffer,
 
@@ -235,6 +247,24 @@ public final class MobileMediaUrlSupport {
         matcher.appendTail(buffer);
 
         return buffer.toString();
+
+    }
+
+
+
+    private static String buildMobilePreviewPath(String rawUrl) {
+
+        try {
+
+            return "/api/mobile/files/preview?url="
+
+                    + URLEncoder.encode(rawUrl, StandardCharsets.UTF_8.name());
+
+        } catch (Exception e) {
+
+            return rawUrl;
+
+        }
 
     }
 

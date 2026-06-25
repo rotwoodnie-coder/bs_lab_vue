@@ -24,11 +24,12 @@ public class MobileJwtAuthFilter extends OncePerRequestFilter {
             "/api/mobile/auth/refresh",
             "/api/mobile/auth/login-name/available",
             "/api/mobile/auth/parent/register",
-            "/api/mobile/auth/logout"
+            "/api/mobile/auth/logout",
+            // <img>/<video> 无法携带 JWT，媒体预览须匿名可读
+            "/api/mobile/files/preview"
     );
 
     private static final String ORG_PREFIX = "/api/mobile/org/";
-    private static final String MOBILE_ADMIN_PREFIX = "/api/mobile/admin/";
 
     private final MobileAuthTokenService tokenService;
     private final ObjectMapper objectMapper;
@@ -47,10 +48,6 @@ public class MobileJwtAuthFilter extends OncePerRequestFilter {
 
         if (path.startsWith("/api/mobile/")) {
             if (isMobilePublicPath(path)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-            if (path.startsWith(MOBILE_ADMIN_PREFIX)) {
                 filterChain.doFilter(request, response);
                 return;
             }

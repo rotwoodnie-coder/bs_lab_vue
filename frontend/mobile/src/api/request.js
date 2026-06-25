@@ -21,6 +21,9 @@ request.interceptors.request.use((config) => {
     config.headers['X-User-Role-Id'] = userInfo.userRoleId || ''
     config.headers['X-User-Root-Org-Id'] = userInfo.rootOrgId || ''
   }
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
   return config
 })
 

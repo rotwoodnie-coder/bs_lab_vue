@@ -58,12 +58,18 @@ public class MobileTaskController {
     @GetMapping("/{taskId}")
     public ApiResponse<MobileTaskDto> get(
             @RequestHeader(value = "X-User-Id", required = false) String userId,
-            @PathVariable String taskId) {
-        MobileTaskDto task = taskService.get(userId, taskId);
-        if (task == null) {
-            return ApiResponse.fail(404, "任务不存在");
+            @PathVariable String taskId,
+            @RequestParam(value = "childUserId", required = false) String childUserId) {
+        try {
+            MobileTaskDto task = taskService.get(userId, childUserId, taskId);
+            if (task == null) {
+                return ApiResponse.fail(404, "任务不存在");
+            }
+            return ApiResponse.success(task);
+        } catch (IllegalArgumentException e) {
+            int code = "请先登录".equals(e.getMessage()) ? 401 : 400;
+            return ApiResponse.fail(code, e.getMessage());
         }
-        return ApiResponse.success(task);
     }
 
     @PostMapping

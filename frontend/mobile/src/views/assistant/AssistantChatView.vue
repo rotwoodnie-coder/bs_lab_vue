@@ -83,10 +83,10 @@
           <p class="assistant-voice-panel__status" data-assistant-voice-status>{{ voiceStatus }}</p>
           <p class="assistant-voice-panel__preview" data-assistant-voice-preview aria-live="polite">{{ voicePreview }}</p>
         </div>
-        <div class="row gap-2 items-center">
+        <div class="row items-center assistant-composer__row">
           <button
             type="button"
-            class="btn btn-soft btn-icon"
+            class="btn btn-soft assistant-composer__mic"
             aria-label="语音输入"
             :class="{ 'is-active': isListening }"
             :disabled="isBusy"
@@ -94,7 +94,7 @@
           >
             <i data-lucide="mic" class="icon"></i>
           </button>
-          <div class="input-group flex-1">
+          <div class="input-group flex-1 assistant-composer__input">
             <input
               ref="inputRef"
               v-model="inputText"
@@ -112,14 +112,13 @@
           </div>
           <button
             type="button"
-            class="btn btn-primary"
+            class="btn btn-primary assistant-composer__send"
             aria-label="发送"
             data-assistant-send
             :disabled="!inputText.trim() || isBusy || isListening"
             @click="handleSend"
           >
-            <i data-lucide="send" class="icon icon-sm"></i>
-            发送
+            <i data-lucide="send" class="icon"></i>
           </button>
         </div>
       </div>
@@ -138,6 +137,7 @@ import { createSpeechRecognizer, isSpeechRecognitionSupported } from '@/utils/sp
 import PageBackButton from '@/components/PageBackButton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useProfileStore } from '@/stores/profile'
+import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -230,7 +230,7 @@ const TEACHER_SCENARIOS = [
   { key: 'lesson', label: '📖 实验教案', prompt: '请帮我设计一份小学三年级科学实验教案，主题：植物生长' },
   { key: 'recommend', label: '💡 实验推荐', prompt: '推荐几个适合讲解「浮力」的动手实验' },
   { key: 'analyze', label: '📈 数据分析', prompt: '如何分析班级实验提交率偏低的原因并改进？' },
-  { key: 'review', label: '✅ 批阅建议', prompt: '如何批阅学生实验报告并给出有效反馈？' }
+  { key: 'review', label: '✅ 评价建议', prompt: '如何评价学生实验报告并给出有效反馈？' }
 ]
 
 const scenarios = computed(() => {
@@ -275,6 +275,13 @@ function scrollToBottom() {
   })
 }
 
+/** agents 只接受 低段/中段/高段，其它年级不传 */
+function normalizeGradeLevel(raw) {
+  const value = String(raw || '').trim()
+  if (value === '低段' || value === '中段' || value === '高段') return value
+  return undefined
+}
+
 function formatReply(text) {
   return String(text)
     .replace(/&/g, '&amp;')
@@ -307,14 +314,21 @@ async function doSend(text) {
     const res = await sendChatMessage({
       message: text,
       thread_id: threadId.value || undefined,
-      role: roleConfig.value.mode || 'student',
+      // agents_service 当前仅 student；UI 仍可按教师/家长展示不同场景
+      role: 'student',
       user_name: userStore.userInfo.username || '',
       user_id: userStore.userInfo.userId || '',
-      grade_level: userStore.userInfo.gradeLevel || undefined
+      grade_level: normalizeGradeLevel(userStore.userInfo.gradeLevel)
     })
-    threadId.value = res.data.thread_id || threadId.value
+    const payload = res?.data ?? res
+    const reply = payload?.reply || payload?.response || ''
+    threadId.value = payload?.thread_id || payload?.threadId || threadId.value
     saveStoredThreadId(threadId.value)
-    addMessage('assistant', res.data.reply || res.data.response || '收到你的问题，让我想想…')
+    if (reply.includes('有点忙') || reply.includes('暂时无法')) {
+      threadId.value = ''
+      saveStoredThreadId('')
+    }
+    addMessage('assistant', reply || '收到你的问题，让我想想…')
   } catch (err) {
     addMessage('assistant', `抱歉，${aiName.value}暂时无法回答，请稍后再试。`)
   } finally {
@@ -408,12 +422,10 @@ watch(isBusy, (val) => {
   updateSendState()
 })
 
+const { initIcons } = useLucideIcons()
+
 onMounted(async () => {
-  if (typeof window !== 'undefined') {
-    import('lucide').then(({ createIcons, icons }) => {
-      createIcons({ icons })
-    })
-  }
+  initIcons()
   threadId.value = loadStoredThreadId()
   if (threadId.value) {
     try {

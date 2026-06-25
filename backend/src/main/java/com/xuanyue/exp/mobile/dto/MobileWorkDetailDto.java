@@ -9,12 +9,17 @@ public class MobileWorkDetailDto {
     private String title;
     private String grade;
     private String author;
+    private String authorUserId;
     private String className;
+    private String schoolName;
+    private String authorAvatarUrl;
+    private String authorRole;
     private String time;
     private String desc;
     private int likes;
     private int comments;
     private String sourceExpId;
+    private String sourceExpName;
     private String workType;
     private String taskId;
     private String reviewStatus;
@@ -33,8 +38,16 @@ public class MobileWorkDetailDto {
     public void setGrade(String grade) { this.grade = grade; }
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
+    public String getAuthorUserId() { return authorUserId; }
+    public void setAuthorUserId(String authorUserId) { this.authorUserId = authorUserId; }
     public String getClassName() { return className; }
     public void setClassName(String className) { this.className = className; }
+    public String getSchoolName() { return schoolName; }
+    public void setSchoolName(String schoolName) { this.schoolName = schoolName; }
+    public String getAuthorAvatarUrl() { return authorAvatarUrl; }
+    public void setAuthorAvatarUrl(String authorAvatarUrl) { this.authorAvatarUrl = authorAvatarUrl; }
+    public String getAuthorRole() { return authorRole; }
+    public void setAuthorRole(String authorRole) { this.authorRole = authorRole; }
     public String getTime() { return time; }
     public void setTime(String time) { this.time = time; }
     public String getDesc() { return desc; }
@@ -45,6 +58,8 @@ public class MobileWorkDetailDto {
     public void setComments(int comments) { this.comments = comments; }
     public String getSourceExpId() { return sourceExpId; }
     public void setSourceExpId(String sourceExpId) { this.sourceExpId = sourceExpId; }
+    public String getSourceExpName() { return sourceExpName; }
+    public void setSourceExpName(String sourceExpName) { this.sourceExpName = sourceExpName; }
     public String getWorkType() { return workType; }
     public void setWorkType(String workType) { this.workType = workType; }
     public String getTaskId() { return taskId; }

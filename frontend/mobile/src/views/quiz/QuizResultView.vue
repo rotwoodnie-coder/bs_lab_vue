@@ -1,5 +1,5 @@
 <template>
-  <div class="prototype-container pad-shell safe-top" data-layout="detail">
+  <div class="prototype-container pad-shell safe-top" data-layout="detail" data-quiz-flow>
     <div class="topbar page-topbar safe-top">
       <PageBackButton fallback="/quiz" />
       <h1 class="topbar-title">{{ pageTitle }}</h1>

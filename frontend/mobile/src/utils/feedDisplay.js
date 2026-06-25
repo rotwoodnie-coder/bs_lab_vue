@@ -19,6 +19,7 @@ export function formatPlayCount(count) {
 
 export function detailRoute(item) {
   if (item.type === 'work') return `/works/${item.id}`
+  if (item.authorRole === 'student') return `/works/${item.id}`
   if (item.type === 'video') return `/video/${item.id}`
   if (item.type === 'simulation') {
     const simId = item.simulatorId || item.id
@@ -44,11 +45,13 @@ export function tagIcon(item) {
   return map[item.tagType] || 'play-circle'
 }
 
+import { workTypeTagLabel } from '@/utils/workLabels'
+
 export function metaLineParts(item) {
   const parts = []
   if (item.type === 'work') {
     if (item.grade) parts.push(item.grade)
-    if (item.tagLabel) parts.push(item.tagLabel)
+    if (item.tagLabel) parts.push(workTypeTagLabel(item.tagLabel))
     parts.push(item.playCount ? `${item.playCount}赞` : '0赞')
     return parts
   }
@@ -59,17 +62,19 @@ export function metaLineParts(item) {
 }
 
 export function authorLineParts(item) {
+  // 学生 / 作品：姓名 + 班级 + 学校名称
   if (item.type === 'work' || item.authorRole === 'student') {
     const parts = []
     if (item.author) parts.push(item.author)
     if (item.classLabel) parts.push(item.classLabel)
     else if (item.grade) parts.push(item.grade)
+    if (item.authorSchool) parts.push(item.authorSchool)
     return parts
   }
+  // 教师（及未知角色）：姓名 + 老师 + 学校名称
   const parts = []
-  const name = item.author ? `${item.author}老师` : '未知'
-  parts.push(name)
-  if (item.authorTitle) parts.push(item.authorTitle)
+  parts.push(item.author || '未知')
+  parts.push('老师')
   if (item.authorSchool) parts.push(item.authorSchool)
   return parts
 }

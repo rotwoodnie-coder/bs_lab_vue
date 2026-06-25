@@ -15,7 +15,7 @@
         <div v-if="loading" class="px-4 py-12 text-center muted-2">加载中…</div>
         <div v-else-if="error" class="px-4 py-12 text-center stack-3">
           <p class="muted-2">{{ error }}</p>
-          <router-link to="/assign" class="btn btn-primary btn-sm">去布置任务</router-link>
+          <router-link to="/assign" class="btn btn-primary btn-sm">去发布任务</router-link>
         </div>
 
         <template v-else>
@@ -125,7 +125,7 @@
                   <span class="text-sm">{{ s.name }}</span>
                 </div>
                 <router-link :to="reviewLink(s)" class="btn btn-sm btn-outline text-brand">
-                  <i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅
+                  <i data-lucide="clipboard-list" class="icon icon-sm"></i> 评价
                 </router-link>
               </div>
               <details v-if="submittedList.length > visibleSubmitted.length" class="text-xs muted">
@@ -149,7 +149,7 @@
                       <span class="text-sm">{{ s.name }}</span>
                     </div>
                     <router-link :to="reviewLink(s)" class="btn btn-sm btn-outline text-brand">
-                      <i data-lucide="clipboard-list" class="icon icon-sm"></i> 批阅
+                      <i data-lucide="clipboard-list" class="icon icon-sm"></i> 评价
                     </router-link>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ async function onTaskChange() {
 async function loadBoard() {
   const taskId = selectedTaskId.value || route.query.taskId
   if (!taskId) {
-    error.value = '请先布置任务'
+    error.value = '请先发布任务'
     loading.value = false
     return
   }
@@ -287,7 +287,7 @@ onMounted(async () => {
   if (selectedTaskId.value) {
     await loadBoard()
   } else if (!taskOptions.value.length) {
-    error.value = '请从教师工作台进入，或先布置任务'
+    error.value = '请从教师工作台进入，或先发布任务'
   }
   loading.value = false
   initIcons()

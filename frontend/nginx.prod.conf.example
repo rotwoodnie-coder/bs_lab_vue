@@ -1,0 +1,59 @@
+# 生产环境 Nginx 示例（sysj.bsedu.org.cn）
+# 复制到 /etc/nginx/sites-available/ 后按需修改 upstream 地址
+
+upstream bslab_backend {
+    server 127.0.0.1:8010;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name sysj.bsedu.org.cn;
+
+    client_max_body_size 1024m;
+
+    # ── API（必须放在 /admin/、/m/ 等静态 location 之前或同级，且独立配置）──
+    location /api/ {
+        proxy_pass http://bslab_backend/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        proxy_buffering off;
+        # 确保 PUT/PATCH/DELETE 请求体转发到后端
+        proxy_request_buffering on;
+    }
+
+    # ── MinIO 媒体（与 app.minio.url-prefix 一致）──
+    location /media/ {
+        proxy_pass http://192.168.102.83:9000/;
+        proxy_http_version 1.1;
+        proxy_set_header Host 192.168.102.83:9000;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffering off;
+    }
+
+    # ── PC 管理端（Vite base=/admin/）──
+    location /admin/ {
+        root /opt/bslab/www;
+        index index.html;
+        try_files $uri $uri/ /admin/index.html;
+    }
+
+    # ── 移动端 H5（Vite base=/m/）──
+    location /m/ {
+        root /opt/bslab/www;
+        index index.html;
+        try_files $uri $uri/ /m/index.html;
+    }
+
+    location = / {
+        return 302 /admin/;
+    }
+}

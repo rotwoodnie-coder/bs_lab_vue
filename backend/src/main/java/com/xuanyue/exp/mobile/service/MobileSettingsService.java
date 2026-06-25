@@ -77,6 +77,7 @@ public class MobileSettingsService {
         dto.setPhoneBound(StringUtils.hasText(user.getUserPhone()));
         dto.setMaskedPhone(maskPhone(user.getUserPhone()));
         dto.setWechatBound(false);
+        dto.setWechatSupported(false);
 
         com.xuanyue.exp.mobile.dto.DingTalkBindStatusDto dingStatus = dingTalkService.getBindStatus(uid);
         dto.setDingTalkConfigured(dingStatus.isConfigured());

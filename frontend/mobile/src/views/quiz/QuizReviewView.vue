@@ -1,6 +1,6 @@
 <template>
 
-  <div class="prototype-container pad-shell safe-top" data-layout="detail">
+  <div class="prototype-container pad-shell safe-top" data-layout="detail" data-quiz-flow>
 
     <div class="topbar page-topbar safe-top">
 

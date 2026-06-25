@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 
 import { createPinia } from 'pinia'
 
+import './styles/fonts.css'
+
 import './styles/tokens.css'
 
 import './styles/base.css'
@@ -25,6 +27,10 @@ import './styles/legacy.css'
 import App from './App.vue'
 
 import router from './router'
+
+import { nextTick } from 'vue'
+
+import { initLucideIcons } from './utils/lucideIcons'
 
 import { bootstrapAuthSession } from './bootstrap/auth'
 import { useProfileStore } from './stores/profile'
@@ -51,6 +57,11 @@ async function startApp() {
   }
 
   app.use(router)
+
+  router.afterEach(async () => {
+    await nextTick()
+    initLucideIcons()
+  })
 
   app.mount('#app')
 

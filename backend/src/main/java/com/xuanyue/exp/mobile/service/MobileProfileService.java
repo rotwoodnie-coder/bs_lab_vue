@@ -2,8 +2,11 @@ package com.xuanyue.exp.mobile.service;
 
 import com.xuanyue.exp.common.storage.minio.MinioStorageService;
 import com.xuanyue.exp.data.service.DataDictService;
+import com.xuanyue.exp.exp.entity.ExpMsg;
+import com.xuanyue.exp.exp.repository.ExpMsgRepository;
 import com.xuanyue.exp.mobile.support.MobileMediaUrlSupport;
 import com.xuanyue.exp.mobile.support.MobileMinioKeySupport;
+import com.xuanyue.exp.mobile.support.MobileWorkAuditStatus;
 import com.xuanyue.exp.mobile.dto.MobileProfileDto;
 import com.xuanyue.exp.system.entity.SysOrg;
 import com.xuanyue.exp.system.entity.SysUser;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,15 +35,18 @@ public class MobileProfileService {
     private final SysOrgRepository sysOrgRepository;
     private final DataDictService dataDictService;
     private final MinioStorageService minioStorageService;
+    private final ExpMsgRepository expMsgRepository;
 
     public MobileProfileService(SysUserRepository sysUserRepository,
                                 SysOrgRepository sysOrgRepository,
                                 DataDictService dataDictService,
-                                MinioStorageService minioStorageService) {
+                                MinioStorageService minioStorageService,
+                                ExpMsgRepository expMsgRepository) {
         this.sysUserRepository = sysUserRepository;
         this.sysOrgRepository = sysOrgRepository;
         this.dataDictService = dataDictService;
         this.minioStorageService = minioStorageService;
+        this.expMsgRepository = expMsgRepository;
     }
 
     /**
@@ -93,6 +100,11 @@ public class MobileProfileService {
             resolveOrgName(dto, user.getUserOrgId());
         }
 
+        // 学生：作品数（已提交，不含草稿）与累计获赞
+        if ("Student".equalsIgnoreCase(StringUtils.hasText(user.getUserRoleId()) ? user.getUserRoleId().trim() : "")) {
+            applyStudentWorkStats(dto, user.getUserId());
+        }
+
         // 解析职称
         if (StringUtils.hasText(user.getPrefTitleId())) {
             try {
@@ -109,6 +121,31 @@ public class MobileProfileService {
         }
 
         return dto;
+    }
+
+    /** 统计学生作品数（待审核/通过/未通过，不含草稿）及累计获赞 */
+    private void applyStudentWorkStats(MobileProfileDto dto, String studentId) {
+        if (!StringUtils.hasText(studentId)) {
+            dto.setWorksCount(0);
+            dto.setTotalLikes(0);
+            return;
+        }
+        String sid = studentId.trim();
+        try {
+            List<ExpMsg> works = expMsgRepository.findAll().stream()
+                    .filter(m -> "student".equals(m.getExpType()))
+                    .filter(m -> sid.equals(m.getCreateUserId() != null ? m.getCreateUserId().trim() : ""))
+                    .filter(m -> !MobileWorkAuditStatus.isDraft(m.getStatus()))
+                    .collect(java.util.stream.Collectors.toList());
+            int worksCount = works.size();
+            int totalLikes = works.stream().mapToInt(m -> m.getLikeNum() != null ? m.getLikeNum() : 0).sum();
+            dto.setWorksCount(worksCount);
+            dto.setTotalLikes(totalLikes);
+        } catch (Exception e) {
+            log.warn("统计学生作品数失败 studentId={}", sid, e);
+            dto.setWorksCount(0);
+            dto.setTotalLikes(0);
+        }
     }
 
     private void resolveOrgName(MobileProfileDto dto, String orgId) {

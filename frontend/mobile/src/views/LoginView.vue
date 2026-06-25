@@ -89,6 +89,7 @@ import { shouldShowParentApprovalCelebration } from '@/utils/parentAccess'
 import { isParentRole } from '@/utils/role'
 
 import LoginFields from './login/LoginFields.vue'
+import { initLucideIcons } from '@/utils/lucideIcons'
 
 
 
@@ -207,13 +208,7 @@ onMounted(() => {
   }
 
   if (typeof window !== 'undefined') {
-
-    import('lucide').then(({ createIcons, icons }) => {
-
-      createIcons({ icons })
-
-    })
-
+    initLucideIcons()
   }
 
 })

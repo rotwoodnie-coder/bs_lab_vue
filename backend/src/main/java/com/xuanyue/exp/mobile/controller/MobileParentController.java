@@ -50,6 +50,17 @@ public class MobileParentController {
     public ApiResponse<Void> setDefaultChild(
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestBody ParentDefaultChildRequest request) {
+        return doSetDefaultChild(userId, request);
+    }
+
+    @PostMapping("/default-child/save")
+    public ApiResponse<Void> setDefaultChildViaPost(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestBody ParentDefaultChildRequest request) {
+        return doSetDefaultChild(userId, request);
+    }
+
+    private ApiResponse<Void> doSetDefaultChild(String userId, ParentDefaultChildRequest request) {
         try {
             if (request == null || request.getChildUserId() == null) {
                 return ApiResponse.fail(400, "请选择孩子");

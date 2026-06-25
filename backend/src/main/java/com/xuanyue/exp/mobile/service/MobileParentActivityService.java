@@ -154,7 +154,7 @@ public class MobileParentActivityService {
             candidate.setType("completed");
             candidate.setContent("完成实验任务「" + safeTitle(taskTitle) + "」");
             if ("submitted".equalsIgnoreCase(sub.getState())) {
-                candidate.setHint("任务已提交，等待老师批阅");
+                candidate.setHint("任务已提交，等待老师评价");
             } else if (StringUtils.hasText(sub.getGrade())) {
                 candidate.setHint("评级：" + sub.getGrade().trim().toUpperCase());
             }
@@ -177,7 +177,7 @@ public class MobileParentActivityService {
             candidate.setSortTime(sortTime);
             if ("reviewed".equalsIgnoreCase(safe(work.getReviewStatus()))) {
                 candidate.setType("completed");
-                candidate.setContent("作品「" + safeTitle(work.getTitle()) + "」已批阅");
+                candidate.setContent("作品「" + safeTitle(work.getTitle()) + "」已评价");
                 if (StringUtils.hasText(work.getGrade())) {
                     candidate.setHint("评级：" + work.getGrade().trim().toUpperCase());
                 } else if (StringUtils.hasText(work.getTeacherReviewText())) {
@@ -186,7 +186,7 @@ public class MobileParentActivityService {
             } else {
                 candidate.setType("submitted");
                 candidate.setContent("提交作品「" + safeTitle(work.getTitle()) + "」");
-                candidate.setHint("等待老师批阅");
+                candidate.setHint("等待老师评价");
             }
             list.add(candidate);
         }

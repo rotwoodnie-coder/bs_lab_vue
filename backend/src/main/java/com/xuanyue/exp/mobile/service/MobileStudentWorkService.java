@@ -11,6 +11,10 @@ import com.xuanyue.exp.exp.repository.ExpVideoRepository;
 import com.xuanyue.exp.mobile.dto.*;
 import com.xuanyue.exp.mobile.entity.MobileExpHomework;
 import com.xuanyue.exp.mobile.entity.MobileExpHomeworkStudent;
+import com.xuanyue.exp.mobile.entity.MbTask;
+import com.xuanyue.exp.mobile.entity.MbTaskSubmission;
+import com.xuanyue.exp.mobile.repository.MbTaskRepository;
+import com.xuanyue.exp.mobile.repository.MbTaskSubmissionRepository;
 import com.xuanyue.exp.mobile.repository.MobileExpHomeworkRepository;
 import com.xuanyue.exp.mobile.repository.MobileExpHomeworkStudentRepository;
 import com.xuanyue.exp.mobile.support.MobileHomeCache;
@@ -18,7 +22,13 @@ import com.xuanyue.exp.mobile.support.MobileIds;
 import com.xuanyue.exp.mobile.support.MobileMediaUrlSupport;
 import com.xuanyue.exp.mobile.support.MobileMinioKeySupport;
 import com.xuanyue.exp.mobile.support.MobileParentAccessService;
+import com.xuanyue.exp.mobile.support.MobileStudentOrgSupport;
+import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
+import com.xuanyue.exp.mobile.support.MobileTeacherClassScope;
 import com.xuanyue.exp.mobile.support.MobileUserContext;
+import com.xuanyue.exp.mobile.support.MobileHomeworkDateSupport;
+import com.xuanyue.exp.mobile.support.MobileWorkAuditStatus;
+import com.xuanyue.exp.system.entity.SysUser;
 import com.xuanyue.exp.system.repository.SysOrgRepository;
 import com.xuanyue.exp.system.repository.SysUserRepository;
 import org.springframework.stereotype.Service;
@@ -30,15 +40,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 学生作品核心服务（v2 版）
+ * 学生作品核心服务（统一使用 exp_msg 数据源）
  *
  * 数据模型：
  * - exp_msg (exp_type='student') → 所有学生作品的统一容器
  * - exp_homework → 作业布置
  * - exp_homework_student → 作业提交与批阅流程
  * - data_file + exp_video → 媒体文件存储
- *
- * 原则：零表变更，不改管理端代码，所有新增代码在 mobile/ 包内。
  */
 @Service
 public class MobileStudentWorkService {
@@ -53,6 +61,8 @@ public class MobileStudentWorkService {
     private final DataFileRepository dataFileRepository;
     private final MobileExpHomeworkRepository homeworkRepository;
     private final MobileExpHomeworkStudentRepository homeworkStudentRepository;
+    private final MbTaskRepository mbTaskRepository;
+    private final MbTaskSubmissionRepository mbTaskSubmissionRepository;
     private final SysUserRepository sysUserRepository;
     private final SysOrgRepository sysOrgRepository;
     private final MobilePointsService pointsService;
@@ -61,12 +71,15 @@ public class MobileStudentWorkService {
     private final MobileParentAccessService parentAccessService;
     private final MobileHomeCache homeCache;
     private final MinioStorageService minioStorageService;
+    private final MobileStudentOrgSupport studentOrgSupport;
 
     public MobileStudentWorkService(ExpMsgRepository expMsgRepository,
                                     ExpVideoRepository expVideoRepository,
                                     DataFileRepository dataFileRepository,
                                     MobileExpHomeworkRepository homeworkRepository,
                                     MobileExpHomeworkStudentRepository homeworkStudentRepository,
+                                    MbTaskRepository mbTaskRepository,
+                                    MbTaskSubmissionRepository mbTaskSubmissionRepository,
                                     SysUserRepository sysUserRepository,
                                     SysOrgRepository sysOrgRepository,
                                     MobilePointsService pointsService,
@@ -74,12 +87,15 @@ public class MobileStudentWorkService {
                                     MobileNotificationService notificationService,
                                     MobileParentAccessService parentAccessService,
                                     MobileHomeCache homeCache,
-                                    MinioStorageService minioStorageService) {
+                                    MinioStorageService minioStorageService,
+                                    MobileStudentOrgSupport studentOrgSupport) {
         this.expMsgRepository = expMsgRepository;
         this.expVideoRepository = expVideoRepository;
         this.dataFileRepository = dataFileRepository;
         this.homeworkRepository = homeworkRepository;
         this.homeworkStudentRepository = homeworkStudentRepository;
+        this.mbTaskRepository = mbTaskRepository;
+        this.mbTaskSubmissionRepository = mbTaskSubmissionRepository;
         this.sysUserRepository = sysUserRepository;
         this.sysOrgRepository = sysOrgRepository;
         this.pointsService = pointsService;
@@ -88,6 +104,7 @@ public class MobileStudentWorkService {
         this.parentAccessService = parentAccessService;
         this.homeCache = homeCache;
         this.minioStorageService = minioStorageService;
+        this.studentOrgSupport = studentOrgSupport;
     }
 
     /* ════════════════════════════════════════════
@@ -105,11 +122,10 @@ public class MobileStudentWorkService {
         hw.setTeacherExpId(teacherExpId);
         hw.setTearcherUserId(teacherId);
         hw.setClassId(classId);
-        hw.setRequireDate(StringUtils.hasText(request.getRequireDate()) ? request.getRequireDate().trim() : null);
+        hw.setRequireDate(MobileHomeworkDateSupport.resolveRequireDate(request.getRequireDate()));
         hw.setCreateTime(new Date());
         homeworkRepository.save(hw);
 
-        // 发送布置作业通知给学生
         notificationService.sendTaskAssigned(teacherId, hw);
     }
 
@@ -134,15 +150,25 @@ public class MobileStudentWorkService {
         msg.setExpName(title);
         msg.setExpType("student");
         msg.setExpTaskType(mapWorkType(workType));
-        msg.setCreateUserId(studentId);
-        msg.setStatus("y");
+        msg.setCreateUserId(studentId.trim());
+        // 提交即进入待审核(t)，需老师/校管理员审核通过(y)后方可在首页/公开墙展示
+        msg.setStatus(MobileWorkAuditStatus.PENDING);
+        msg.setChooseType("");           // NOT NULL, 学生作品无此分类
+        msg.setSubjectId("");            // NOT NULL, 学生作品无学科关联
+        msg.setSchoolLevelId("");        // NOT NULL, 学生作品无学段关联
         msg.setLikeNum(0);
+        msg.setNotlikeNum(0);
         msg.setCollectionNum(0);
         msg.setEvaluateNum(0);
         msg.setCreateTime(now);
         msg.setUpdateTime(now);
         if (StringUtils.hasText(request.getSourceExpId())) {
             msg.setLinkExpId(request.getSourceExpId().trim());
+        } else {
+            String linkExpId = resolveTeacherExpIdFromTask(taskId);
+            if (StringUtils.hasText(linkExpId)) {
+                msg.setLinkExpId(linkExpId);
+            }
         }
         if (StringUtils.hasText(request.getDescription())) {
             msg.setConfirmComments(request.getDescription().trim());
@@ -166,6 +192,127 @@ public class MobileStudentWorkService {
         return buildDetailDto(msg, studentId, workType);
     }
 
+    /* ════════════════════════════════════════════
+       2e. 学生编辑已提交作品
+       ════════════════════════════════════════════ */
+
+    @Transactional
+    public MobileWorkDetailDto updateWork(String userId, String workId, UpdateWorkRequest request) {
+        if (request == null || !StringUtils.hasText(workId)) {
+            throw new IllegalArgumentException("请求不能为空");
+        }
+        ExpMsg msg = expMsgRepository.findById(workId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("作品不存在"));
+
+        String studentId = resolveStudentId(userId, null);
+        if (!studentId.trim().equals(msg.getCreateUserId() != null ? msg.getCreateUserId().trim() : "")) {
+            throw new IllegalArgumentException("只能编辑自己的作品");
+        }
+        // 学生本人的草稿/待审核/已通过/未通过作品均可编辑（管理端草稿 'c' 不在此列）
+        String curStatus = msg.getStatus();
+        if (!MobileWorkAuditStatus.DRAFT.equals(curStatus)
+                && !MobileWorkAuditStatus.PENDING.equals(curStatus)
+                && !MobileWorkAuditStatus.APPROVED.equals(curStatus)
+                && !MobileWorkAuditStatus.REJECTED.equals(curStatus)) {
+            throw new IllegalArgumentException("该作品状态不可编辑");
+        }
+        Date now = new Date();
+
+        // 更新标题
+        if (StringUtils.hasText(request.getTitle())) {
+            msg.setExpName(request.getTitle().trim());
+        }
+        // 更新描述
+        msg.setConfirmComments(StringUtils.hasText(request.getDescription())
+                ? request.getDescription().trim() : null);
+        // 已提交作品被编辑后内容已变更，需重新审核（草稿仍保持草稿）
+        if (!MobileWorkAuditStatus.DRAFT.equals(curStatus)) {
+            msg.setStatus(MobileWorkAuditStatus.PENDING);
+            msg.setConfirmUserId(null);
+            msg.setConfirmTime(null);
+        }
+        msg.setUpdateTime(now);
+        expMsgRepository.save(msg);
+
+        // 更新媒体文件
+        updateWorkMedia(workId.trim(), request.getFiles(), now);
+
+        // 如果有批阅记录，清空并重置为待批阅
+        List<MobileExpHomeworkStudent> reviewRecords = homeworkStudentRepository
+                .findByStudentExpId(workId.trim());
+        for (MobileExpHomeworkStudent hs : reviewRecords) {
+            if (hs.getMarkTime() != null) {
+                hs.setMarkUserId(null);
+                hs.setMarkTime(null);
+                hs.setMarkComments(null);
+                hs.setMarkResult(null);
+                homeworkStudentRepository.save(hs);
+            }
+        }
+
+        homeCache.invalidateFeed();
+        String workType = reverseMapWorkType(msg.getExpTaskType());
+        return buildDetailDto(msg, studentId, workType);
+    }
+
+    private void updateWorkMedia(String expId, List<CreateWorkFileItem> files, Date now) {
+        List<ExpVideo> existing = expVideoRepository.findByExpIdOrderBySortOrderAsc(expId);
+        Map<String, ExpVideo> existingBySeqId = new HashMap<>();
+        for (ExpVideo ev : existing) {
+            existingBySeqId.put(ev.getSeqId(), ev);
+        }
+        Set<String> keptIds = new HashSet<>();
+        if (files != null) {
+            for (CreateWorkFileItem item : files) {
+                if (item != null && StringUtils.hasText(item.getId())) {
+                    keptIds.add(item.getId().trim());
+                }
+            }
+        }
+        for (ExpVideo ev : existing) {
+            if (!keptIds.contains(ev.getSeqId())) {
+                if (StringUtils.hasText(ev.getFileId())) {
+                    dataFileRepository.deleteById(ev.getFileId().trim());
+                }
+                expVideoRepository.delete(ev);
+            }
+        }
+        if (files != null) {
+            int sortOrder = 0;
+            for (CreateWorkFileItem item : files) {
+                if (item == null || !StringUtils.hasText(item.getUrl())) continue;
+                if (StringUtils.hasText(item.getId())) {
+                    ExpVideo existingEv = existingBySeqId.get(item.getId().trim());
+                    if (existingEv != null && (existingEv.getSortOrder() == null || existingEv.getSortOrder() != sortOrder)) {
+                        existingEv.setSortOrder(sortOrder);
+                        expVideoRepository.save(existingEv);
+                    }
+                    sortOrder++;
+                    continue;
+                }
+                DataFile df = new DataFile();
+                df.setFileId(MobileIds.newId("df"));
+                df.setFileName(truncate(item.getName(), 60));
+                df.setFileUrl(truncate(MobileMinioKeySupport.normalizeForStorage(minioStorageService, item.getUrl()), 200));
+                df.setFileTypeId("video".equalsIgnoreCase(item.getType()) ? "video" : "image");
+                df.setStatus("y");
+                df.setIsPublic("n");
+                df.setCreateTime(now);
+                df.setUpdateTime(now);
+                dataFileRepository.save(df);
+
+                ExpVideo video = new ExpVideo();
+                video.setSeqId(MobileIds.newId("ev"));
+                video.setExpId(expId);
+                video.setFileId(df.getFileId());
+                video.setVideoUrl(df.getFileUrl());
+                video.setSortOrder(sortOrder);
+                expVideoRepository.save(video);
+                sortOrder++;
+            }
+        }
+    }
+
     private void saveWorkMedia(String expId, List<CreateWorkFileItem> files, Date now) {
         if (files == null || files.isEmpty()) return;
         for (int i = 0; i < files.size(); i++) {
@@ -174,11 +321,13 @@ public class MobileStudentWorkService {
 
             DataFile df = new DataFile();
             df.setFileId(MobileIds.newId("df"));
-            df.setFileName(truncate(item.getName(), 200));
-            df.setFileUrl(truncate(MobileMinioKeySupport.normalizeForStorage(minioStorageService, item.getUrl()), 500));
+            df.setFileName(truncate(item.getName(), 60));
+            df.setFileUrl(truncate(MobileMinioKeySupport.normalizeForStorage(minioStorageService, item.getUrl()), 200));
             df.setFileTypeId("video".equalsIgnoreCase(item.getType()) ? "video" : "image");
             df.setStatus("y");
+            df.setIsPublic("n");
             df.setCreateTime(now);
+            df.setUpdateTime(now);
             dataFileRepository.save(df);
 
             ExpVideo video = new ExpVideo();
@@ -192,58 +341,220 @@ public class MobileStudentWorkService {
     }
 
     private void upsertHomeworkStudent(String homeworkId, String studentId, String expMsgId, Date now) {
-        MobileExpHomework hw = homeworkRepository.findById(homeworkId)
-                .orElseThrow(() -> new IllegalArgumentException("作业不存在"));
-
-        // 查找该学生是否已有此作业的记录（通过学⽣的 exp_msg 来判定）
-        List<MobileExpHomeworkStudent> existing = homeworkStudentRepository.findByHomeworkId(homeworkId);
-        // 因 exp_homework_student 无 student_user_id 列，通过 studentExpId 回溯 createUserId
-        MobileExpHomeworkStudent hs = null;
-        for (MobileExpHomeworkStudent e : existing) {
-            if (StringUtils.hasText(e.getStudentExpId())) {
-                Optional<ExpMsg> m = expMsgRepository.findById(e.getStudentExpId());
-                if (m.isPresent() && studentId.equals(m.get().getCreateUserId())) {
-                    hs = e;
-                    break;
+        // 先尝试新系统 exp_homework
+        Optional<MobileExpHomework> hwOpt = homeworkRepository.findById(homeworkId);
+        if (hwOpt.isPresent()) {
+            MobileExpHomework hw = hwOpt.get();
+            List<MobileExpHomeworkStudent> existing = homeworkStudentRepository.findByHomeworkId(homeworkId);
+            MobileExpHomeworkStudent hs = null;
+            for (MobileExpHomeworkStudent e : existing) {
+                if (StringUtils.hasText(e.getStudentExpId())) {
+                    Optional<ExpMsg> m = expMsgRepository.findById(e.getStudentExpId());
+                    if (m.isPresent() && studentId.equals(m.get().getCreateUserId())) {
+                        hs = e;
+                        break;
+                    }
                 }
             }
+            if (hs == null) {
+                hs = new MobileExpHomeworkStudent();
+                hs.setSeqId(MobileIds.newId());
+                hs.setHomeworkId(homeworkId);
+                hs.setTeacherExpId(hw.getTeacherExpId());
+                hs.setTeacherUserId(hw.getTearcherUserId());
+                hs.setRequireDate(hw.getRequireDate());
+            }
+            hs.setStudentExpId(expMsgId);
+            hs.setStudentSubmitDate(TIME_FMT.format(now));
+            homeworkStudentRepository.save(hs);
+            return;
         }
 
-        if (hs == null) {
-            hs = new MobileExpHomeworkStudent();
-            hs.setSeqId(MobileIds.newId());
-            hs.setHomeworkId(homeworkId);
-            hs.setTeacherExpId(hw.getTeacherExpId());
-            hs.setTeacherUserId(hw.getTearcherUserId());
-            hs.setRequireDate(hw.getRequireDate());
+        // 再尝试旧系统 mb_task（模拟实验等历史任务）
+        Optional<MbTask> mbTaskOpt = mbTaskRepository.findById(homeworkId);
+        if (mbTaskOpt.isPresent()) {
+            MbTask task = mbTaskOpt.get();
+            Optional<MbTaskSubmission> subOpt = mbTaskSubmissionRepository
+                    .findByTaskIdAndStudentUserId(homeworkId, studentId);
+            MbTaskSubmission sub;
+            if (subOpt.isPresent()) {
+                sub = subOpt.get();
+            } else {
+                sub = new MbTaskSubmission();
+                sub.setSubmissionId(MobileIds.newId());
+                sub.setTaskId(homeworkId);
+                sub.setStudentUserId(studentId);
+                sub.setCreateTime(now);
+            }
+            sub.setState("submitted");
+            sub.setStateLabel("已提交");
+            sub.setBadgeClass("badge-success");
+            sub.setUpdateTime(now);
+            sub.setSubmitTime(now);
+            mbTaskSubmissionRepository.save(sub);
+            return;
         }
-        hs.setStudentExpId(expMsgId);
-        hs.setStudentSubmitDate(TIME_FMT.format(now));
-        homeworkStudentRepository.save(hs);
+
+        throw new IllegalArgumentException("实验任务不存在");
     }
 
     /* ════════════════════════════════════════════
        3. 教师批阅 → exp_homework_student.mark_*
        ════════════════════════════════════════════ */
 
+    /* ════════════════════════════════════════════
+       管理员（系统/校管理员）学生作品审核队列（本校范围）
+       ════════════════════════════════════════════ */
+
+    @Transactional(readOnly = true)
+    public PageResult<MobileWorkReviewItemDto> listPendingWorkReviewsForAdmin(String adminUserId, int page, int size) {
+        SysUser admin = requireAdminUser(adminUserId);
+        List<ExpMsg> candidates = collectPendingAdminWorks(admin);
+        long total = candidates.size();
+        int pageSize = Math.max(size, 1);
+        int from = Math.max(0, (Math.max(page, 1) - 1) * pageSize);
+        int to = Math.min(candidates.size(), from + pageSize);
+        List<MobileWorkReviewItemDto> items = new ArrayList<>();
+        if (from < candidates.size()) {
+            for (ExpMsg msg : candidates.subList(from, to)) {
+                items.add(toAdminReviewItem(msg));
+            }
+        }
+        return new PageResult<>(total, items);
+    }
+
+    @Transactional(readOnly = true)
+    public int countPendingWorkReviewsForAdmin(String adminUserId) {
+        if (!StringUtils.hasText(adminUserId)) {
+            return 0;
+        }
+        SysUser admin = sysUserRepository.findById(adminUserId.trim()).orElse(null);
+        if (admin == null) {
+            return 0;
+        }
+        String role = safe(admin.getUserRoleId());
+        if (!"Sys_Admin".equals(role) && !"School_Admin".equals(role)) {
+            return 0;
+        }
+        return collectPendingAdminWorks(admin).size();
+    }
+
+    private SysUser requireAdminUser(String adminUserId) {
+        if (!StringUtils.hasText(adminUserId)) {
+            throw new IllegalArgumentException("请先登录");
+        }
+        SysUser admin = sysUserRepository.findById(adminUserId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("登录用户不存在"));
+        String role = safe(admin.getUserRoleId());
+        if (!"Sys_Admin".equals(role) && !"School_Admin".equals(role)) {
+            throw new IllegalArgumentException("无权访问学生作品审核");
+        }
+        return admin;
+    }
+
+    private List<ExpMsg> collectPendingAdminWorks(SysUser admin) {
+        String role = safe(admin.getUserRoleId());
+        boolean global = "Sys_Admin".equals(role);
+        final Set<String> schoolUserIds;
+        if (global) {
+            schoolUserIds = Collections.emptySet();
+        } else {
+            String rootOrgId = safe(admin.getRootOrgId());
+            if (rootOrgId.isEmpty()) {
+                return Collections.emptyList();
+            }
+            schoolUserIds = sysUserRepository.findByRootOrgId(rootOrgId).stream()
+                    .map(SysUser::getUserId)
+                    .filter(StringUtils::hasText)
+                    .map(String::trim)
+                    .collect(Collectors.toSet());
+        }
+        return expMsgRepository.findAll().stream()
+                .filter(m -> "student".equals(m.getExpType()))
+                .filter(m -> MobileWorkAuditStatus.isPending(m.getStatus()))
+                .filter(m -> "tk".equals(m.getExpTaskType()) || "self".equals(m.getExpTaskType()))
+                .filter(m -> global
+                        || (StringUtils.hasText(m.getCreateUserId())
+                            && schoolUserIds.contains(m.getCreateUserId().trim())))
+                .sorted((a, b) -> {
+                    Date ta = a.getCreateTime();
+                    Date tb = b.getCreateTime();
+                    if (ta == null && tb == null) return 0;
+                    if (ta == null) return 1;
+                    if (tb == null) return -1;
+                    return tb.compareTo(ta);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private MobileWorkReviewItemDto toAdminReviewItem(ExpMsg msg) {
+        MobileWorkReviewItemDto item = new MobileWorkReviewItemDto();
+        item.setId(msg.getExpId());
+        item.setTitle(StringUtils.hasText(msg.getExpName()) ? msg.getExpName() : "学生作品");
+        SysUser student = StringUtils.hasText(msg.getCreateUserId())
+                ? sysUserRepository.findById(msg.getCreateUserId().trim()).orElse(null) : null;
+        String name = "学生";
+        String group = "";
+        if (student != null) {
+            if (StringUtils.hasText(student.getUserName())) {
+                name = student.getUserName().trim();
+            } else if (StringUtils.hasText(student.getUserNickName())) {
+                name = student.getUserNickName().trim();
+            } else if (StringUtils.hasText(student.getLoginName())) {
+                name = student.getLoginName().trim();
+            }
+            group = resolveOrgName(student.getUserOrgId());
+            if (!StringUtils.hasText(group)) {
+                group = resolveOrgName(student.getRootOrgId());
+            }
+        }
+        item.setStudentName(name);
+        item.setStudentInitial(name.isEmpty() ? "?" : name.substring(0, 1));
+        item.setGroupLabel(group);
+        item.setTime(msg.getCreateTime() != null ? TIME_FMT.format(msg.getCreateTime()) : "");
+        if ("tk".equals(msg.getExpTaskType())) {
+            item.setWorkType("remix");
+            item.setWorkTypeLabel("拍同款");
+        } else {
+            item.setWorkType("creative");
+            item.setWorkTypeLabel("创意实验");
+        }
+        return item;
+    }
+
+    private static String safe(String value) {
+        return value != null ? value.trim() : "";
+    }
+
     @Transactional
     public void reviewWork(String teacherUserId, String msgId, String result, String comment) {
         ExpMsg msg = expMsgRepository.findById(msgId)
                 .orElseThrow(() -> new IllegalArgumentException("作品不存在"));
+        ensureCanReviewStudentWork(teacherUserId, msg);
 
+        Date now = new Date();
+        // 1) 评分/评语落 exp_homework_student（作业类作品有关联记录；创意/拍同款可能无记录）
         List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByStudentExpId(msgId);
         for (MobileExpHomeworkStudent hs : records) {
             hs.setMarkUserId(teacherUserId);
-            hs.setMarkTime(new Date());
+            hs.setMarkTime(now);
             hs.setMarkComments(StringUtils.hasText(comment) ? comment.trim() : null);
             hs.setMarkResult(StringUtils.hasText(result) ? result.trim().toLowerCase() : "pass");
             homeworkStudentRepository.save(hs);
         }
 
+        // 2) 审核结论落 exp_msg.status：合格→通过(y)上首页，不合格(fail)→驳回(n)不展示
+        String decision = MobileWorkAuditStatus.fromRating(result);
+        msg.setStatus(decision);
+        msg.setConfirmUserId(teacherUserId);
+        msg.setConfirmTime(now);
+        msg.setUpdateTime(now);
+        expMsgRepository.save(msg);
+
         String studentId = msg.getCreateUserId();
-        if (StringUtils.hasText(studentId)) {
+        if (StringUtils.hasText(studentId) && MobileWorkAuditStatus.isApproved(decision)) {
             pointsService.credit(studentId, MobilePointsService.WORK_FEATURED_POINTS,
-                    "reviewed", msgId, "作品被批阅");
+                    "reviewed", msgId, "作品审核通过");
         }
 
         homeCache.invalidateFeed();
@@ -259,22 +570,24 @@ public class MobileStudentWorkService {
         String expTaskType = "remix".equals(taskType) ? "tk" : "self";
         Date now = new Date();
 
-        // 检查进行中的草稿
         Optional<ExpMsg> inProgress = expMsgRepository
                 .findTopByCreateUserIdAndStatusAndExpTypeOrderByCreateTimeDesc(studentId, "draft", "student");
         if (inProgress.isPresent() && expTaskType.equals(inProgress.get().getExpTaskType())) {
             return toTaskDto(inProgress.get());
         }
 
-        // 创建草稿
         ExpMsg msg = new ExpMsg();
         msg.setExpId(MobileIds.newId("exp"));
         msg.setExpName("remix".equals(taskType) ? "拍同款" : "创意实验");
         msg.setExpType("student");
         msg.setExpTaskType(expTaskType);
-        msg.setCreateUserId(studentId);
+        msg.setCreateUserId(studentId.trim());
         msg.setStatus("draft");
+        msg.setChooseType("");           // NOT NULL
+        msg.setSubjectId("");            // NOT NULL
+        msg.setSchoolLevelId("");        // NOT NULL
         msg.setLikeNum(0);
+        msg.setNotlikeNum(0);
         msg.setCollectionNum(0);
         msg.setEvaluateNum(0);
         msg.setCreateTime(now);
@@ -306,7 +619,7 @@ public class MobileStudentWorkService {
             item.setCategory("creative");
             item.setKind("creative-start");
             item.setTitle("开始创意实验");
-            item.setDesc("自由上传实验成果，不关联老师布置，提交后由老师审核再展示在作品墙");
+            item.setDesc("自由上传实验成果，不关联老师发布，提交后由老师审核再展示在作品墙");
             item.setLink("/upload?type=creative");
         }
         item.setState("pending");
@@ -338,6 +651,14 @@ public class MobileStudentWorkService {
                 .map(this::toWorkItemDto)
                 .collect(Collectors.toList());
         enrichWorkItemFiles(items);
+
+        items.sort((a, b) -> {
+            if (a.getTimeLabel() == null && b.getTimeLabel() == null) return 0;
+            if (a.getTimeLabel() == null) return 1;
+            if (b.getTimeLabel() == null) return -1;
+            return b.getTimeLabel().compareTo(a.getTimeLabel());
+        });
+
         return paginate(items, page, size);
     }
 
@@ -346,7 +667,7 @@ public class MobileStudentWorkService {
         String studentId = MobileUserContext.resolveStudentId(userId);
         List<ExpMsg> msgs = expMsgRepository.findAll().stream()
                 .filter(m -> "student".equals(m.getExpType()))
-                .filter(m -> "y".equals(m.getStatus()) || "draft".equals(m.getStatus()))
+                .filter(m -> isOwnVisibleStatus(m.getStatus()))
                 .filter(m -> studentId.equals(m.getCreateUserId()))
                 .filter(m -> matchExpTaskType(m.getExpTaskType(), type))
                 .sorted((a, b) -> cmpTime(b.getCreateTime(), a.getCreateTime()))
@@ -356,13 +677,34 @@ public class MobileStudentWorkService {
                 .map(this::toWorkItemDto)
                 .collect(Collectors.toList());
         enrichWorkItemFiles(items);
+
+        items.sort((a, b) -> {
+            if (a.getTimeLabel() == null && b.getTimeLabel() == null) return 0;
+            if (a.getTimeLabel() == null) return 1;
+            if (b.getTimeLabel() == null) return -1;
+            return b.getTimeLabel().compareTo(a.getTimeLabel());
+        });
+
         return paginate(items, page, size);
     }
 
     @Transactional(readOnly = true)
     public MobileWorkDetailDto getWorkDetail(String msgId, String viewerUserId) {
+        return getWorkDetail(msgId, viewerUserId, false);
+    }
+
+    /**
+     * @param privileged true 表示审核场景（老师/校管理员）可查看待审核/未通过作品；
+     *                   false 表示普通访问，仅通过(y)作品对外可见，待审核/未通过/草稿仅作者本人可见。
+     */
+    @Transactional(readOnly = true)
+    public MobileWorkDetailDto getWorkDetail(String msgId, String viewerUserId, boolean privileged) {
         ExpMsg msg = expMsgRepository.findById(msgId).orElse(null);
-        if (msg == null || !"y".equals(msg.getStatus())) return null;
+        if (msg == null) return null;
+        if (!privileged && MobileWorkAuditStatus.isAuthorOnlyVisible(msg.getStatus())
+                && !isOwnerOrGuardian(viewerUserId, msg.getCreateUserId())) {
+            return null;
+        }
 
         MobileWorkDetailDto dto = new MobileWorkDetailDto();
         dto.setId(msg.getExpId());
@@ -371,15 +713,16 @@ public class MobileStudentWorkService {
         dto.setLikes(msg.getLikeNum() != null ? msg.getLikeNum() : 0);
         dto.setComments(msg.getEvaluateNum() != null ? msg.getEvaluateNum() : 0);
         dto.setAuthor(resolveUserName(msg.getCreateUserId()));
-        dto.setSourceExpId(msg.getLinkExpId());
-        dto.setReviewStatus("pending");
-        dto.setReviewStatusLabel("待批阅");
+        dto.setAuthorUserId(msg.getCreateUserId());
+        enrichAuthorInfo(dto, msg.getCreateUserId());
+        dto.setSourceExpId(resolveLinkExpId(msg));
+        dto.setSourceExpName(resolveSourceExpName(dto.getSourceExpId()));
+        dto.setReviewStatus(MobileWorkAuditStatus.reviewStatusCode(msg.getStatus()));
+        dto.setReviewStatusLabel(MobileWorkAuditStatus.reviewStatusLabel(msg.getStatus()));
         if (msg.getCreateTime() != null) dto.setTime(TIME_FMT.format(msg.getCreateTime()));
 
-        // 批阅信息（如果有批阅记录会覆盖 status 和 label）
         enrichTeacherReview(dto, msg.getExpId());
 
-        // 媒体
         List<ExpVideo> videos = expVideoRepository.findByExpIdOrderBySortOrderAsc(msg.getExpId());
         List<MobileWorkFileDto> files = videos.stream().map(this::toFileDto).collect(Collectors.toList());
         dto.setFiles(files);
@@ -427,24 +770,128 @@ public class MobileStudentWorkService {
        7. 内部工具方法
        ════════════════════════════════════════════ */
 
-    /**
-     * 按类型加载学生作品 (exp_type='student')
-     * 公开给 MobileWorkService 复用
-     */
     public List<ExpMsg> loadUserMsgs(String studentId, String typeFilter) {
+        String safeStudentId = studentId != null ? studentId.trim() : "";
         return expMsgRepository.findAll().stream()
                 .filter(m -> "student".equals(m.getExpType()))
-                .filter(m -> "y".equals(m.getStatus()) || "draft".equals(m.getStatus()))
-                .filter(m -> studentId.equals(m.getCreateUserId()))
+                .filter(m -> isOwnVisibleStatus(m.getStatus()))
+                .filter(m -> safeStudentId.equals(m.getCreateUserId() != null ? m.getCreateUserId().trim() : ""))
                 .filter(m -> matchExpTaskType(m.getExpTaskType(), typeFilter))
                 .sorted((a, b) -> cmpTime(b.getCreateTime(), a.getCreateTime()))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 检查学生是否已提交某个作业
-     */
+    /** 学生本人可见的作品状态：草稿/待审核/通过/未通过（管理端草稿 'c' 除外） */
+    private boolean isOwnVisibleStatus(String status) {
+        return MobileWorkAuditStatus.isDraft(status)
+                || MobileWorkAuditStatus.isPending(status)
+                || MobileWorkAuditStatus.isApproved(status)
+                || MobileWorkAuditStatus.isRejected(status);
+    }
+
+    /** 列表卡片审核状态徽标 */
+    private void applyAuditBadge(MobileWorkItemDto item, String status) {
+        item.setReviewStatus(MobileWorkAuditStatus.reviewStatusCode(status));
+        item.setReviewStatusLabel(MobileWorkAuditStatus.reviewStatusLabel(status));
+        if (MobileWorkAuditStatus.isApproved(status)) {
+            item.setReviewBadgeClass("badge-success");
+        } else if (MobileWorkAuditStatus.isRejected(status)) {
+            item.setReviewBadgeClass("badge-danger");
+            item.setCanEdit(true);
+        } else if (MobileWorkAuditStatus.isDraft(status)) {
+            item.setReviewStatusLabel("待完成");
+            item.setReviewBadgeClass("badge-warning");
+            item.setCanEdit(true);
+        } else {
+            item.setReviewBadgeClass("badge-info");
+        }
+    }
+
+    /** 普通访问场景下，待审核/未通过/草稿作品仅作者本人（或其家长）可见 */
+    private boolean isOwnerOrGuardian(String viewerUserId, String authorUserId) {
+        if (!StringUtils.hasText(viewerUserId) || !StringUtils.hasText(authorUserId)) {
+            return false;
+        }
+        String author = authorUserId.trim();
+        if (author.equals(viewerUserId.trim())) {
+            return true;
+        }
+        try {
+            String scoped = parentAccessService.resolveStudentScope(viewerUserId, author);
+            return author.equals(scoped);
+        } catch (RuntimeException ignore) {
+            return false;
+        }
+    }
+
+    /** 审核权限校验：系统管理员全局；校管理员限本校；老师限其布置作业或所管理班级的学生 */
+    private void ensureCanReviewStudentWork(String reviewerUserId, ExpMsg work) {
+        if (!StringUtils.hasText(reviewerUserId)) {
+            throw new IllegalArgumentException("请先登录");
+        }
+        SysUser reviewer = sysUserRepository.findById(reviewerUserId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("登录用户不存在"));
+        String role = reviewer.getUserRoleId() != null ? reviewer.getUserRoleId().trim() : "";
+        if ("Sys_Admin".equals(role)) {
+            return;
+        }
+        String studentId = work.getCreateUserId();
+        SysUser student = StringUtils.hasText(studentId)
+                ? sysUserRepository.findById(studentId.trim()).orElse(null) : null;
+
+        if ("School_Admin".equals(role)) {
+            if (student != null && sameSchool(reviewer, student)) {
+                return;
+            }
+            throw new IllegalArgumentException("无权审核该作品（非本校学生）");
+        }
+        if ("Teacher".equals(role)) {
+            if (isHomeworkOwner(reviewerUserId, work.getExpId())) {
+                return;
+            }
+            if (student != null && teacherManagesStudentClass(reviewer, student)) {
+                return;
+            }
+            throw new IllegalArgumentException("无权审核该作品（非任课班级）");
+        }
+        throw new IllegalArgumentException("无权审核该作品");
+    }
+
+    private boolean sameSchool(SysUser a, SysUser b) {
+        String ra = a.getRootOrgId() != null ? a.getRootOrgId().trim() : "";
+        String rb = b.getRootOrgId() != null ? b.getRootOrgId().trim() : "";
+        return !ra.isEmpty() && ra.equals(rb);
+    }
+
+    private boolean isHomeworkOwner(String reviewerUserId, String workExpId) {
+        String teacherId = MobileUserContext.resolveTeacherId(reviewerUserId);
+        if (!StringUtils.hasText(teacherId)) {
+            return false;
+        }
+        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByStudentExpId(workExpId);
+        for (MobileExpHomeworkStudent hs : records) {
+            if (!StringUtils.hasText(hs.getHomeworkId())) continue;
+            boolean owned = homeworkRepository.findById(hs.getHomeworkId().trim())
+                    .map(hw -> teacherId.equals(hw.getTearcherUserId() != null ? hw.getTearcherUserId().trim() : ""))
+                    .orElse(false);
+            if (owned) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean teacherManagesStudentClass(SysUser teacher, SysUser student) {
+        String classOrgId = student.getUserOrgId() != null ? student.getUserOrgId().trim() : "";
+        if (classOrgId.isEmpty()) {
+            return false;
+        }
+        Set<String> classOrgIds = MobileTeacherClassScope.resolveClassOrgIds(teacher, null, sysOrgRepository);
+        return classOrgIds.contains(classOrgId);
+    }
+
     public boolean hasSubmittedHomework(String homeworkId, String studentId) {
+        // 新系统 exp_homework_student
         List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByHomeworkId(homeworkId);
         for (MobileExpHomeworkStudent hs : records) {
             if (!StringUtils.hasText(hs.getStudentExpId())) continue;
@@ -452,6 +899,13 @@ public class MobileStudentWorkService {
             if (msg.isPresent() && studentId.equals(msg.get().getCreateUserId())) {
                 return StringUtils.hasText(hs.getStudentSubmitDate());
             }
+        }
+        // 旧系统 mb_task_submission
+        Optional<MbTaskSubmission> subOpt = mbTaskSubmissionRepository
+                .findByTaskIdAndStudentUserId(homeworkId, studentId);
+        if (subOpt.isPresent()) {
+            MbTaskSubmission sub = subOpt.get();
+            return "submitted".equals(sub.getState()) || "reviewed".equals(sub.getState()) || "done".equals(sub.getState());
         }
         return false;
     }
@@ -469,13 +923,19 @@ public class MobileStudentWorkService {
         String t = typeFilter.trim().toLowerCase();
         if ("remix".equals(t)) return "tk".equals(et);
         if ("creative".equals(t)) return "self".equals(et);
-        return "hw".equals(et);
+        return "hw".equals(et) || !StringUtils.hasText(et);
     }
 
     private String mapWorkType(String workType) {
         if ("remix".equals(workType)) return "tk";
         if ("creative".equals(workType)) return "self";
         return "hw";
+    }
+
+    private String reverseMapWorkType(String expTaskType) {
+        if ("tk".equals(expTaskType)) return "remix";
+        if ("self".equals(expTaskType)) return "creative";
+        return "homework";
     }
 
     private String resolveWorkType(CreateWorkRequest request) {
@@ -531,8 +991,8 @@ public class MobileStudentWorkService {
                 review.setText(hs.getMarkComments());
                 review.setStars(resultToStars(hs.getMarkResult()));
                 dto.setTeacherReview(review);
-                dto.setReviewStatus("reviewed");
-                dto.setReviewStatusLabel("已批阅");
+                // reviewStatus/Label 由 exp_msg.status 统一决定（已通过/未通过），此处仅补充评语与评分
+                dto.setGrade(mapGrade(hs.getMarkResult()));
             }
         }
     }
@@ -543,7 +1003,8 @@ public class MobileStudentWorkService {
         item.setTitle(msg.getExpName());
         item.setAuthor(resolveUserName(msg.getCreateUserId()));
         item.setAuthorInitial(initialOf(item.getAuthor()));
-        item.setSourceExpId(msg.getLinkExpId());
+        item.setSourceExpId(resolveLinkExpId(msg));
+        enrichWorkItemAuthor(item, msg.getCreateUserId());
 
         String et = msg.getExpTaskType();
         if ("tk".equals(et)) {
@@ -557,22 +1018,7 @@ public class MobileStudentWorkService {
             item.setType("homework");
         }
 
-        // 查批阅状态
-        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByStudentExpId(msg.getExpId());
-        if (!records.isEmpty() && records.get(0).getMarkTime() != null) {
-            item.setReviewStatus("reviewed");
-            item.setReviewStatusLabel("已批阅");
-            item.setReviewBadgeClass("badge-success");
-        } else if ("draft".equals(msg.getStatus())) {
-            item.setReviewStatus("pending");
-            item.setReviewStatusLabel("待完成");
-            item.setReviewBadgeClass("badge-warning");
-            item.setCanEdit(true);
-        } else {
-            item.setReviewStatus("pending");
-            item.setReviewStatusLabel("待批阅");
-            item.setReviewBadgeClass("badge-info");
-        }
+        applyAuditBadge(item, msg.getStatus());
         if (msg.getCreateTime() != null) item.setTimeLabel(TIME_FMT.format(msg.getCreateTime()));
         return item;
     }
@@ -604,12 +1050,15 @@ public class MobileStudentWorkService {
         dto.setTitle(msg.getExpName());
         dto.setDesc(msg.getConfirmComments());
         dto.setAuthor(resolveUserName(studentId));
+        dto.setAuthorUserId(studentId);
+        enrichAuthorInfo(dto, studentId);
         dto.setLikes(0);
         dto.setComments(0);
-        dto.setSourceExpId(msg.getLinkExpId());
+        dto.setSourceExpId(resolveLinkExpId(msg));
+        dto.setSourceExpName(resolveSourceExpName(dto.getSourceExpId()));
         dto.setWorkType(workType);
-        dto.setReviewStatus("pending");
-        dto.setReviewStatusLabel("待批阅");
+        dto.setReviewStatus(MobileWorkAuditStatus.reviewStatusCode(msg.getStatus()));
+        dto.setReviewStatusLabel(MobileWorkAuditStatus.reviewStatusLabel(msg.getStatus()));
         if (msg.getCreateTime() != null) dto.setTime(TIME_FMT.format(msg.getCreateTime()));
 
         List<ExpVideo> videos = expVideoRepository.findByExpIdOrderBySortOrderAsc(msg.getExpId());
@@ -634,6 +1083,10 @@ public class MobileStudentWorkService {
         dto.setUrl(url);
         dto.setPreviewUrl(resolveAccessibleUrl(url));
         dto.setSortOrder(video.getSortOrder() != null ? video.getSortOrder() : 0);
+        if (StringUtils.hasText(video.getFileId())) {
+            dataFileRepository.findById(video.getFileId().trim())
+                    .ifPresent(df -> dto.setName(df.getFileName()));
+        }
         return dto;
     }
 
@@ -657,14 +1110,58 @@ public class MobileStudentWorkService {
         return dto;
     }
 
+    private void enrichAuthorInfo(MobileWorkDetailDto dto, String userId) {
+        if (dto == null || !StringUtils.hasText(userId)) {
+            return;
+        }
+        dto.setAuthorRole("student");
+        MobileStudentOrgSupport.StudentOrgContext ctx = studentOrgSupport.resolve(userId.trim());
+        if (StringUtils.hasText(ctx.getClassName())) {
+            dto.setClassName(ctx.getClassName());
+        } else {
+            dto.setClassName(resolveOrgName(resolveUserOrgId(userId)));
+        }
+        if (StringUtils.hasText(ctx.getSchoolName())) {
+            dto.setSchoolName(ctx.getSchoolName());
+        }
+        if (StringUtils.hasText(ctx.getGradeName())) {
+            dto.setGrade(ctx.getGradeName());
+        }
+        sysUserRepository.findById(userId.trim())
+                .map(u -> MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, u))
+                .ifPresent(dto::setAuthorAvatarUrl);
+    }
+
+    private void enrichWorkItemAuthor(MobileWorkItemDto item, String userId) {
+        if (item == null || !StringUtils.hasText(userId)) {
+            return;
+        }
+        MobileStudentOrgSupport.StudentOrgContext ctx = studentOrgSupport.resolve(userId.trim());
+        if (StringUtils.hasText(ctx.getClassName())) {
+            item.setClassName(ctx.getClassName());
+        }
+        if (StringUtils.hasText(ctx.getSchoolName())) {
+            item.setSchool(ctx.getSchoolName());
+        }
+        sysUserRepository.findById(userId.trim())
+                .map(u -> MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, u))
+                .ifPresent(item::setAuthorAvatarUrl);
+    }
+
     private String resolveOrgName(String orgId) {
         if (!StringUtils.hasText(orgId)) return null;
         return sysOrgRepository.findById(orgId).map(o -> o.getOrgName()).orElse(orgId);
     }
 
+    private String resolveUserOrgId(String userId) {
+        if (!StringUtils.hasText(userId)) return null;
+        return sysUserRepository.findById(userId.trim())
+                .map(u -> u.getUserOrgId()).filter(StringUtils::hasText).orElse(null);
+    }
+
     private String resolveExpName(String expId) {
-        if (!StringUtils.hasText(expId)) return "实验作业";
-        return expMsgRepository.findById(expId).map(ExpMsg::getExpName).filter(StringUtils::hasText).orElse("实验作业");
+        if (!StringUtils.hasText(expId)) return "实验任务";
+        return expMsgRepository.findById(expId).map(ExpMsg::getExpName).filter(StringUtils::hasText).orElse("实验任务");
     }
 
     private String resolveUserName(String userId) {
@@ -693,6 +1190,16 @@ public class MobileStudentWorkService {
         }
     }
 
+    private static String mapGrade(String markResult) {
+        if (!StringUtils.hasText(markResult)) return null;
+        String r = markResult.trim().toLowerCase();
+        if ("excellent".equals(r)) return "excellent";
+        if ("good".equals(r)) return "good";
+        if ("pass".equals(r)) return "pass";
+        if ("fail".equals(r)) return "fail";
+        return null;
+    }
+
     private String truncate(String value, int maxLen) {
         if (!StringUtils.hasText(value)) return value;
         String t = value.trim();
@@ -704,6 +1211,44 @@ public class MobileStudentWorkService {
         if (a == null) return -1;
         if (b == null) return 1;
         return a.compareTo(b);
+    }
+
+    private String resolveSourceExpName(String linkExpId) {
+        if (!StringUtils.hasText(linkExpId)) return null;
+        return expMsgRepository.findById(linkExpId.trim())
+                .map(ExpMsg::getExpName)
+                .orElse(null);
+    }
+
+    private String resolveLinkExpId(ExpMsg msg) {
+        if (msg == null) {
+            return null;
+        }
+        if (StringUtils.hasText(msg.getLinkExpId())) {
+            return msg.getLinkExpId().trim();
+        }
+        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByStudentExpId(msg.getExpId());
+        for (MobileExpHomeworkStudent record : records) {
+            if (StringUtils.hasText(record.getTeacherExpId())) {
+                return record.getTeacherExpId().trim();
+            }
+        }
+        return null;
+    }
+
+    private String resolveTeacherExpIdFromTask(String taskId) {
+        if (!StringUtils.hasText(taskId)) {
+            return null;
+        }
+        Optional<MobileExpHomework> homework = homeworkRepository.findById(taskId.trim());
+        if (homework.isPresent() && StringUtils.hasText(homework.get().getTeacherExpId())) {
+            return homework.get().getTeacherExpId().trim();
+        }
+        Optional<MbTask> task = mbTaskRepository.findById(taskId.trim());
+        if (task.isPresent() && StringUtils.hasText(task.get().getVideoId())) {
+            return task.get().getVideoId().trim();
+        }
+        return null;
     }
 
     private <T> PageResult<T> paginate(List<T> all, int page, int size) {

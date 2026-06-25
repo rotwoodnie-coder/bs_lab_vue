@@ -36,6 +36,13 @@ public class MobileSettingsController {
         return ApiResponse.success(settingsService.savePreferences(userId, preferences));
     }
 
+    @PostMapping("/preferences/save")
+    public ApiResponse<MobileUserPreferencesDto> savePreferencesViaPost(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestBody MobileUserPreferencesDto preferences) {
+        return savePreferences(userId, preferences);
+    }
+
     @GetMapping("/account")
     public ApiResponse<MobileAccountSecurityDto> getAccountSecurity(
             @RequestHeader(value = "X-User-Id", required = false) String userId) {

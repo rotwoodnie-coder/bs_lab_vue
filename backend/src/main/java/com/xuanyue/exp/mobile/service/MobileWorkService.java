@@ -13,7 +13,10 @@ import com.xuanyue.exp.mobile.support.MobileMediaUrlSupport;
 import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileHomeCache;
 import com.xuanyue.exp.mobile.support.MobileParentAccessService;
+import com.xuanyue.exp.mobile.support.MobileStudentOrgSupport;
 import com.xuanyue.exp.mobile.support.MobileUserContext;
+import com.xuanyue.exp.mobile.support.MobileWorkAuditStatus;
+import com.xuanyue.exp.system.repository.SysOrgRepository;
 import com.xuanyue.exp.system.repository.SysUserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,47 +27,56 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * MobileWorkService — 重构版
- *
- * 数据源改用 exp_msg (exp_type='student') + exp_video + exp_homework_student，
- * 方法签名与返回 DTO 不变。
+ * MobileWorkService — 统一使用 exp_msg 数据源
  */
 @Service
 public class MobileWorkService {
 
     private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private static final int RECOMMEND_LIMIT = 8;
+    private static final Set<String> ASSIGNABLE_EXP_TYPES = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("standard", "teach", "teacher", "teaching")));
 
     private final ExpMsgRepository expMsgRepository;
     private final ExpVideoRepository expVideoRepository;
     private final MobileExpHomeworkStudentRepository homeworkStudentRepository;
     private final SysUserRepository sysUserRepository;
+    private final SysOrgRepository sysOrgRepository;
     private final MobileStudentWorkService studentWorkService;
     private final MobilePointsService pointsService;
     private final MobileBadgeGrantService badgeGrantService;
     private final MobileParentAccessService parentAccessService;
     private final MinioStorageService minioStorageService;
     private final MobileHomeCache homeCache;
+    private final MobileStudentOrgSupport studentOrgSupport;
+    private final MobileHomeService mobileHomeService;
 
     public MobileWorkService(ExpMsgRepository expMsgRepository,
                              ExpVideoRepository expVideoRepository,
                              MobileExpHomeworkStudentRepository homeworkStudentRepository,
                              SysUserRepository sysUserRepository,
+                             SysOrgRepository sysOrgRepository,
                              MobileStudentWorkService studentWorkService,
                              MobilePointsService pointsService,
                              MobileBadgeGrantService badgeGrantService,
                              MobileParentAccessService parentAccessService,
                              MinioStorageService minioStorageService,
-                             MobileHomeCache homeCache) {
+                             MobileHomeCache homeCache,
+                             MobileStudentOrgSupport studentOrgSupport,
+                             MobileHomeService mobileHomeService) {
         this.expMsgRepository = expMsgRepository;
         this.expVideoRepository = expVideoRepository;
         this.homeworkStudentRepository = homeworkStudentRepository;
         this.sysUserRepository = sysUserRepository;
+        this.sysOrgRepository = sysOrgRepository;
         this.studentWorkService = studentWorkService;
         this.pointsService = pointsService;
         this.badgeGrantService = badgeGrantService;
         this.parentAccessService = parentAccessService;
         this.minioStorageService = minioStorageService;
         this.homeCache = homeCache;
+        this.studentOrgSupport = studentOrgSupport;
+        this.mobileHomeService = mobileHomeService;
     }
 
     /* ════════════════════════════════════════
@@ -84,12 +96,11 @@ public class MobileWorkService {
         List<ExpMsg> msgs = studentWorkService.loadUserMsgs(studentId, type);
 
         List<MobileWorkItemDto> items = msgs.stream()
-                .filter(m -> !"draft".equals(m.getStatus())
-                        || "pending".equalsIgnoreCase(reviewStatus)
-                        || !StringUtils.hasText(reviewStatus))
                 .map(this::toWorkItemDto)
+                .filter(item -> filterByReviewStatus(item, reviewStatus))
                 .collect(Collectors.toList());
         enrichWorkItemFiles(items);
+
         return paginate(items, page, size);
     }
 
@@ -105,13 +116,32 @@ public class MobileWorkService {
         return studentWorkService.getWorkDetail(workId, viewerUserId);
     }
 
-    /**
-     * 教师查看作品详情（批阅用）
-     * 参数改为 ExpMsg
-     */
     public MobileWorkDetailDto getDetailForTeacher(ExpMsg msg) {
         if (msg == null) return null;
-        return studentWorkService.getWorkDetail(msg.getExpId(), null);
+        // 审核场景：允许查看待审核/未通过作品
+        return studentWorkService.getWorkDetail(msg.getExpId(), null, true);
+    }
+
+    @Transactional(readOnly = true)
+    public List<HomeFeedItem> listRecommendations(String workId) {
+        final String excludeExpId;
+        if (StringUtils.hasText(workId)) {
+            excludeExpId = expMsgRepository.findById(workId.trim())
+                    .map(ExpMsg::getLinkExpId)
+                    .filter(StringUtils::hasText)
+                    .map(String::trim)
+                    .orElse(null);
+        } else {
+            excludeExpId = null;
+        }
+        List<String> expIds = expMsgRepository.findAll().stream()
+                .filter(this::isRecommendableExperiment)
+                .filter(e -> excludeExpId == null || !excludeExpId.equals(e.getExpId()))
+                .sorted(Comparator.comparing(ExpMsg::getCreateTime, Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(RECOMMEND_LIMIT)
+                .map(ExpMsg::getExpId)
+                .collect(Collectors.toList());
+        return mobileHomeService.buildExperimentFeedItems(expIds);
     }
 
     /* ════════════════════════════════════════
@@ -123,6 +153,11 @@ public class MobileWorkService {
         return studentWorkService.submitWork(userId, request);
     }
 
+    @Transactional
+    public MobileWorkDetailDto updateWork(String userId, String workId, UpdateWorkRequest request) {
+        return studentWorkService.updateWork(userId, workId, request);
+    }
+
     /* ════════════════════════════════════════
        教师批阅
        ════════════════════════════════════════ */
@@ -132,7 +167,6 @@ public class MobileWorkService {
     }
 
     public void markWorkFeatured(String workId, boolean featured) {
-        // 不实现，批阅结果通过 markResult 反映
     }
 
     /* ════════════════════════════════════════
@@ -151,7 +185,6 @@ public class MobileWorkService {
 
     @Deprecated
     public void persistSourceExpId(ExpMsg msg, String expId) {
-        // Already set during submitWork
     }
 
     /* ════════════════════════════════════════
@@ -172,25 +205,27 @@ public class MobileWorkService {
         else if ("self".equals(et)) { item.setType("creative"); item.setTint("tint-cyan"); }
         else { item.setType("homework"); item.setTint("tint-violet"); }
 
+        item.setClassName(resolveClassName(msg.getCreateUserId()));
+        enrichWorkItemOrg(item, msg.getCreateUserId());
         enrichReviewFields(msg, item);
         if (msg.getCreateTime() != null) item.setTimeLabel(TIME_FMT.format(msg.getCreateTime()));
         return item;
     }
 
     private void enrichReviewFields(ExpMsg msg, MobileWorkItemDto item) {
-        List<MobileExpHomeworkStudent> records = homeworkStudentRepository.findByStudentExpId(msg.getExpId());
-        if (!records.isEmpty() && records.get(0).getMarkTime() != null) {
-            item.setReviewStatus("reviewed");
-            item.setReviewStatusLabel("已批阅");
+        String status = msg.getStatus();
+        item.setReviewStatus(MobileWorkAuditStatus.reviewStatusCode(status));
+        item.setReviewStatusLabel(MobileWorkAuditStatus.reviewStatusLabel(status));
+        if (MobileWorkAuditStatus.isApproved(status)) {
             item.setReviewBadgeClass("badge-success");
-        } else if ("draft".equals(msg.getStatus())) {
-            item.setReviewStatus("draft");
+        } else if (MobileWorkAuditStatus.isRejected(status)) {
+            item.setReviewBadgeClass("badge-danger");
+            item.setCanEdit(true);
+        } else if (MobileWorkAuditStatus.isDraft(status)) {
             item.setReviewStatusLabel("草稿");
             item.setReviewBadgeClass("badge-warning");
             item.setCanEdit(true);
         } else {
-            item.setReviewStatus("pending");
-            item.setReviewStatusLabel("待批阅");
             item.setReviewBadgeClass("badge-info");
         }
     }
@@ -245,10 +280,65 @@ public class MobileWorkService {
                 .orElse(null);
     }
 
+    private void enrichWorkItemOrg(MobileWorkItemDto item, String userId) {
+        if (item == null || !StringUtils.hasText(userId)) {
+            return;
+        }
+        MobileStudentOrgSupport.StudentOrgContext ctx = studentOrgSupport.resolve(userId.trim());
+        if (StringUtils.hasText(ctx.getClassName())) {
+            item.setClassName(ctx.getClassName());
+        }
+        if (StringUtils.hasText(ctx.getSchoolName())) {
+            item.setSchool(ctx.getSchoolName());
+        }
+    }
+
+    private boolean isRecommendableExperiment(ExpMsg e) {
+        if (e == null || !"y".equalsIgnoreCase(e.getStatus()) || !StringUtils.hasText(e.getExpName())) {
+            return false;
+        }
+        if ("student".equalsIgnoreCase(e.getExpType())) {
+            return false;
+        }
+        if (StringUtils.hasText(e.getSimulatorId()) || StringUtils.hasText(e.getSimulatorUrl())) {
+            return true;
+        }
+        String type = e.getExpType() != null ? e.getExpType().trim().toLowerCase(Locale.ROOT) : "";
+        if (!StringUtils.hasText(type)) {
+            return true;
+        }
+        return ASSIGNABLE_EXP_TYPES.contains(type);
+    }
+
+    private String resolveClassName(String userId) {
+        if (!StringUtils.hasText(userId)) return null;
+        return sysUserRepository.findById(userId.trim())
+                .map(u -> {
+                    if (!StringUtils.hasText(u.getUserOrgId())) return null;
+                    return sysOrgRepository.findById(u.getUserOrgId())
+                            .map(o -> o.getOrgName())
+                            .orElse(null);
+                })
+                .orElse(null);
+    }
+
     private String requireStudentId(String userId) {
         String studentId = MobileUserContext.resolveStudentId(userId);
         if (!StringUtils.hasText(studentId)) throw new IllegalArgumentException("请先登录");
         return studentId.trim();
+    }
+
+    private boolean filterByReviewStatus(MobileWorkItemDto item, String reviewStatus) {
+        if (!StringUtils.hasText(reviewStatus) || "all".equalsIgnoreCase(reviewStatus.trim())) {
+            return true;
+        }
+        String rs = reviewStatus.trim().toLowerCase();
+        String dtoStatus = item.getReviewStatus();
+        if ("approved".equals(rs) || "reviewed".equals(rs)) return "reviewed".equals(dtoStatus);
+        if ("pending".equals(rs)) return "pending".equals(dtoStatus);
+        if ("rejected".equals(rs)) return "rejected".equals(dtoStatus);
+        if ("draft".equals(rs)) return "draft".equals(dtoStatus);
+        return true;
     }
 
     private <T> PageResult<T> paginate(List<T> all, int page, int size) {

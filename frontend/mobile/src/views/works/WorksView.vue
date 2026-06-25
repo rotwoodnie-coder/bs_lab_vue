@@ -17,26 +17,46 @@
         </header>
       </div>
 
-      <div class="pad-explore__filters px-4 stack-2">
-        <div class="tabs">
+      <div class="pad-explore__filters px-4 stack-2 works-wall-filters">
+        <!-- 公开作品墙可切换 scope；「我的作品墙」入口固定为本人作品，不再重复切换 -->
+        <div v-if="!isMineScope" class="tabs works-wall-filters__scope">
           <button
-            v-for="tab in typeTabs"
-            :key="tab.key"
             type="button"
             class="tab"
-            :class="{ active: activeType === tab.key }"
-            @click="switchType(tab.key)"
-          >{{ tab.label }}</button>
+            :class="{ active: !isMineScope }"
+            @click="switchScope('public')"
+          >全部作品</button>
+          <button
+            v-if="isStudent"
+            type="button"
+            class="tab"
+            :class="{ active: isMineScope }"
+            @click="switchScope('mine')"
+          >我的作品</button>
         </div>
-        <div v-if="isMineScope" class="tabs">
-          <button
-            v-for="tab in statusTabs"
-            :key="tab.key"
-            type="button"
-            class="tab"
-            :class="{ active: activeReviewStatus === tab.key }"
-            @click="switchReviewStatus(tab.key)"
-          >{{ tab.label }}</button>
+        <div class="works-wall-filters__scroll">
+          <div class="tabs works-wall-filters__chips">
+            <button
+              v-for="tab in typeTabs"
+              :key="tab.key"
+              type="button"
+              class="tab"
+              :class="{ active: activeType === tab.key }"
+              @click="switchType(tab.key)"
+            >{{ tab.label }}</button>
+          </div>
+        </div>
+        <div v-if="isMineScope" class="works-wall-filters__scroll">
+          <div class="tabs works-wall-filters__chips">
+            <button
+              v-for="tab in statusTabs"
+              :key="tab.key"
+              type="button"
+              class="tab"
+              :class="{ active: activeReviewStatus === tab.key }"
+              @click="switchReviewStatus(tab.key)"
+            >{{ tab.label }}</button>
+          </div>
         </div>
       </div>
 
@@ -84,6 +104,15 @@
                 class="video-card__cover"
               />
               <span class="video-card__tag">{{ typeLabel(work.type) }}</span>
+              <button
+                v-if="isMineScope && work.reviewStatus !== 'draft'"
+                type="button"
+                class="video-card__edit-btn"
+                title="编辑作品"
+                @click.prevent.stop="goEditWork(work.id)"
+              >
+                <i data-lucide="pencil" class="icon"></i>
+              </button>
               <span v-if="work.coverType === 'video' || !work.coverUrl" class="video-card__play"><i data-lucide="play" class="icon"></i></span>
             </div>
             <div class="video-card__body">
@@ -161,6 +190,7 @@ import { fetchWorks } from '@/api/work'
 import { startCreativeTask } from '@/api/creative'
 import { useUserStore } from '@/stores/user'
 import { resolveMediaUrl } from '@/utils/fileUrl'
+import { workTypeTagLabel } from '@/utils/workLabels'
 import { useLucideIcons } from '@/composables/useLucideIcons'
 
 const route = useRoute()
@@ -170,8 +200,8 @@ const userStore = useUserStore()
 const submitOptions = [
   {
     key: 'homework',
-    label: '我的实验',
-    desc: '完成老师布置的实验任务',
+    label: '实验任务',
+    desc: '完成老师发布的实验任务',
     icon: 'notebook-text',
     color: 'var(--c-blue-600)'
   },
@@ -193,21 +223,23 @@ const submitOptions = [
 
 const mineTypeTabs = [
   { key: 'all', label: '全部' },
-  { key: 'homework', label: '我的实验' },
+  { key: 'homework', label: '实验任务' },
   { key: 'remix', label: '拍同款' },
   { key: 'creative', label: '创意实验' }
 ]
 
 const publicTypeTabs = [
-  { key: 'homework', label: '我的实验' },
+  { key: 'all', label: '全部' },
+  { key: 'homework', label: '实验任务' },
   { key: 'remix', label: '拍同款' },
   { key: 'creative', label: '创意实验' }
 ]
 
 const statusTabs = [
   { key: 'all', label: '全部' },
-  { key: 'pending', label: '待审核' },
+  { key: 'pending', label: '审核中' },
   { key: 'approved', label: '已通过' },
+  { key: 'rejected', label: '未通过' },
   { key: 'draft', label: '草稿' }
 ]
 
@@ -228,7 +260,7 @@ const submitEntryAriaLabel = computed(() => {
 })
 
 const submitEntryHint = computed(() => {
-  if (activeType.value === 'homework') return '完成老师布置的实验任务'
+  if (activeType.value === 'homework') return '完成老师发布的实验任务'
   if (activeType.value === 'remix') return '从待完成的拍同款任务进入上传'
   if (activeType.value === 'creative') return '发起创意实验并上传成果'
   return '实验 / 拍同款 / 创意'
@@ -239,6 +271,7 @@ const activeReviewStatus = ref('all')
 
 const displayWorks = computed(() => {
   if (isMineScope.value) return works.value
+  if (activeType.value === 'all') return works.value
   return works.value.filter((w) => w.type === activeType.value)
 })
 
@@ -248,10 +281,7 @@ const emptyHint = computed(() => {
 })
 
 function typeLabel(type) {
-  if (type === 'remix') return '拍同款'
-  if (type === 'creative') return '创意'
-  if (type === 'homework') return '作品'
-  return '作品'
+  return workTypeTagLabel(type)
 }
 
 function resolveCoverUrl(work) {
@@ -259,13 +289,15 @@ function resolveCoverUrl(work) {
   return resolveMediaUrl(work, 'coverUrl')
 }
 
-function workLinkComponent(work) {
-  return work.canEdit ? 'div' : RouterLink
+function workLinkComponent() {
+  return RouterLink
 }
 
 function workLinkProps(work) {
-  if (work.canEdit) {
-    return { role: 'button', title: '草稿编辑将在下一步支持' }
+  // 草稿（待完成的创意/拍同款任务）尚无内容详情，点击进入上传流程继续完成并提交
+  if (work.reviewStatus === 'draft') {
+    const type = work.type === 'remix' ? 'remix' : 'creative'
+    return { to: { path: '/upload', query: { type } }, title: '继续完成并提交' }
   }
   return { to: `/works/${work.id}` }
 }
@@ -295,6 +327,18 @@ function switchReviewStatus(key) {
   loadWorks()
 }
 
+function switchScope(scope) {
+  const query = { ...route.query }
+  if (scope === 'mine') {
+    query.scope = 'mine'
+    if (!query.reviewStatus) query.reviewStatus = 'all'
+  } else {
+    delete query.scope
+    delete query.reviewStatus
+  }
+  router.replace({ path: '/works', query })
+}
+
 function resolveFromRoute() {
   const scopeMine = route.query.scope === 'mine'
   const type = route.query.type
@@ -303,7 +347,7 @@ function resolveFromRoute() {
     const rs = route.query.reviewStatus
     activeReviewStatus.value = rs && statusTabs.some((t) => t.key === rs) ? rs : 'all'
   } else {
-    activeType.value = type && publicTypeTabs.some((t) => t.key === type) ? type : 'homework'
+    activeType.value = type && publicTypeTabs.some((t) => t.key === type) ? type : 'all'
     activeReviewStatus.value = 'all'
   }
 }
@@ -356,7 +400,7 @@ function labelForStatus(status) {
   if (status === 'approved') return '已通过'
   if (status === 'draft') return '草稿'
   if (status === 'rejected') return '未通过'
-  return '待审核'
+  return '审核中'
 }
 
 function onSubmitEntryClick() {
@@ -404,6 +448,10 @@ async function goSubmitFlow(type) {
   }
 }
 
+function goEditWork(workId) {
+  router.push(`/upload?edit=${workId}`)
+}
+
 watch(submitSheetOpen, (open) => {
   if (open) initIcons()
 })
@@ -420,3 +468,30 @@ onMounted(() => {
   loadWorks()
 })
 </script>
+
+<style scoped>
+.video-card__edit-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.video-card__edit-btn:active {
+  background: rgba(0,0,0,0.75);
+}
+.video-card__edit-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+</style>

@@ -30,15 +30,11 @@ import com.xuanyue.exp.mobile.dto.SubjectItem;
 import com.xuanyue.exp.mobile.entity.MobileExpMsg;
 import com.xuanyue.exp.mobile.entity.MbParentChild;
 import com.xuanyue.exp.mobile.entity.MbTask;
-import com.xuanyue.exp.mobile.entity.MbWork;
-import com.xuanyue.exp.mobile.entity.MbWorkFile;
 import com.xuanyue.exp.mobile.repository.MobileFeedRef;
 import com.xuanyue.exp.mobile.repository.MobileHomeRepository;
 import com.xuanyue.exp.mobile.repository.MbParentChildRepository;
 import com.xuanyue.exp.mobile.repository.MbTaskRepository;
 import com.xuanyue.exp.mobile.repository.MbTaskSubmissionRepository;
-import com.xuanyue.exp.mobile.repository.MbWorkFileRepository;
-import com.xuanyue.exp.mobile.repository.MbWorkRepository;
 import com.xuanyue.exp.mobile.support.MobileAvatarSupport;
 import com.xuanyue.exp.mobile.support.MobileFeedGradeSupport;
 import com.xuanyue.exp.mobile.support.MobileFeedRankSupport;
@@ -89,8 +85,6 @@ public class MobileHomeService {
     private final ExpSimulatorRepository expSimulatorRepository;
     private final MbParentChildRepository parentChildRepository;
     private final MbTaskSubmissionRepository taskSubmissionRepository;
-    private final MbWorkRepository workRepository;
-    private final MbWorkFileRepository workFileRepository;
     private final MbTaskRepository taskRepository;
     private final MobileParentActivityService parentActivityService;
     private final MobileSettingsService settingsService;
@@ -128,8 +122,6 @@ public class MobileHomeService {
                              ExpSimulatorRepository expSimulatorRepository,
                              MbParentChildRepository parentChildRepository,
                              MbTaskSubmissionRepository taskSubmissionRepository,
-                             MbWorkRepository workRepository,
-                             MbWorkFileRepository workFileRepository,
                              MbTaskRepository taskRepository,
                              MobileParentActivityService parentActivityService,
                              MobileSettingsService settingsService,
@@ -154,8 +146,6 @@ public class MobileHomeService {
         this.expSimulatorRepository = expSimulatorRepository;
         this.parentChildRepository = parentChildRepository;
         this.taskSubmissionRepository = taskSubmissionRepository;
-        this.workRepository = workRepository;
-        this.workFileRepository = workFileRepository;
         this.taskRepository = taskRepository;
         this.parentActivityService = parentActivityService;
         this.settingsService = settingsService;
@@ -171,8 +161,13 @@ public class MobileHomeService {
      */
     @Transactional(readOnly = true)
     public HomeBootstrapDto getBootstrap(String userId, String gradeKey, int size) {
+        return getBootstrap(userId, gradeKey, "all", size);
+    }
+
+    @Transactional(readOnly = true)
+    public HomeBootstrapDto getBootstrap(String userId, String gradeKey, String type, int size) {
         HomeBootstrapDto dto = new HomeBootstrapDto();
-        dto.setFeed(getFeed(userId, null, gradeKey, 1, size));
+        dto.setFeed(getFeed(userId, null, gradeKey, type, 1, size));
         dto.setNotice(getLatestNotice(userId));
         dto.setUnreadCount(sysMsgService.unreadCount(userId));
         return dto;
@@ -184,19 +179,65 @@ public class MobileHomeService {
      */
     @Transactional(readOnly = true)
     public PageResult<HomeFeedItem> getFeed(String userId, String childUserId, String gradeKey, int page, int size) {
+        return getFeed(userId, childUserId, gradeKey, "all", page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<HomeFeedItem> getFeed(String userId, String childUserId, String gradeKey, String type, int page, int size) {
         int safePage = Math.max(1, page);
         int safeSize = Math.max(1, Math.min(size, 50));
+        String safeType = normalizeFeedType(type);
         String viewerKey = StringUtils.hasText(userId) ? userId.trim() : "guest";
         if (StringUtils.hasText(childUserId)) {
             viewerKey = viewerKey + ":child:" + childUserId.trim();
         }
-        String cacheKey = "feed:" + viewerKey + ":" + normalizeGradeKey(gradeKey) + ":" + safePage + ":" + safeSize;
-        return homeCache.getFeed(cacheKey, () -> loadFeedPage(userId, childUserId, gradeKey, safePage, safeSize));
+        String cacheKey = "feed:" + viewerKey + ":" + normalizeGradeKey(gradeKey) + ":" + safeType
+                + ":" + safePage + ":" + safeSize;
+        return homeCache.getFeed(cacheKey, () -> loadFeedPage(userId, childUserId, gradeKey, safeType, safePage, safeSize));
     }
 
     @Transactional(readOnly = true)
     public PageResult<HomeFeedItem> getFeed(String gradeKey, int page, int size) {
-        return getFeed(null, null, gradeKey, page, size);
+        return getFeed(null, null, gradeKey, "all", page, size);
+    }
+
+    private String normalizeFeedType(String type) {
+        if (!StringUtils.hasText(type)) {
+            return "all";
+        }
+        String t = type.trim().toLowerCase();
+        switch (t) {
+            case "experiment":
+            case "work":
+            case "simulation":
+                return t;
+            default:
+                return "all";
+        }
+    }
+
+    /** 按内容类型筛选 feed（all 不过滤；实验含 experiment/video） */
+    private List<HomeFeedItem> filterFeedByType(List<HomeFeedItem> items, String type) {
+        if (items == null || items.isEmpty() || "all".equals(type)) {
+            return items;
+        }
+        Set<String> allowed;
+        switch (type) {
+            case "experiment":
+                allowed = new HashSet<>(Arrays.asList("experiment", "video"));
+                break;
+            case "work":
+                allowed = Collections.singleton("work");
+                break;
+            case "simulation":
+                allowed = Collections.singleton("simulation");
+                break;
+            default:
+                return items;
+        }
+        return items.stream()
+                .filter(i -> i.getType() != null && allowed.contains(i.getType().toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     /** 参与排序的最大条目数（三类 eligible 资源合并后） */
@@ -205,24 +246,26 @@ public class MobileHomeService {
     /**
      * 首页瀑布流：按年级 Chip 过滤 eligible 资源 → 个性化排序 → 分页。
      */
-    private PageResult<HomeFeedItem> loadFeedPage(String userId, String childUserId, String gradeKey, int page, int size) {
+    private PageResult<HomeFeedItem> loadFeedPage(String userId, String childUserId, String gradeKey,
+                                                  String type, int page, int size) {
         List<String> gradeIds = feedGradeSupport.resolveGradeIds(gradeKey);
         boolean filterByGrade = gradeIds != null && !gradeIds.isEmpty();
+        boolean filterByType = !"all".equals(type);
 
         long totalEligible = filterByGrade
-                ? homeRepository.countFeedByGrades(gradeIds) + countSupplementWorksByGrade(gradeIds)
+                ? homeRepository.countFeedByGrades(gradeIds)
                 : homeRepository.countFeedAll();
         if (totalEligible <= 0) {
             return new PageResult<>(0, Collections.emptyList());
         }
 
-        int fetchLimit = (int) Math.min(totalEligible, Math.max(FEED_SORT_CAP, (long) page * size));
+        // 启用类型筛选时一次性取足候选（上限 FEED_SORT_CAP），在内存中过滤后再分页。
+        int fetchLimit = filterByType
+                ? (int) Math.min(totalEligible, FEED_SORT_CAP)
+                : (int) Math.min(totalEligible, Math.max(FEED_SORT_CAP, (long) page * size));
         List<Object[]> refRows = filterByGrade
                 ? homeRepository.findFeedCandidateRefsByGrades(gradeIds, fetchLimit)
                 : homeRepository.findFeedCandidateRefsAll(fetchLimit);
-        if (filterByGrade) {
-            refRows = supplementGradeFilteredWorkRefs(refRows, gradeIds, fetchLimit);
-        }
 
         List<RankedFeedEntry> entries = buildRankedFeedEntries(mapFeedRefs(refRows));
         if (entries.isEmpty()) {
@@ -232,6 +275,12 @@ public class MobileHomeService {
         MobileFeedViewerProfile viewer = resolveViewerProfile(userId, childUserId);
         List<HomeFeedItem> sorted = MobileFeedRankSupport.sort(entries, viewer, null);
 
+        long total = totalEligible;
+        if (filterByType) {
+            sorted = filterFeedByType(sorted, type);
+            total = sorted.size();
+        }
+
         int offset = Math.max(0, (page - 1) * size);
         int end = Math.min(offset + size, sorted.size());
         List<HomeFeedItem> pageItems = offset >= sorted.size()
@@ -239,84 +288,7 @@ public class MobileHomeService {
                 : new ArrayList<>(sorted.subList(offset, end));
 
         applyCoverUrls(pageItems);
-        return new PageResult<>(totalEligible, pageItems);
-    }
-
-    private long countSupplementWorksByGrade(List<String> gradeIds) {
-        if (gradeIds == null || gradeIds.isEmpty()) {
-            return 0;
-        }
-        long count = 0;
-        for (MbWork work : workRepository.findByStatusOrderByCreateTimeDesc("y")) {
-            if (!isReviewedWork(work)) {
-                continue;
-            }
-            if (StringUtils.hasText(work.getSchoolGradeId())) {
-                continue;
-            }
-            String resolved = resolveWorkSchoolGradeId(work);
-            if (StringUtils.hasText(resolved) && gradeIds.contains(resolved.trim())) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private List<Object[]> supplementGradeFilteredWorkRefs(List<Object[]> refRows,
-                                                           List<String> gradeIds,
-                                                           int maxTotal) {
-        Set<String> existingWorkIds = new HashSet<>();
-        if (refRows != null) {
-            for (Object[] row : refRows) {
-                if (row != null && row.length >= 2 && row[0] != null
-                        && "work".equals(String.valueOf(row[1]))) {
-                    existingWorkIds.add(String.valueOf(row[0]));
-                }
-            }
-        }
-        List<Object[]> merged = refRows != null ? new ArrayList<>(refRows) : new ArrayList<>();
-        for (MbWork work : workRepository.findByStatusOrderByCreateTimeDesc("y")) {
-            if (merged.size() >= maxTotal) {
-                break;
-            }
-            if (!isReviewedWork(work) || existingWorkIds.contains(work.getWorkId())) {
-                continue;
-            }
-            if (StringUtils.hasText(work.getSchoolGradeId())) {
-                continue;
-            }
-            String resolved = resolveWorkSchoolGradeId(work);
-            if (StringUtils.hasText(resolved) && gradeIds.contains(resolved.trim())) {
-                merged.add(new Object[]{work.getWorkId(), "work"});
-                existingWorkIds.add(work.getWorkId());
-            }
-        }
-        return merged;
-    }
-
-    private boolean isReviewedWork(MbWork work) {
-        if (work == null || !"y".equalsIgnoreCase(safe(work.getStatus()))) {
-            return false;
-        }
-        String reviewStatus = safe(work.getReviewStatus());
-        return "reviewed".equalsIgnoreCase(reviewStatus) || "approved".equalsIgnoreCase(reviewStatus);
-    }
-
-    private String resolveWorkSchoolGradeId(MbWork work) {
-        if (work == null) {
-            return null;
-        }
-        if (StringUtils.hasText(work.getSchoolGradeId())) {
-            return work.getSchoolGradeId().trim();
-        }
-        if (!StringUtils.hasText(work.getStudentUserId())) {
-            return null;
-        }
-        return studentOrgSupport.resolve(work.getStudentUserId()).getSchoolGradeId();
-    }
-
-    private static String safe(String value) {
-        return value != null ? value.trim() : "";
+        return new PageResult<>(total, pageItems);
     }
 
     private MobileFeedViewerProfile resolveViewerProfile(String userId, String childUserId) {
@@ -571,6 +543,43 @@ public class MobileHomeService {
         return items;
     }
 
+    /**
+     * 按 exp_id 顺序构建与首页一致的实验卡片（封面、视频、作者、标签等）
+     */
+    @Transactional(readOnly = true)
+    public List<HomeFeedItem> buildExperimentFeedItems(List<String> expIds) {
+        if (expIds == null || expIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> orderedIds = expIds.stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .collect(Collectors.toList());
+        if (orderedIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<String, MobileExpMsg> expMap = homeRepository.findAllById(orderedIds).stream()
+                .filter(e -> e != null && StringUtils.hasText(e.getExpId()))
+                .filter(e -> !"student".equalsIgnoreCase(e.getExpType()))
+                .collect(Collectors.toMap(MobileExpMsg::getExpId, e -> e, (a, b) -> a, LinkedHashMap::new));
+
+        if (expMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        FeedBuildContext ctx = buildFeedContext(expMap, Collections.emptyMap());
+        List<HomeFeedItem> items = new ArrayList<>();
+        for (String id : orderedIds) {
+            MobileExpMsg entity = expMap.get(id);
+            if (entity != null) {
+                items.add(toFeedItem(entity, ctx));
+            }
+        }
+        applyCoverUrls(items);
+        return items;
+    }
+
     private List<RankedFeedEntry> buildRankedFeedEntries(List<MobileFeedRef> refs) {
         if (refs.isEmpty()) {
             return Collections.emptyList();
@@ -584,10 +593,6 @@ public class MobileHomeService {
                 .filter(r -> "simulator".equals(r.getItemSource()))
                 .map(MobileFeedRef::getItemId)
                 .collect(Collectors.toList());
-        List<String> workIds = refs.stream()
-                .filter(r -> "work".equals(r.getItemSource()))
-                .map(MobileFeedRef::getItemId)
-                .collect(Collectors.toList());
 
         Map<String, MobileExpMsg> expMap = expIds.isEmpty()
                 ? Collections.emptyMap()
@@ -597,13 +602,8 @@ public class MobileHomeService {
                 ? Collections.emptyMap()
                 : expSimulatorRepository.findAllById(simIds).stream()
                 .collect(Collectors.toMap(ExpSimulator::getSimulatorId, s -> s, (a, b) -> a, LinkedHashMap::new));
-        Map<String, MbWork> workMap = workIds.isEmpty()
-                ? Collections.emptyMap()
-                : workRepository.findAllById(workIds).stream()
-                .collect(Collectors.toMap(MbWork::getWorkId, w -> w, (a, b) -> a, LinkedHashMap::new));
 
-        FeedBuildContext ctx = buildFeedContext(expMap, simMap, workMap);
-        Map<String, MbWorkFile> workCoverMap = loadWorkCoverFiles(workIds);
+        FeedBuildContext ctx = buildFeedContext(expMap, simMap);
 
         List<RankedFeedEntry> items = new ArrayList<>(refs.size());
         for (MobileFeedRef ref : refs) {
@@ -617,25 +617,9 @@ public class MobileHomeService {
                 if (sim != null) {
                     items.add(toSimulatorRankedEntry(sim, ctx));
                 }
-            } else if ("work".equals(ref.getItemSource())) {
-                MbWork work = workMap.get(ref.getItemId());
-                if (work != null) {
-                    items.add(toWorkRankedEntry(work, ctx, workCoverMap.get(work.getWorkId())));
-                }
             }
         }
         return items;
-    }
-
-    private Map<String, MbWorkFile> loadWorkCoverFiles(List<String> workIds) {
-        if (workIds == null || workIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        Map<String, MbWorkFile> coverMap = new HashMap<>();
-        for (MbWorkFile file : workFileRepository.findByWorkIdInOrderByWorkIdAscSortOrderAsc(workIds)) {
-            coverMap.putIfAbsent(file.getWorkId(), file);
-        }
-        return coverMap;
     }
 
     private RankedFeedEntry toExpRankedEntry(MobileExpMsg entity, FeedBuildContext ctx) {
@@ -658,84 +642,6 @@ public class MobileHomeService {
         return new RankedFeedEntry(item, meta);
     }
 
-    private RankedFeedEntry toWorkRankedEntry(MbWork work, FeedBuildContext ctx, MbWorkFile coverFile) {
-        HomeFeedItem item = toWorkFeedItem(work, ctx, coverFile);
-        FeedRankMeta meta = new FeedRankMeta();
-        meta.setSource("work");
-        String schoolGradeId = work.getSchoolGradeId();
-        if (!StringUtils.hasText(schoolGradeId) && StringUtils.hasText(work.getStudentUserId())) {
-            schoolGradeId = studentOrgSupport.resolve(work.getStudentUserId()).getSchoolGradeId();
-        }
-        meta.setSchoolGradeId(schoolGradeId);
-        meta.setClassOrgId(work.getClassOrgId());
-        SysUser student = ctx.users.get(work.getStudentUserId());
-        if (student != null && StringUtils.hasText(student.getRootOrgId())) {
-            meta.setRootOrgId(student.getRootOrgId());
-        }
-        Date publishTime = work.getReviewTime() != null ? work.getReviewTime() : work.getCreateTime();
-        meta.setPublishTime(publishTime);
-        meta.setFeatured("y".equalsIgnoreCase(work.getIsFeatured()));
-        int engagement = (work.getLikeCount() != null ? work.getLikeCount() : 0)
-                + (work.getCommentCount() != null ? work.getCommentCount() : 0);
-        if (work.getTeacherReviewStars() != null) {
-            engagement += work.getTeacherReviewStars() * 2;
-        }
-        meta.setEngagementScore(engagement);
-        return new RankedFeedEntry(item, meta);
-    }
-
-    private HomeFeedItem toWorkFeedItem(MbWork work, FeedBuildContext ctx, MbWorkFile coverFile) {
-        HomeFeedItem item = new HomeFeedItem();
-        item.setId(work.getWorkId());
-        item.setTitle(work.getTitle());
-        item.setType("work");
-        item.setWorkType(work.getWorkType());
-        item.setAuthorRole("student");
-        item.setClassLabel(work.getClassName());
-        item.setPlayCount(work.getLikeCount() != null ? work.getLikeCount() : 0);
-        item.setGradientClass(StringUtils.hasText(work.getTint()) ? work.getTint() : DEFAULT_GRADIENT);
-
-        String workType = work.getWorkType();
-        if ("remix".equals(workType)) {
-            item.setTagLabel("拍同款");
-            item.setTagType("work-remix");
-        } else if ("creative".equals(workType)) {
-            item.setTagLabel("创意");
-            item.setTagType("work-creative");
-        } else {
-            item.setTagLabel("作品");
-            item.setTagType("work-homework");
-        }
-
-        if (StringUtils.hasText(work.getSchoolGradeId())) {
-            for (DataSchoolGrade grade : gradeRepository.findByGradeIdIn(
-                    Collections.singletonList(work.getSchoolGradeId()))) {
-                item.setGrade(grade.getGradeName());
-            }
-        }
-
-        SysUser student = ctx.users.get(work.getStudentUserId());
-        if (student != null) {
-            item.setAuthor(StringUtils.hasText(student.getUserNickName())
-                    ? student.getUserNickName()
-                    : (StringUtils.hasText(student.getUserName()) ? student.getUserName() : "同学"));
-            item.setAuthorAvatarUrl(MobileAvatarSupport.resolveUserAvatarUrl(minioStorageService, student));
-            if (StringUtils.hasText(student.getRootOrgId())) {
-                item.setAuthorSchool(ctx.orgNames.get(student.getRootOrgId()));
-            }
-        }
-
-        if (coverFile != null && StringUtils.hasText(coverFile.getFileUrl())) {
-            String url = resolveMediaUrl(coverFile.getFileUrl());
-            if ("video".equalsIgnoreCase(coverFile.getFileType())) {
-                item.setVideoUrl(url);
-            } else {
-                item.setCoverUrl(url);
-            }
-        }
-        return item;
-    }
-
     private static final class FeedBuildContext {
         final Map<String, String> subjectNames = new HashMap<>();
         final Map<String, List<String>> gradeNamesByExp = new HashMap<>();
@@ -747,8 +653,7 @@ public class MobileHomeService {
     }
 
     private FeedBuildContext buildFeedContext(Map<String, MobileExpMsg> expMap,
-                                              Map<String, ExpSimulator> simMap,
-                                              Map<String, MbWork> workMap) {
+                                              Map<String, ExpSimulator> simMap) {
         FeedBuildContext ctx = new FeedBuildContext();
         Set<String> subjectIds = new HashSet<>();
         Set<String> userIds = new HashSet<>();
@@ -776,11 +681,6 @@ public class MobileHomeService {
             }
             if (StringUtils.hasText(sim.getCreateUserId())) {
                 userIds.add(sim.getCreateUserId());
-            }
-        }
-        for (MbWork work : workMap.values()) {
-            if (StringUtils.hasText(work.getStudentUserId())) {
-                userIds.add(work.getStudentUserId());
             }
         }
 
@@ -903,9 +803,17 @@ public class MobileHomeService {
             item.setTagLabel("教学");
             item.setTagType("exp");
         } else if ("student".equals(expType)) {
-            item.setType("experiment");
-            item.setTagLabel("学生");
-            item.setTagType("exp");
+            // 复核：学生作品（exp_type=student）的创作者必须是学生角色，
+            // 否则为脏数据（如标准实验被误标为 student），按实验卡片纠正展示，避免出现"老师的作业"。
+            if (isAuthorStudent(entity.getCreateUserId(), ctx)) {
+                applyStudentWorkFeedMeta(item, entity);
+            } else {
+                log.warn("首页 feed 复核：exp_id={} exp_type=student 但创作者 {} 非学生角色，已按实验卡片展示",
+                        entity.getExpId(), entity.getCreateUserId());
+                item.setType("experiment");
+                item.setTagLabel("实验");
+                item.setTagType("exp");
+            }
         } else {
             item.setType("experiment");
             item.setTagLabel("实验");
@@ -921,10 +829,33 @@ public class MobileHomeService {
 
         applyAuthor(entity.getCreateUserId(), item, ctx);
 
-        item.setGradientClass(SUBJECT_GRADIENT.getOrDefault(subjectName, DEFAULT_GRADIENT));
+        if (!"work".equals(item.getType())) {
+            item.setGradientClass(SUBJECT_GRADIENT.getOrDefault(subjectName, DEFAULT_GRADIENT));
+        }
         item.setSimulatorId(entity.getSimulatorId());
 
         return item;
+    }
+
+    private void applyStudentWorkFeedMeta(HomeFeedItem item, MobileExpMsg entity) {
+        item.setType("work");
+        String taskType = entity.getExpTaskType();
+        if ("tk".equals(taskType)) {
+            item.setWorkType("remix");
+            item.setTagLabel("拍同款");
+            item.setTagType("work-remix");
+            item.setGradientClass("card-media-grad-amber-rose");
+        } else if ("self".equals(taskType)) {
+            item.setWorkType("creative");
+            item.setTagLabel("创意");
+            item.setTagType("work-creative");
+            item.setGradientClass("card-media-grad-cool");
+        } else {
+            item.setWorkType("homework");
+            item.setTagLabel("作品");
+            item.setTagType("work-homework");
+            item.setGradientClass(DEFAULT_GRADIENT);
+        }
     }
 
     private HomeFeedItem toSimulatorFeedItem(ExpSimulator sim, FeedBuildContext ctx) {
@@ -957,7 +888,7 @@ public class MobileHomeService {
         }
 
         List<String> expIdsForMedia = items.stream()
-                .filter(i -> "experiment".equals(i.getType())
+                .filter(i -> "experiment".equals(i.getType()) || "work".equals(i.getType())
                         || ("simulation".equals(i.getType())
                         && StringUtils.hasText(i.getSimulatorId())
                         && !i.getId().equals(i.getSimulatorId())))
@@ -1049,9 +980,6 @@ public class MobileHomeService {
         }
 
         for (HomeFeedItem item : items) {
-            if ("work".equals(item.getType())) {
-                continue;
-            }
             boolean standaloneSim = "simulation".equals(item.getType())
                     && StringUtils.hasText(item.getSimulatorId())
                     && item.getId().equals(item.getSimulatorId());
@@ -1211,9 +1139,42 @@ public class MobileHomeService {
         if (user == null) {
             return;
         }
-        item.setAuthor(StringUtils.hasText(user.getUserName())
-                ? user.getUserName() : user.getLoginName());
+        String userName = StringUtils.hasText(user.getUserNickName())
+                ? user.getUserNickName()
+                : (StringUtils.hasText(user.getUserName()) ? user.getUserName() : user.getLoginName());
+        item.setAuthor(userName);
         item.setAuthorSchool(resolveSchoolFullName(user, ctx.orgNames));
+
+        // 根据用户角色决定首页展示方式
+        if (isStudentRole(user)) {
+            item.setAuthorRole("student");
+            if (StringUtils.hasText(user.getUserOrgId())) {
+                String className = ctx.orgNames.get(user.getUserOrgId());
+                if (StringUtils.hasText(className)) {
+                    item.setClassLabel(className);
+                }
+            }
+        } else if (isTeacherRole(user)) {
+            item.setAuthorRole("teacher");
+        }
+    }
+
+    /** 复核：创作者是否为学生角色（用户不存在或角色非 Student 均返回 false） */
+    private boolean isAuthorStudent(String userId, FeedBuildContext ctx) {
+        if (!StringUtils.hasText(userId)) {
+            return false;
+        }
+        return isStudentRole(ctx.users.get(userId));
+    }
+
+    private static boolean isStudentRole(SysUser user) {
+        return user != null && user.getUserRoleId() != null
+                && "Student".equalsIgnoreCase(user.getUserRoleId().trim());
+    }
+
+    private static boolean isTeacherRole(SysUser user) {
+        return user != null && user.getUserRoleId() != null
+                && "Teacher".equalsIgnoreCase(user.getUserRoleId().trim());
     }
 
     private String resolveSchoolFullName(SysUser user, Map<String, String> orgNames) {

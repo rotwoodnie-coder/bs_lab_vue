@@ -6,6 +6,7 @@ import com.xuanyue.exp.mobile.dto.MobileQuizConfigDto;
 import com.xuanyue.exp.mobile.dto.QuizConfigSaveRequest;
 import com.xuanyue.exp.mobile.service.MobileQuizConfigService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,15 @@ public class MobileQuizConfigAdminController {
 
     @PutMapping
     public ApiResponse<MobileQuizConfigDto> saveConfig(@RequestBody QuizConfigSaveRequest request) {
+        return doSaveConfig(request);
+    }
+
+    @PostMapping("/save")
+    public ApiResponse<MobileQuizConfigDto> saveConfigViaPost(@RequestBody QuizConfigSaveRequest request) {
+        return doSaveConfig(request);
+    }
+
+    private ApiResponse<MobileQuizConfigDto> doSaveConfig(QuizConfigSaveRequest request) {
         String userId = adminAuthSupport.requireAdminUser().getUserId();
         try {
             return ApiResponse.success(quizConfigService.saveConfig(request, userId));

@@ -111,7 +111,7 @@ public class MobileGrowthEventService {
         event.setEmoji("🧪");
         String taskTitle = task != null && StringUtils.hasText(task.getTitle()) ? task.getTitle().trim() : "实验任务";
         event.setTitle("完成实验任务「" + safeTitle(taskTitle) + "」");
-        event.setHint("任务已提交，等待老师批阅");
+        event.setHint("任务已提交，等待老师评价");
         event.setDotClass("blue");
         if (points > 0) {
             event.setPointsLabel("+" + points + "分");
@@ -131,7 +131,7 @@ public class MobileGrowthEventService {
         Date now = new Date();
         MbGrowthEvent event = baseEvent(userId, "work", sourceId, now);
         event.setEmoji("✅");
-        event.setTitle("作品「" + safeTitle(work.getTitle()) + "」已批阅");
+        event.setTitle("作品「" + safeTitle(work.getTitle()) + "」已评价");
         if (StringUtils.hasText(work.getGrade())) {
             event.setHint("评级：" + work.getGrade().trim().toUpperCase());
         } else if (StringUtils.hasText(work.getTeacherReviewText())) {

@@ -17,6 +17,9 @@ import java.util.List;
 /**
  * 移动端学生作品 API（v2 版，使用 exp_msg + exp_homework）
  *
+ * <p><strong>注意：</strong>移动端 SPA 当前使用 v1 接口 {@code /api/mobile/works}。
+ * 本 Controller 供后续统一或内部集成预留，上线环境请勿直接暴露给 H5 客户端。</p>
+ *
  * 所有路径以 /api/mobile/v2/ 为前缀，与管理端代码完全隔离。
  */
 @RestController

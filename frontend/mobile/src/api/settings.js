@@ -5,7 +5,7 @@ export function fetchPreferences() {
 }
 
 export function savePreferences(payload) {
-  return request.put('/mobile/settings/preferences', payload)
+  return request.post('/mobile/settings/preferences/save', payload)
 }
 
 export function fetchAccountSecurity() {

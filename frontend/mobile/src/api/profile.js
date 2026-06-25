@@ -13,7 +13,7 @@ export function fetchProfile() {
  * @param {object} data - { userName?, userNickName?, userPhone?, userEmail?, perResume?, userLogo? }
  */
 export function updateProfile(data) {
-  return request.put('/mobile/profile', data)
+  return request.post('/mobile/profile', data)
 }
 
 /**

@@ -47,7 +47,7 @@
 }
 
 .pad-home--elevated .pad-home__brand-text {
-  font-size: 14px;
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.01em;
@@ -87,7 +87,7 @@
 
 .home-module__title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   line-height: 1.25;
   color: var(--color-text-1);
@@ -96,7 +96,7 @@
 
 .home-module__more {
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--science-brand, #2563eb);
   text-decoration: none;
@@ -161,7 +161,7 @@
 .home-carousel__label {
   position: relative;
   z-index: 1;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
   background: rgba(15, 23, 42, 0.28);
@@ -176,7 +176,7 @@
 
 .home-carousel__name {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.35;
   color: var(--color-text-1);
@@ -189,7 +189,7 @@
 
 .home-carousel__meta {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--text-xs);
   line-height: 1.35;
   color: var(--color-text-3);
 }
@@ -216,7 +216,7 @@
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
   text-decoration: none;
   color: var(--color-text-1);
-  font-size: 13px;
+  font-size: var(--text-xs);
   font-weight: 500;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
@@ -237,7 +237,7 @@
 .home-feed__title {
   margin: 20px 0 4px;
   padding: 0 16px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-text-1);
@@ -246,7 +246,7 @@
 .home-feed__compare-hint {
   margin: 0 0 12px;
   padding: 0 16px;
-  font-size: 12px;
+  font-size: var(--text-2xs);
   line-height: 1.4;
   color: var(--color-text-3);
 }
@@ -316,7 +316,7 @@
 
   .pad-home--elevated .video-card--feed .video-card__title,
   .pad-shell[data-layout="explore-home"] .home-feed .video-card--feed .video-card__title {
-    font-size: 16px;
+    font-size: var(--text-base);
     font-weight: 600;
     line-height: 1.4;
     letter-spacing: -0.015em;
@@ -332,12 +332,12 @@
 
   .pad-home--elevated .video-card--feed .video-card__meta-line,
   .pad-shell[data-layout="explore-home"] .home-feed .video-card--feed .video-card__meta-line {
-    font-size: 13px;
+    font-size: var(--text-xs);
   }
 
   .pad-home--elevated .video-card--feed .video-card__meta-line--creator,
   .pad-shell[data-layout="explore-home"] .home-feed .video-card--feed .video-card__meta-line--creator {
-    font-size: 12px;
+    font-size: var(--text-2xs);
   }
 
   .pad-home--elevated .video-card--feed .video-card__author,
@@ -521,7 +521,7 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   border-radius: 999px;
   backdrop-filter: blur(6px);
@@ -554,7 +554,7 @@
 }
 
 .pad-home--elevated .video-card:not(.video-card--feed) .video-card__title {
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: -0.01em;
@@ -567,14 +567,14 @@
   flex-wrap: wrap;
   gap: 4px;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--text-2xs);
   line-height: 1.3;
   color: #64748b;
 }
 
 .pad-home--elevated .video-card:not(.video-card--feed) .video-card__date {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   color: #94a3b8;
   line-height: 1.2;
 }
@@ -584,7 +584,7 @@
 
 /* ── 4. 底部导航轻交互 ── */
 .pad-shell:has(.pad-home--elevated) .bottom-nav .nav-icon .icon,
-.pad-shell:has(.pad-home--elevated) .bottom-nav .nav-icon [data-lucide] {
+.pad-shell:has(.pad-home--elevated) .bottom-nav .nav-icon svg {
   stroke-width: 2;
   transition: transform 0.22s cubic-bezier(0.34, 1.3, 0.64, 1), color 0.15s ease;
 }
@@ -594,7 +594,7 @@
 }
 
 .pad-shell:has(.pad-home--elevated) .bottom-nav .nav-item.active .nav-icon .icon,
-.pad-shell:has(.pad-home--elevated) .bottom-nav .nav-item.active .nav-icon [data-lucide] {
+.pad-shell:has(.pad-home--elevated) .bottom-nav .nav-item.active .nav-icon svg {
   transform: scale(1.1);
   color: var(--science-brand, #2563eb);
 }
@@ -648,7 +648,7 @@
   margin-bottom: 8px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   color: #1d4ed8;
   background: #dbeafe;
@@ -656,7 +656,7 @@
 
 .notice-modal__title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   line-height: 1.35;
   color: var(--color-text-1);
@@ -664,13 +664,13 @@
 
 .notice-modal__date {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--text-2xs);
   color: var(--color-text-3);
 }
 
 .notice-modal__body {
   margin: 14px 0 16px;
-  font-size: 14px;
+  font-size: var(--text-xs);
   line-height: 1.55;
   color: var(--color-text-2);
 }
@@ -680,7 +680,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: var(--text-xs);
   color: var(--color-text-2);
   cursor: pointer;
 }

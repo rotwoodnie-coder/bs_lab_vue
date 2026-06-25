@@ -61,8 +61,7 @@ public class MobileResearcherExpAuditService {
     @Transactional(readOnly = true)
     public PageResult<ResearcherExpAuditItemDto> listPending(String userId, String expType, int page, int size) {
         SysUser user = requireAuditUser(userId);
-        Set<String> subjectIds = resolveSubjectScope(user);
-        Specification<ExpMsg> spec = buildSpec("t", expType, subjectIds, isGlobalAuditor(user));
+        Specification<ExpMsg> spec = buildScopedSpec(user, "t", expType);
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), Math.max(size, 1),
                 Sort.by(Sort.Direction.DESC, "updateTime"));
         List<ExpMsg> rows = expMsgRepository.findAll(spec, pageable).getContent();
@@ -77,26 +76,22 @@ public class MobileResearcherExpAuditService {
     @Transactional(readOnly = true)
     public int countPending(String userId) {
         SysUser user = requireAuditUser(userId);
-        Set<String> subjectIds = resolveSubjectScope(user);
-        Specification<ExpMsg> spec = buildSpec("t", null, subjectIds, isGlobalAuditor(user));
+        Specification<ExpMsg> spec = buildScopedSpec(user, "t", null);
         return (int) expMsgRepository.count(spec);
     }
 
     @Transactional(readOnly = true)
     public List<ResearcherExpAuditItemDto> listProcessed(String userId, int limit) {
         SysUser user = requireAuditUser(userId);
-        Set<String> subjectIds = resolveSubjectScope(user);
-        boolean global = isGlobalAuditor(user);
+        // 已处理列表本就限定 confirmUserId = 本人，叠加范围校验确保口径一致
+        Specification<ExpMsg> scope = buildScopedSpec(user, null, null);
         Specification<ExpMsg> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(root.get("status").in(Arrays.asList("y", "n")));
             predicates.add(cb.equal(root.get("confirmUserId"), user.getUserId()));
-            if (!global) {
-                if (subjectIds.isEmpty()) {
-                    predicates.add(cb.disjunction());
-                } else {
-                    predicates.add(root.get("subjectId").in(subjectIds));
-                }
+            Predicate scopePredicate = scope.toPredicate(root, query, cb);
+            if (scopePredicate != null) {
+                predicates.add(scopePredicate);
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -157,9 +152,41 @@ public class MobileResearcherExpAuditService {
         return user;
     }
 
+    /** 系统管理员：全局范围，可审核所有学校的实验 */
     private boolean isGlobalAuditor(SysUser user) {
-        String role = safe(user.getUserRoleId());
-        return "Sys_Admin".equals(role) || "School_Admin".equals(role);
+        return "Sys_Admin".equals(safe(user.getUserRoleId()));
+    }
+
+    /** 校管理员：限本校范围（按提交者所属 rootOrg） */
+    private boolean isSchoolAuditor(SysUser user) {
+        return "School_Admin".equals(safe(user.getUserRoleId()));
+    }
+
+    /** 本校全部成员的 userId 集合（用于按提交者限定校管理员审核范围） */
+    private Set<String> resolveSchoolUserIds(SysUser user) {
+        String rootOrgId = safe(user.getRootOrgId());
+        if (rootOrgId.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return sysUserRepository.findByRootOrgId(rootOrgId).stream()
+                .map(SysUser::getUserId)
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 按角色解析审核范围 Specification：
+     * 系统管理员=全局；校管理员=本校提交者；教研员=所辖学科。
+     */
+    private Specification<ExpMsg> buildScopedSpec(SysUser user, String status, String expType) {
+        if (isGlobalAuditor(user)) {
+            return buildSpec(status, expType, null, null, true);
+        }
+        if (isSchoolAuditor(user)) {
+            return buildSpec(status, expType, null, resolveSchoolUserIds(user), false);
+        }
+        return buildSpec(status, expType, resolveSubjectScope(user), null, false);
     }
 
     private Set<String> resolveSubjectScope(SysUser user) {
@@ -187,6 +214,13 @@ public class MobileResearcherExpAuditService {
         if (isGlobalAuditor(user)) {
             return;
         }
+        if (isSchoolAuditor(user)) {
+            Set<String> schoolUserIds = resolveSchoolUserIds(user);
+            if (schoolUserIds.isEmpty() || !schoolUserIds.contains(safe(entity.getCreateUserId()))) {
+                throw new IllegalArgumentException("无权审核该实验（非本校提交）");
+            }
+            return;
+        }
         Set<String> subjectIds = resolveSubjectScope(user);
         if (subjectIds.isEmpty()) {
             throw new IllegalArgumentException("未分配教研组，无法审核实验");
@@ -196,18 +230,37 @@ public class MobileResearcherExpAuditService {
         }
     }
 
-    private Specification<ExpMsg> buildSpec(String status, String expType, Set<String> subjectIds, boolean global) {
+    /**
+     * @param status       实验状态，为空则不限定（用于"已处理"叠加范围时）
+     * @param subjectIds   学科范围（教研员），与 createUserIds 二选一
+     * @param createUserIds 提交者范围（校管理员），与 subjectIds 二选一
+     * @param global       系统管理员全局，忽略上述范围
+     */
+    private Specification<ExpMsg> buildSpec(String status, String expType,
+                                            Set<String> subjectIds, Set<String> createUserIds, boolean global) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("status"), status));
+            if (StringUtils.hasText(status)) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
             if (StringUtils.hasText(expType)) {
                 predicates.add(cb.equal(root.get("expType"), expType.trim()));
             }
             if (!global) {
-                if (subjectIds.isEmpty()) {
-                    predicates.add(cb.disjunction());
+                if (createUserIds != null) {
+                    // 校管理员：按本校提交者限定
+                    if (createUserIds.isEmpty()) {
+                        predicates.add(cb.disjunction());
+                    } else {
+                        predicates.add(root.get("createUserId").in(createUserIds));
+                    }
                 } else {
-                    predicates.add(root.get("subjectId").in(subjectIds));
+                    // 教研员：按所辖学科限定
+                    if (subjectIds == null || subjectIds.isEmpty()) {
+                        predicates.add(cb.disjunction());
+                    } else {
+                        predicates.add(root.get("subjectId").in(subjectIds));
+                    }
                 }
             }
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -63,17 +63,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only .grid-2 {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only .grid-2,
+  .pad-shell[data-tasks-list] .pad-teacher__mobile-only .grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher {
+  .pad-shell[data-layout="teacher-home"] .pad-workbench__body--teacher,
+  .pad-shell[data-tasks-list] .pad-workbench__body--teacher {
     overflow-y: auto;
     scrollbar-width: thin;
-  }
-
-  .pad-shell[data-layout="teacher-home"] .teacher-tasks-mobile-head {
-    flex-shrink: 0;
   }
 
   .pad-shell[data-layout="login-split"] .pad-login {
@@ -233,6 +231,7 @@
   }
 
   .pad-shell[data-layout="list-workbench"],
+  .pad-shell[data-tasks-list],
   .pad-shell[data-layout="parent-home"],
   .pad-shell[data-layout="scenes-hub"],
   .pad-shell[data-layout="profile-hub"],
@@ -262,6 +261,7 @@
   }
 
   .pad-shell[data-layout="list-workbench"] .pad-workbench__mobile-head,
+  .pad-shell[data-tasks-list] .pad-workbench__mobile-head,
   .pad-shell[data-layout="parent-home"] .pad-workbench__mobile-head,
   .pad-shell[data-layout="profile-hub"] .pad-profile__mobile-head-wrap,
   .pad-shell[data-layout="growth-archive"] .pad-profile__mobile-head-wrap {
@@ -269,6 +269,7 @@
   }
 
   .pad-shell[data-layout="list-workbench"] .pad-workbench__topbar,
+  .pad-shell[data-tasks-list] .pad-workbench__topbar,
   .pad-shell[data-layout="parent-home"] .pad-workbench__topbar,
   .pad-shell[data-layout="profile-hub"] .pad-workbench__topbar,
   .pad-shell[data-layout="growth-archive"] .pad-workbench__topbar,
@@ -277,7 +278,17 @@
     display: flex !important;
   }
 
+  .pad-shell[data-layout="list-workbench"] .pad-workbench__filters,
+  .pad-shell[data-tasks-list] .pad-workbench__filters {
+    display: block !important;
+    flex-shrink: 0;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-surface);
+  }
+
   .pad-shell[data-layout="list-workbench"] .pad-main.pad-workbench,
+  .pad-shell[data-tasks-list] .pad-main.pad-workbench,
   .pad-shell[data-layout="parent-home"] .pad-main.pad-workbench,
   .pad-shell[data-layout="profile-hub"] .pad-main.pad-workbench,
   .pad-shell[data-layout="growth-archive"] .pad-main.pad-workbench,
@@ -292,6 +303,7 @@
   }
 
   .pad-shell[data-layout="list-workbench"] .pad-workbench__body,
+  .pad-shell[data-tasks-list] .pad-workbench__body,
   .pad-shell[data-layout="parent-home"] .pad-workbench__body,
   .pad-shell[data-layout="teacher-home"] .pad-workbench__body {
     display: flex !important;
@@ -300,7 +312,8 @@
     overflow: hidden;
   }
 
-  .pad-shell[data-layout="list-workbench"] .pad-list__grid {
+  .pad-shell[data-layout="list-workbench"] .pad-list__grid,
+  .pad-shell[data-tasks-list] .pad-list__grid {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
@@ -494,16 +507,13 @@
     display: none !important;
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__mobile-only,
+  .pad-shell[data-tasks-list] .pad-teacher__mobile-only {
     display: none !important;
   }
 
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__overview,
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__body {
-    display: block !important;
-  }
-
-  .pad-shell[data-layout="teacher-home"] .pad-teacher__stats {
+  .pad-shell[data-layout="teacher-home"] .pad-teacher__stats,
+  .pad-shell[data-tasks-list] .pad-teacher__stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
