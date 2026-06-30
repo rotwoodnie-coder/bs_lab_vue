@@ -44,6 +44,9 @@ export function useExpWizardRichTextFlush({ activeStep, stepSaving, step4Ref, st
     if (!RICH_TEXT_WIZARD_STEPS.includes(fromStep)) return true
     stepSaving.value = true
     try {
+      await flushRichTextStep(fromStep);
+      return true;
+      /*
       const { ok, failed } = await flushRichTextStep(fromStep)
       if (ok) return true
       try {
@@ -55,7 +58,8 @@ export function useExpWizardRichTextFlush({ activeStep, stepSaving, step4Ref, st
         return true
       } catch {
         return false
-      }
+      }*/
+      //
     } finally {
       stepSaving.value = false
     }

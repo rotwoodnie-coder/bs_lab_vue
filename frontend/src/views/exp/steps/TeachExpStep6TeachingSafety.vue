@@ -53,9 +53,19 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="节" prop="sectionId">
+            <el-input
+              v-model="securityForm.sectionId"
+              placeholder="请输入节"
+              clearable
+              inputmode="text"
+              @blur="queueSave"
+               :maxlength="50"
+            />
+            <!--
             <el-select v-model="securityForm.sectionId" placeholder="请选择节" clearable filterable style="width: 100%" @change="queueSave">
               <el-option v-for="item in sectionOptions" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
+            -->
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -105,7 +115,7 @@ import { fetchExpStandard, updateExpStandard } from '../../../api/index'
 import { fetchDataDictItems } from '../../../api/index'
 import SecurityTextEditor from '../components/SecurityTextEditor.vue'
 
-const EXP_SAFETY_TEXT_MAX = 200
+const EXP_SAFETY_TEXT_MAX = 500
 
 const props = defineProps({
   expId: {

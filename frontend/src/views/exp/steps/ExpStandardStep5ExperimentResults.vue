@@ -8,7 +8,13 @@
     </div>
 
     <div v-if="resultList.length" class="step-list">
-      <div v-for="(item, index) in resultList" :key="item.uid" class="step-card">
+      <div
+        v-for="(item, index) in resultList"
+        :key="item.uid"
+        class="step-card"
+        @focusin="handleResultCardFocusIn(item.uid)"
+        @focusout="handleResultCardFocusOut(item.uid, $event)"
+      >
         <div class="step-card__header">
           <div class="step-card__title">结果 {{ index + 1 }}</div>
           <div class="step-card__actions">
@@ -24,7 +30,6 @@
           placeholder="请输入结果名称"
           class="step-card__name"
           :maxlength="30"
-          @blur="handleResultNameBlur(index)"
         />
 
         <RichTextQuillEditor
@@ -107,7 +112,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import RichTextQuillEditor from '../components/RichTextQuillEditor.vue'
 import { deleteExpResult, fetchExpResults, saveExpResult } from '../../../api/exp'
@@ -127,6 +132,8 @@ const resultSavingIndex = ref(-1)
 const resultSaveLocks = new Set()
 const richEditorRegistry = createRichEditorRegistry()
 const currentEditorUid = ref('')
+const pendingBlurSaveTimers = new Map()
+const activeResultCardUid = ref('')
 
 const materialPickerVisible = ref(false)
 const materialPickerLoading = ref(false)
@@ -188,16 +195,65 @@ const syncResultEditorContent = async (index) => {
   await prepareRichTextForSave(richEditorRegistry, item.uid)
 }
 
+const clearPendingBlurSave = (uid) => {
+  const timer = pendingBlurSaveTimers.get(uid)
+  if (timer) {
+    clearTimeout(timer)
+    pendingBlurSaveTimers.delete(uid)
+  }
+}
+
+const saveResultItemByUid = async (uid, options = {}) => {
+  const index = resultList.value.findIndex((item) => item.uid === uid)
+  if (index < 0) return false
+  return await saveResultItem(index, options)
+}
+
+const scheduleBlurSave = (uid, { immediate = false } = {}) => {
+  if (!uid) return
+  clearPendingBlurSave(uid)
+  const run = async () => {
+    const index = resultList.value.findIndex((item) => item.uid === uid)
+    const item = resultList.value[index]
+    if (!item || !item.resultId) return
+    if (activeResultCardUid.value === uid) return
+    await saveResultItem(index)
+  }
+  if (immediate) {
+    void run()
+    return
+  }
+  const timer = setTimeout(() => {
+    pendingBlurSaveTimers.delete(uid)
+    void run()
+  }, 80)
+  pendingBlurSaveTimers.set(uid, timer)
+}
+
+const handleResultCardFocusIn = (uid) => {
+  if (!uid) return
+  activeResultCardUid.value = uid
+  clearPendingBlurSave(uid)
+}
+
+const handleResultCardFocusOut = (uid, event) => {
+  if (!uid) return
+  const relatedTarget = event?.relatedTarget
+  if (relatedTarget && event?.currentTarget?.contains?.(relatedTarget)) return
+  if (activeResultCardUid.value === uid) activeResultCardUid.value = ''
+  scheduleBlurSave(uid)
+}
+
 const handleEditorBlur = async (index) => {
   const item = resultList.value[index]
   if (!item || !item.resultId) return
-  await saveResultItem(index)
+  scheduleBlurSave(item.uid)
 }
 
 const handleResultNameBlur = async (index) => {
   const item = resultList.value[index]
   if (!item || !item.resultId) return
-  await saveResultItem(index)
+  scheduleBlurSave(item.uid)
 }
 
 const loadResultItems = async () => {
@@ -276,6 +332,7 @@ const saveResultItem = async (index, { force = false, silent = false } = {}) => 
     const resultId = resolveApiEntityId(res, ['resultId', 'id', 'value', 'result']) || item.resultId
     if (resultId) item.resultId = resultId
     item._lastSavedSignature = getResultSignature(item)
+    console.log("exp results save");
     if (!silent) ElMessage.success('结果已保存')
     return true
   } catch (error) {

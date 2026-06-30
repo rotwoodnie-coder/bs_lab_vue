@@ -185,7 +185,9 @@
             <span class="content-tree-node__type">{{ contentTypeText(data.content_type) }}</span>
             <div class="content-tree-node__actions">
               <el-button v-if="canAddChild(data, 'chapter')" link type="primary" @click="openContentNodeDialog(null, 'chapter', data)">新增章</el-button>
+              <!--
               <el-button v-if="canAddChild(data, 'section')" link type="primary" @click="openContentNodeDialog(null, 'section', data)">新增节</el-button>
+              -->
               <el-button link type="primary" @click="openContentNodeDialog(data, data.content_type, null)">编辑</el-button>
               <el-button link type="danger" @click="handleDeleteContent(data)">删除</el-button>
             </div>

@@ -55,7 +55,7 @@
 import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 
-const ENTRY_MAX_LENGTH = 60
+const ENTRY_MAX_LENGTH = 80
 
 const props = defineProps({
   modelValue: {
@@ -73,7 +73,7 @@ const props = defineProps({
   },
   maxLength: {
     type: Number,
-    default: 200
+    default: 500
   },
   entryMaxLength: {
     type: Number,

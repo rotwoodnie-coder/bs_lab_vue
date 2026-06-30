@@ -13,7 +13,9 @@
       :style="{ minHeight: '240px', height: '240px' }"
       @ready="handleReady"
       @textChange="handleTextChange"
-      @blur="emit('blur')"
+      @selectionChange="handleSelectionChange"
+      @focus="handleFocus"
+      @blur="handleBlur"
     />
   </div>
 </template>
@@ -42,6 +44,8 @@ const emit = defineEmits(['update:modelValue', 'blur', 'ready'])
 
 const innerContent = ref(props.modelValue || '')
 const quillInstance = ref(null)
+const isEditorFocused = ref(false)
+const detachNativeListeners = ref(null)
 
 watch(
   () => props.modelValue,
@@ -62,8 +66,53 @@ const handleTextChange = () => {
   // v-model:content handles the sync
 }
 
+const emitBlur = () => {
+  if (!isEditorFocused.value) return
+  isEditorFocused.value = false
+  emit('blur')
+}
+
+const handleFocus = () => {
+  isEditorFocused.value = true
+}
+
+const handleSelectionChange = ({ range } = {}) => {
+  // 当 selection 变为空且编辑器已失焦时，补发 blur，避免工具栏/浮层切换导致漏发
+  if (!range) {
+    emitBlur()
+  }
+}
+
+const handleBlur = () => {
+  emitBlur()
+}
+
+const handleNativeFocusIn = () => {
+  handleFocus()
+}
+
+const handleNativeFocusOut = () => {
+  emitBlur()
+}
+
+const bindNativeFocusListeners = (quill) => {
+  const root = quill?.root
+  if (!root) return
+
+  detachNativeListeners.value?.()
+
+  root.addEventListener('focusin', handleNativeFocusIn)
+  root.addEventListener('focusout', handleNativeFocusOut)
+
+  detachNativeListeners.value = () => {
+    root.removeEventListener('focusin', handleNativeFocusIn)
+    root.removeEventListener('focusout', handleNativeFocusOut)
+  }
+}
+
 const handleReady = (editor) => {
   quillInstance.value = editor?.getQuill?.() || editor
+  bindNativeFocusListeners(quillInstance.value)
   emit('ready', quillInstance.value)
   syncFromEditor()
 }
@@ -108,6 +157,9 @@ defineExpose({
 })
 
 onBeforeUnmount(() => {
+  detachNativeListeners.value?.()
+  detachNativeListeners.value = null
   quillInstance.value = null
+  isEditorFocused.value = false
 })
 </script>

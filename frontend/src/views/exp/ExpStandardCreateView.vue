@@ -150,7 +150,7 @@ import { useExpWizardRichTextFlush } from './utils/useExpWizardRichTextFlush'
 
 const route = useRoute()
 const router = useRouter()
-const pageTitle = computed(() => String(route.query.expId || '').trim() ? '编辑实验' : '新增实验')
+const pageTitle = computed(() => String(route.query.expId || '').trim() ? '编辑标准实验' : '新增标准实验')
 const activeStep = ref(0)
 const submitLoading = ref(false)
 const formRef = ref()
