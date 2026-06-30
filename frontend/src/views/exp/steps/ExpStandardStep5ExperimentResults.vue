@@ -8,13 +8,13 @@
     </div>
 
     <div v-if="resultList.length" class="step-list">
-      <div v-for="(item, index) in resultList" :key="item.resultId || item.uid" class="step-card">
+      <div v-for="(item, index) in resultList" :key="item.uid" class="step-card">
         <div class="step-card__header">
           <div class="step-card__title">结果 {{ index + 1 }}</div>
           <div class="step-card__actions">
             <el-button link type="primary" :disabled="index === 0" @click="moveResultUp(index)">上移</el-button>
             <el-button link type="primary" :disabled="index === resultList.length - 1" @click="moveResultDown(index)">下移</el-button>
-            <el-button link type="primary" :loading="resultSavingIndex === index" @click="saveResultItem(index)">保存</el-button>
+            <el-button link type="primary" :loading="resultSavingIndex === index" @click="saveResultItem(index, { force: true })">保存</el-button>
             <el-button link type="danger" @click="confirmRemoveResultItem(index)">删除</el-button>
           </div>
         </div>
@@ -27,24 +27,17 @@
           @blur="handleResultNameBlur(index)"
         />
 
-        <div class="step-card__editor-shell">
-          <div class="step-card__toolbar">
+        <RichTextQuillEditor
+          :ref="richEditorRegistry.getCallback(item.uid)"
+          :editor-key="`result-editor-${item.uid}`"
+          v-model="item.resultComments"
+          :toolbar="simpleToolbar"
+          @blur="handleEditorBlur(index)"
+        >
+          <template #toolbar>
             <el-button size="small" @mousedown.prevent="openMaterialPicker(index)">选择图片素材</el-button>
-            <input ref="imageInputRef" type="file" accept="image/*" hidden @change="handleImageUpload" />
-          </div>
-          <QuillEditor
-            :ref="(el) => setEditorRef(item.uid, el)"
-            v-model:content="item.resultComments"
-            content-type="html"
-            theme="snow"
-            :toolbar="simpleToolbar"
-            class="step-card__editor"
-            :style="{ minHeight: '240px', height: '240px' }"
-            @ready="(editor) => handleEditorReady(item.uid, editor)"
-            @textChange="handleEditorChange(index)"
-            @blur="handleEditorBlur(index)"
-          />
-        </div>
+          </template>
+        </RichTextQuillEditor>
       </div>
     </div>
 
@@ -114,14 +107,16 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import Quill from 'quill'
+import RichTextQuillEditor from '../components/RichTextQuillEditor.vue'
 import { deleteExpResult, fetchExpResults, saveExpResult } from '../../../api/exp'
 import { fetchImageMaterials } from '../../../api/data'
-import { uploadFile } from '../../../api/system'
+
+
+import { resolveApiEntityId } from '../utils/apiEntityId'
+import { normalizeRichTextHtml } from '../utils/quillEditorSync'
+import { createRichEditorRegistry, prepareRichTextForSave } from '../utils/richEditorRegistry'
 
 const props = defineProps({
   expId: { type: [String, Number], required: true }
@@ -130,9 +125,8 @@ const props = defineProps({
 const resultList = ref([])
 const resultSavingIndex = ref(-1)
 const resultSaveLocks = new Set()
-const editorRefs = ref({})
+const richEditorRegistry = createRichEditorRegistry()
 const currentEditorUid = ref('')
-const imageInputRef = ref(null)
 
 const materialPickerVisible = ref(false)
 const materialPickerLoading = ref(false)
@@ -186,21 +180,12 @@ const createResultItem = (data = {}) => ({
   _lastSavedSignature: data._lastSavedSignature || ''
 })
 
-const getResultSignature = (item) => `${item.resultId || ''}::${item.resultName || ''}::${item.resultComments || ''}::${item.sortOrder || ''}`
+const getResultSignature = (item) => `${item.resultId || ''}::${item.resultName || ''}::${normalizeRichTextHtml(item.resultComments)}::${item.sortOrder || ''}`
 
-const setEditorRef = (uid, el) => {
-  if (el) editorRefs.value[uid] = el
-}
-
-const handleEditorReady = (uid, editor) => {
-  editorRefs.value[uid] = editor?.getQuill?.() || editor
-  currentEditorUid.value = uid
-}
-
-const handleEditorChange = (index) => {
+const syncResultEditorContent = async (index) => {
   const item = resultList.value[index]
   if (!item) return
-  item.resultComments = item.resultComments || ''
+  await prepareRichTextForSave(richEditorRegistry, item.uid)
 }
 
 const handleEditorBlur = async (index) => {
@@ -220,15 +205,17 @@ const loadResultItems = async () => {
   try {
     const res = await fetchExpResults(props.expId)
     if (res.data.code === 200) {
-      resultList.value = (Array.isArray(res.data.data) ? res.data.data : []).map((row, index) =>
-        createResultItem({
+      resultList.value = (Array.isArray(res.data.data) ? res.data.data : []).map((row, index) => {
+        const item = createResultItem({
           resultId: String(row.resultId || row.id || row.result || ''),
           resultName: row.resultName ?? '',
           resultComments: row.resultComments ?? '',
           sortOrder: row.sortOrder ?? index + 1,
           _lastSavedSignature: ''
         })
-      )
+        item._lastSavedSignature = getResultSignature(item)
+        return item
+      })
     }
   } catch {
     resultList.value = []
@@ -249,9 +236,9 @@ const addResultItem = async () => {
       resultComments: item.resultComments || '',
       sortOrder: item.sortOrder || resultList.value.length
     })
-    const resultId = res?.data?.data || res?.data
+    const resultId = resolveApiEntityId(res, ['resultId', 'id', 'value', 'result'])
     if (!resultId) throw new Error('未返回结果ID')
-    item.resultId = typeof resultId === 'object' ? (resultId.resultId || resultId.id || resultId.value || resultId.result || '') : resultId
+    item.resultId = resultId
     item._lastSavedSignature = getResultSignature(item)
     ElMessage.success('结果已新增')
   } catch (error) {
@@ -260,13 +247,23 @@ const addResultItem = async () => {
   }
 }
 
-const saveResultItem = async (index) => {
+const saveResultItem = async (index, { force = false, silent = false } = {}) => {
   const item = resultList.value[index]
-  if (!item || !item.resultId) return false
+  if (!item) return false
+  if (!item.resultId) {
+    ElMessage.warning('结果尚未创建完成，请稍候或重新点击「增加结果」')
+    return false
+  }
+  await syncResultEditorContent(index)
   const signature = getResultSignature(item)
-  if (item._lastSavedSignature === signature) return true
-  if (resultSaveLocks.has(index)) return false
-  resultSaveLocks.add(index)
+  if (!force && item._lastSavedSignature === signature) return true
+  if (force && item._lastSavedSignature === signature) {
+    if (!silent) ElMessage.info('内容未变化，无需保存')
+    return true
+  }
+  const lockKey = item.uid
+  if (resultSaveLocks.has(lockKey)) return false
+  resultSaveLocks.add(lockKey)
   resultSavingIndex.value = index
   try {
     const payload = {
@@ -276,19 +273,31 @@ const saveResultItem = async (index) => {
       sortOrder: item.sortOrder ?? index + 1
     }
     const res = await saveExpResult(props.expId, payload)
-    const result = res?.data?.data || res?.data || {}
-    const resultId = result.resultId || result.id || result.value || result.result || item.resultId || ''
+    const resultId = resolveApiEntityId(res, ['resultId', 'id', 'value', 'result']) || item.resultId
     if (resultId) item.resultId = resultId
     item._lastSavedSignature = getResultSignature(item)
-    ElMessage.success('结果已保存')
+    if (!silent) ElMessage.success('结果已保存')
     return true
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error?.message || '结果保存失败')
     return false
   } finally {
-    resultSaveLocks.delete(index)
+    resultSaveLocks.delete(lockKey)
     resultSavingIndex.value = -1
   }
+}
+
+const flushPendingSaves = async () => {
+  const results = []
+  for (let i = 0; i < resultList.value.length; i += 1) {
+    const item = resultList.value[i]
+    if (!item?.resultId) continue
+    await syncResultEditorContent(i)
+    if (item._lastSavedSignature === getResultSignature(item)) continue
+    const ok = await saveResultItem(i, { force: true, silent: true })
+    results.push({ index: i, ok })
+  }
+  return results
 }
 
 const confirmRemoveResultItem = async (index) => {
@@ -309,6 +318,7 @@ const removeResultItem = async (index) => {
   if (!item) return
   try {
     if (item.resultId) await deleteExpResult(item.resultId)
+    richEditorRegistry.remove(item.uid)
     resultList.value.splice(index, 1)
     resultList.value = resultList.value.map((row, i) => ({ ...row, sortOrder: i + 1 }))
     ElMessage.success('结果已删除')
@@ -402,10 +412,12 @@ const insertImageToEditor = async (imagePayload) => {
       ? imagePayload
       : await imageUrlToDataUrl(imagePayload)
     const imgHtml = `<p><img src="${imageHtml}" style="max-width: 400px; height: auto; display: block;" data-img-resizable="1" /></p><p><br></p>`
-    item.resultComments = `${item.resultComments || ''}${imgHtml}`
-    const editor = editorRefs.value[item.uid]
-    if (editor?.root) editor.root.innerHTML = item.resultComments
-    
+    const editor = richEditorRegistry.get(item.uid)
+    if (editor?.appendHtml) {
+      editor.appendHtml(imgHtml)
+    } else {
+      item.resultComments = `${item.resultComments || ''}${imgHtml}`
+    }
     return true
   } catch (error) {
     console.error('insertImageToEditor failed', error)
@@ -429,24 +441,9 @@ const confirmMaterialSelection = async () => {
   if (!ok) ElMessage.warning('图片插入失败')
 }
 
-const handleImageUpload = async (event) => {
-  const file = event?.target?.files?.[0]
-  if (!file) return
-  try {
-    const res = await uploadFile(file)
-    if (res.data.code !== 200) throw new Error(res.data.message || '图片上传失败')
-    const url = resolveFileUrl(res.data.data?.fileUrl || '')
-    if (!url) throw new Error('未返回图片地址')
-    const ok = await insertImageToEditor(url)
-    if (!ok) throw new Error('图片插入失败')
-  } catch (error) {
-    ElMessage.error(error?.message || '图片插入失败')
-  } finally {
-    if (event?.target) event.target.value = ''
-  }
-}
-
 onMounted(loadResultItems)
+
+defineExpose({ flushPendingSaves })
 </script>
 
 <style scoped src="../css/ExpStandardCreateView.css"></style>

@@ -103,19 +103,18 @@
         <template v-else-if="activeStep === 2">
           <Step3Materials :exp-id="expId" />
         </template>
-        <template v-else-if="activeStep === 3">
-          <Step4ExperimentSteps :exp-id="expId" />
-        </template>
-        <template v-else-if="activeStep === 4">
-          <Step5ExperimentResults :exp-id="expId" />
-        </template>
-        <template v-else-if="activeStep === 5">
+        <div v-show="activeStep === 3">
+          <Step4ExperimentSteps v-if="visitedRichSteps.has(3)" :key="`${expId || 'new'}-step4`" :exp-id="expId" ref="step4Ref" />
+        </div>
+        <div v-show="activeStep === 4">
+          <Step5ExperimentResults v-if="visitedRichSteps.has(4)" :key="`${expId || 'new'}-step5`" :exp-id="expId" ref="step5Ref" />
+        </div>
+        <template v-if="activeStep === 5">
           <Step6TeachingSafety :exp-id="expId" />
         </template>
-        <Step7ReferenceScientist v-else-if="activeStep === 6" :exp-id="expId" />
-        <template v-else>
-          <div class="step-placeholder">当前步骤：{{ stepTitles[activeStep] }}</div>
-        </template>
+        <div v-show="activeStep === 6">
+          <Step7ReferenceScientist v-if="visitedRichSteps.has(6)" :key="`${expId || 'new'}-step7`" :exp-id="expId" ref="step7Ref" />
+        </div>
       </div>
 
       <div class="step-actions">
@@ -217,6 +216,7 @@ import Step4ExperimentSteps from './steps/TeachExpStep4ExperimentSteps.vue'
 import Step5ExperimentResults from './steps/TeachExpStep5ExperimentResults.vue'
 import Step6TeachingSafety from './steps/TeachExpStep6TeachingSafety.vue'
 import Step7ReferenceScientist from './steps/TeachExpStep7ReferenceScientist.vue'
+import { useExpWizardRichTextFlush } from './utils/useExpWizardRichTextFlush'
 
 const route = useRoute()
 const router = useRouter()
@@ -226,6 +226,17 @@ const submitLoading = ref(false)
 const formRef = ref()
 const expId = ref('')
 const stepSaving = ref(false)
+const step4Ref = ref(null)
+const step5Ref = ref(null)
+const step7Ref = ref(null)
+const { visitedRichSteps, flushBeforeLeaveRichStep } = useExpWizardRichTextFlush({
+  activeStep,
+  stepSaving,
+  step4Ref,
+  step5Ref,
+  step7Ref,
+  expId
+})
 const logDialogVisible = ref(false)
 const logLoading = ref(false)
 const logTableData = ref([])
@@ -364,9 +375,9 @@ const loadDicts = async () => {
 }
 
 const prevStep = async () => {
-  if (activeStep.value > 0) {
-    activeStep.value -= 1
-  }
+  if (activeStep.value <= 0) return
+  if (!(await flushBeforeLeaveRichStep(activeStep.value))) return
+  activeStep.value -= 1
   await loadStepStats()
 }
 
@@ -388,6 +399,8 @@ const goStep = async (index) => {
     } finally {
       stepSaving.value = false
     }
+  } else if (!(await flushBeforeLeaveRichStep(activeStep.value))) {
+    return
   }
   activeStep.value = index
   await loadStepStats()
@@ -432,6 +445,8 @@ const nextStep = async () => {
     } finally {
       stepSaving.value = false
     }
+  } else if (!(await flushBeforeLeaveRichStep(activeStep.value))) {
+    return
   }
   if (activeStep.value < stepTitles.length - 1) {
     activeStep.value += 1
@@ -442,9 +457,9 @@ const nextStep = async () => {
 const handleSubmit = async () => {
   submitLoading.value = true
   try {
-    //await flushPendingSaves()
-    //await saveStep0()
-    //await updateExpStandard(expId.value, { status: 't' })
+    await flushBeforeLeaveRichStep(activeStep.value)
+    await saveStep0()
+    await updateExpStandard(expId.value, { status: 'c' })
     ElMessage.success('提交草稿成功')
     router.push('/admin/exp/exp-teach')
   } catch (error) {
@@ -499,8 +514,8 @@ const handleSubmitToAudit = async () => {
   }
   submitLoading.value = true
   try {
-    
-    //await saveStep0()
+    await flushBeforeLeaveRichStep(activeStep.value)
+    await saveStep0()
     await updateExpStandard(expId.value, { status: 't' })
     ElMessage.success('提交审核成功')
     router.push('/admin/exp/exp-teach')

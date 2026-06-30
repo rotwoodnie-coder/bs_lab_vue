@@ -51,8 +51,13 @@ public class ExpReferenceServiceImpl implements ExpReferenceService {
     }
 
     private ExpReference buildAndSave(String expId, Map<String, Object> reference, Integer sortOrder) {
-        ExpReference entity = new ExpReference();
-        entity.setReferenceId(hasText(reference.get("referenceId")) ? asString(reference.get("referenceId")) : randomId());
+        String referenceId = hasText(reference.get("referenceId")) ? asString(reference.get("referenceId")) : null;
+        ExpReference entity = (referenceId != null)
+                ? repository.findById(referenceId).orElseGet(ExpReference::new)
+                : new ExpReference();
+        if (!StringUtils.hasText(entity.getReferenceId())) {
+            entity.setReferenceId(randomId());
+        }
         entity.setExpId(expId);
         entity.setReferenceName(asString(reference.get("referenceName")));
         entity.setReferenceSource(asString(reference.get("referenceSource")));

@@ -51,11 +51,15 @@ public class ExpResultServiceImpl implements ExpResultService {
     }
 
     private ExpResult buildAndSave(String expId, Map<String, Object> result, Integer sortOrder) {
-        ExpResult entity = new ExpResult();
-        if (result.containsKey("resultId") && result.get("resultId") != null 
-           && !result.get("resultId").toString().isEmpty()) {
-            entity.setResultId(asString(result.get("resultId")));
-        } else {
+        String resultId = null;
+        if (result.containsKey("resultId") && result.get("resultId") != null
+                && !result.get("resultId").toString().isEmpty()) {
+            resultId = asString(result.get("resultId"));
+        }
+        ExpResult entity = (resultId != null)
+                ? repository.findById(resultId).orElseGet(ExpResult::new)
+                : new ExpResult();
+        if (!StringUtils.hasText(entity.getResultId())) {
             entity.setResultId(UUID.randomUUID().toString().replace("-", ""));
         }
         entity.setExpId(expId);

@@ -8,13 +8,13 @@
     </div>
 
     <div v-if="stepList.length" class="step-list">
-      <div v-for="(item, index) in stepList" :key="item.stepId || item.uid" class="step-card">
+      <div v-for="(item, index) in stepList" :key="item.uid" class="step-card">
         <div class="step-card__header">
           <div class="step-card__title">步骤 {{ index + 1 }}</div>
           <div class="step-card__actions">
             <el-button link type="primary" :disabled="index === 0" @click="moveStepUp(index)">上移</el-button>
             <el-button link type="primary" :disabled="index === stepList.length - 1" @click="moveStepDown(index)">下移</el-button>
-            <el-button link type="primary" :loading="stepSavingIndex === index" @click="saveStepItem(index)">保存</el-button>
+            <el-button link type="primary" :loading="stepSavingIndex === index" @click="saveStepItem(index, { force: true })">保存</el-button>
             <el-button link type="danger" @click="confirmRemoveStepItem(index)">删除</el-button>
           </div>
         </div>
@@ -27,24 +27,17 @@
           @blur="handleStepNameBlur(index)"
         />
 
-        <div class="step-card__editor-shell">
-          <div class="step-card__toolbar">
+        <RichTextQuillEditor
+          :ref="richEditorRegistry.getCallback(item.uid)"
+          :editor-key="`step-editor-${item.uid}`"
+          v-model="item.stepComments"
+          :toolbar="simpleToolbar"
+          @blur="handleEditorBlur(index)"
+        >
+          <template #toolbar>
             <el-button size="small" @mousedown.prevent="openMaterialPicker(index)">选择图片素材</el-button>
-            <input ref="imageInputRef" type="file" accept="image/*" hidden @change="handleImageUpload" />
-          </div>
-          <QuillEditor
-            :ref="(el) => setEditorRef(item.uid, el)"
-            v-model:content="item.stepComments"
-            content-type="html"
-            theme="snow"
-            :toolbar="simpleToolbar"
-            class="step-card__editor"
-            :style="{ minHeight: '240px', height: '240px' }"
-            @ready="(editor) => handleEditorReady(item.uid, editor)"
-            @textChange="handleEditorChange(index)"
-            @blur="handleEditorBlur(index)"
-          />
-        </div>
+          </template>
+        </RichTextQuillEditor>
       </div>
     </div>
 
@@ -110,14 +103,16 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import Quill from 'quill'
+import RichTextQuillEditor from '../components/RichTextQuillEditor.vue'
 import { deleteExpStep, fetchExpSteps, saveExpStep } from '../../../api/exp'
 import { fetchImageMaterials } from '../../../api/data'
-import { uploadFile } from '../../../api/system'
+
+
+import { resolveApiEntityId } from '../utils/apiEntityId'
+import { normalizeRichTextHtml } from '../utils/quillEditorSync'
+import { createRichEditorRegistry, prepareRichTextForSave } from '../utils/richEditorRegistry'
 
 const props = defineProps({
   expId: { type: [String, Number], required: true }
@@ -126,10 +121,8 @@ const props = defineProps({
 const stepList = ref([])
 const stepSavingIndex = ref(-1)
 const stepSaveLocks = new Set()
-const editorRefs = ref({})
-const currentQuillInstance = ref(null)
+const richEditorRegistry = createRichEditorRegistry()
 const currentEditorIndex = ref(-1)
-const imageInputRef = ref(null)
 
 const materialPickerVisible = ref(false)
 const materialPickerLoading = ref(false)
@@ -191,43 +184,12 @@ const createStepItem = (data = {}) => ({
   _lastSavedSignature: data._lastSavedSignature || ''
 })
 
-const getStepSignature = (item) => `${item.stepId || ''}::${item.stepName || ''}::${item.stepComments || ''}::${item.sortOrder || ''}`
+const getStepSignature = (item) => `${item.stepId || ''}::${item.stepName || ''}::${normalizeRichTextHtml(item.stepComments)}::${item.sortOrder || ''}`
 
-const loadStepItems = async () => {
-  if (!props.expId) return
-  try {
-    const res = await fetchExpSteps(props.expId)
-    if (res.data.code === 200) {
-      stepList.value = (Array.isArray(res.data.data) ? res.data.data : []).map((row, index) =>
-        createStepItem({
-          stepId: String(row.stepId || row.id || row.step || ''),
-          stepName: row.stepName ?? '',
-          stepComments: row.stepComments ?? '',
-          sortOrder: row.sortOrder ?? index + 1,
-          _lastSavedSignature: ''
-        })
-      )
-    }
-  } catch {
-    stepList.value = []
-  }
-}
-
-const setEditorRef = (uid, el) => {
-  if (el) editorRefs.value[uid] = el
-}
-
-const handleEditorReady = (uid, editor) => {
-  const quill = editor?.getQuill?.() || editor
-  editorRefs.value[uid] = quill
-  currentQuillInstance.value = quill
-  currentEditorIndex.value = stepList.value.findIndex((item) => item.uid === uid)
-}
-
-const handleEditorChange = (index) => {
+const syncStepEditorContent = async (index) => {
   const item = stepList.value[index]
   if (!item) return
-  item.stepComments = item.stepComments || ''
+  await prepareRichTextForSave(richEditorRegistry, item.uid)
 }
 
 const handleEditorBlur = async (index) => {
@@ -235,15 +197,32 @@ const handleEditorBlur = async (index) => {
   if (!item || !item.stepId) return
   await saveStepItem(index)
 }
-
 const handleStepNameBlur = async (index) => {
   const item = stepList.value[index]
   if (!item || !item.stepId) return
   await saveStepItem(index)
 }
 
-const triggerImageUpload = () => {
-  imageInputRef.value?.click?.()
+const loadStepItems = async () => {
+  if (!props.expId) return
+  try {
+    const res = await fetchExpSteps(props.expId)
+    if (res.data.code === 200) {
+      stepList.value = (Array.isArray(res.data.data) ? res.data.data : []).map((row, index) => {
+        const item = createStepItem({
+          stepId: String(row.stepId || row.id || row.step || ''),
+          stepName: row.stepName ?? '',
+          stepComments: row.stepComments ?? '',
+          sortOrder: row.sortOrder ?? index + 1,
+          _lastSavedSignature: ''
+        })
+        item._lastSavedSignature = getStepSignature(item)
+        return item
+      })
+    }
+  } catch {
+    stepList.value = []
+  }
 }
 
 const insertImageToEditor = async (imagePayload) => {
@@ -254,33 +233,17 @@ const insertImageToEditor = async (imagePayload) => {
       ? imagePayload
       : await imageUrlToDataUrl(imagePayload)
     const imgHtml = `<p><img src="${imageHtml}" style="max-width: 400px; height: auto; display: block;" data-img-resizable="1" /></p><p><br></p>`
-    item.stepComments = `${item.stepComments || ''}${imgHtml}`
-
-    const editor = editorRefs.value[item.uid]
-    if (editor?.root) {
-      editor.root.innerHTML = item.stepComments
+    const editor = richEditorRegistry.get(item.uid)
+    if (editor?.appendHtml) {
+      editor.appendHtml(imgHtml)
+    } else {
+      item.stepComments = `${item.stepComments || ''}${imgHtml}`
     }
     handleEditorBlur(currentEditorIndex.value)
     return true
   } catch (error) {
     console.error('insertImageToEditor failed', error)
     return false
-  }
-}
-
-const handleImageUpload = async (event) => {
-  const file = event?.target?.files?.[0]
-  if (!file) return
-  try {
-    const res = await uploadFile(file)
-    if (res.data.code !== 200) throw new Error(res.data.message || '图片上传失败')
-    const url = resolveFileUrl(res.data.data?.fileUrl || '')
-    if (!url) throw new Error('未返回图片地址')
-    if (!(await insertImageToEditor(url))) throw new Error('图片插入失败')
-  } catch (error) {
-    ElMessage.error(error?.message || '图片插入失败')
-  } finally {
-    if (event?.target) event.target.value = ''
   }
 }
 
@@ -378,9 +341,9 @@ const addStepItem = async () => {
       stepComments: item.stepComments || '',
       sortOrder: item.sortOrder || stepList.value.length
     })
-    const stepId = res?.data?.data || res?.data
+    const stepId = resolveApiEntityId(res, ['stepId', 'id', 'value', 'result'])
     if (!stepId) throw new Error('未返回步骤ID')
-    item.stepId = typeof stepId === 'object' ? (stepId.stepId || stepId.id || stepId.value || stepId.result || '') : stepId
+    item.stepId = stepId
     item._lastSavedSignature = getStepSignature(item)
     ElMessage.success('步骤已新增')
   } catch (error) {
@@ -389,13 +352,23 @@ const addStepItem = async () => {
   }
 }
 
-const saveStepItem = async (index) => {
+const saveStepItem = async (index, { force = false, silent = false } = {}) => {
   const item = stepList.value[index]
-  if (!item || !item.stepId) return false
+  if (!item) return false
+  if (!item.stepId) {
+    ElMessage.warning('步骤尚未创建完成，请稍候或重新点击「增加步骤」')
+    return false
+  }
+  await syncStepEditorContent(index)
   const signature = getStepSignature(item)
-  if (item._lastSavedSignature === signature) return true
-  if (stepSaveLocks.has(index)) return false
-  stepSaveLocks.add(index)
+  if (!force && item._lastSavedSignature === signature) return true
+  if (force && item._lastSavedSignature === signature) {
+    if (!silent) ElMessage.info('内容未变化，无需保存')
+    return true
+  }
+  const lockKey = item.uid
+  if (stepSaveLocks.has(lockKey)) return false
+  stepSaveLocks.add(lockKey)
   stepSavingIndex.value = index
   try {
     const payload = {
@@ -405,19 +378,31 @@ const saveStepItem = async (index) => {
       sortOrder: item.sortOrder ?? index + 1
     }
     const res = await saveExpStep(props.expId, payload)
-    const result = res?.data?.data || res?.data || {}
-    const stepId = result.stepId || result.id || result.value || result.result || item.stepId || ''
+    const stepId = resolveApiEntityId(res, ['stepId', 'id', 'value', 'result']) || item.stepId
     if (stepId) item.stepId = stepId
     item._lastSavedSignature = getStepSignature(item)
-    ElMessage.success('步骤已保存')
+    if (!silent) ElMessage.success('步骤已保存')
     return true
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error?.message || '步骤保存失败')
     return false
   } finally {
-    stepSaveLocks.delete(index)
+    stepSaveLocks.delete(lockKey)
     stepSavingIndex.value = -1
   }
+}
+
+const flushPendingSaves = async () => {
+  const results = []
+  for (let i = 0; i < stepList.value.length; i += 1) {
+    const item = stepList.value[i]
+    if (!item?.stepId) continue
+    await syncStepEditorContent(i)
+    if (item._lastSavedSignature === getStepSignature(item)) continue
+    const ok = await saveStepItem(i, { force: true, silent: true })
+    results.push({ index: i, ok })
+  }
+  return results
 }
 
 const confirmRemoveStepItem = async (index) => {
@@ -438,6 +423,7 @@ const removeStepItem = async (index) => {
   if (!item) return
   try {
     if (item.stepId) await deleteExpStep(item.stepId)
+    richEditorRegistry.remove(item.uid)
     stepList.value.splice(index, 1)
     stepList.value = stepList.value.map((row, i) => ({ ...row, sortOrder: i + 1 }))
     ElMessage.success('步骤已删除')
@@ -461,6 +447,8 @@ const moveStepDown = (index) => {
 }
 
 onMounted(loadStepItems)
+
+defineExpose({ flushPendingSaves })
 </script>
 
 <style scoped src="../css/ExpStandardCreateView.css"></style>

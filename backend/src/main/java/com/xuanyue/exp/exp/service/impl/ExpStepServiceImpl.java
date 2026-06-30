@@ -51,11 +51,15 @@ public class ExpStepServiceImpl implements ExpStepService {
     }
 
     private ExpStep buildAndSave(String expId, Map<String, Object> step, Integer sortOrder) {
-        ExpStep entity = new ExpStep();
-        if (step.containsKey("stepId") && step.get("stepId") != null 
-           && !step.get("stepId").toString().isEmpty()) {
-            entity.setStepId(asString(step.get("stepId")));
-        } else {
+        String stepId = null;
+        if (step.containsKey("stepId") && step.get("stepId") != null
+                && !step.get("stepId").toString().isEmpty()) {
+            stepId = asString(step.get("stepId"));
+        }
+        ExpStep entity = (stepId != null)
+                ? repository.findById(stepId).orElseGet(ExpStep::new)
+                : new ExpStep();
+        if (!StringUtils.hasText(entity.getStepId())) {
             entity.setStepId(UUID.randomUUID().toString().replace("-", ""));
         }
         entity.setExpId(expId);

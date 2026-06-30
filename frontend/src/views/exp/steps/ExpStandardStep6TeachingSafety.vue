@@ -72,38 +72,24 @@
         </el-col>
         <el-col :span="24">
           <el-form-item label="安全注意事项" prop="expCaution">
-            <div class="security-tag-editor">
-              <div class="security-tag-wrap">
-                <el-tag v-for="item in securitySelection" :key="item" closable type="success" effect="light" class="security-tag" @close="removeSecurityTag('caution', item)">{{ item }}</el-tag>
-              </div>
-              <div class="security-option-panel">
-                <div class="security-option-group">
-                  <el-button v-for="item in materialSecurityOptions" :key="item.id" :type="securitySelection.includes(item.label) ? 'success' : 'info'" :plain="!securitySelection.includes(item.label)" class="security-option-button" @click="toggleSecurityOption('caution', item.label)">{{ item.label }}</el-button>
-                </div>
-              </div>
-              <div class="security-tag-editor__input-row">
-                <el-input v-model="securityCustomInput" class="security-tag-editor__input" placeholder="输入安全注意事项后回车或点击添加" clearable @keyup.enter="addCustomSecurityOption('caution')"  :maxlength="20" />
-                <el-button type="primary" @click="addCustomSecurityOption('caution')">添加</el-button>
-              </div>
-            </div>
+            <SecurityTextEditor
+              v-model="securityForm.expCaution"
+              field-type="caution"
+              :quick-options="materialSecurityOptions"
+              :max-length="EXP_SAFETY_TEXT_MAX"
+              @save="queueSave"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="危险提示" prop="expDanger">
-            <div class="security-tag-editor">
-              <div class="security-tag-wrap">
-                <el-tag v-for="item in dangerSelection" :key="item" closable type="warning" effect="light" class="security-tag" @close="removeSecurityTag('danger', item)">{{ item }}</el-tag>
-              </div>
-              <div class="security-option-panel">
-                <div class="security-option-group">
-                  <el-button v-for="item in materialSecurityOptions" :key="item.id" :type="dangerSelection.includes(item.label) ? 'danger' : 'info'" :plain="!dangerSelection.includes(item.label)" class="security-tag" @click="toggleSecurityOption('danger', item.label)">{{ item.label }}</el-button>
-                </div>
-              </div>
-              <div class="security-tag-editor__input-row">
-                <el-input v-model="dangerCustomInput" class="security-tag-editor__input" placeholder="输入危险提示后回车或点击添加" clearable @keyup.enter="addCustomSecurityOption('danger')" :maxlength="20" />
-                <el-button type="warning" @click="addCustomSecurityOption('danger')">添加</el-button>
-              </div>
-            </div>
+            <SecurityTextEditor
+              v-model="securityForm.expDanger"
+              field-type="danger"
+              :quick-options="materialSecurityOptions"
+              :max-length="EXP_SAFETY_TEXT_MAX"
+              @save="queueSave"
+            />
           </el-form-item>
         </el-col>
       </el-row>
@@ -112,11 +98,14 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { fetchCoursebooks, fetchCoursebookContents } from '../../../api/index'
 import { fetchExpStandard, updateExpStandard } from '../../../api/index'
 import { fetchDataDictItems } from '../../../api/index'
+import SecurityTextEditor from '../components/SecurityTextEditor.vue'
+
+const EXP_SAFETY_TEXT_MAX = 200
 
 const props = defineProps({
   expId: {
@@ -135,10 +124,6 @@ const unitOptions = ref([])
 const chapterOptions = ref([])
 const sectionOptions = ref([])
 const materialSecurityOptions = ref([])
-const securitySelection = ref([])
-const dangerSelection = ref([])
-const securityCustomInput = ref('')
-const dangerCustomInput = ref('')
 
 const securityForm = reactive({
   subjectId: '',
@@ -157,12 +142,15 @@ const normalizeOptions = (rows, valueKey, labelKey) => (rows || [])
   .filter(item => item?.[valueKey] != null && item?.[labelKey] != null)
   .map(item => ({ value: String(item[valueKey]), label: item[labelKey] }))
 
-const splitSecurityText = (value) => String(value || '')
-  .split(/[,;\n]/)
-  .map(item => item.trim())
-  .filter(Boolean)
-
-const buildSecurityText = (values) => Array.from(new Set((values || []).map(item => String(item || '').trim()).filter(Boolean))).join(';')
+/** 旧版分号分隔标签转为多行，便于在长文本框中编辑 */
+const normalizeLegacySecurityText = (value) => {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (raw.includes(';') && !raw.includes('\n')) {
+    return raw.split(/[,;]/).map(item => item.trim()).filter(Boolean).join('\n')
+  }
+  return raw
+}
 
 const loadDicts = async () => {
   const [subjectRes, gradeRes, semesterRes, securityRes] = await Promise.all([
@@ -181,7 +169,7 @@ const loadDicts = async () => {
         id: item.security_id || item.securityId || item.id,
         label: item.security_name || item.securityName || item.name || item.id
       }))
-      .filter(item => item.id)
+      .filter(item => item.id && item.label)
   }
 }
 
@@ -236,11 +224,6 @@ const loadCoursebookChildren = async (coursebookId, targetType, parentId = '') =
   if (targetType === 'section') sectionOptions.value = options
 }
 
-const syncSecurityToForm = () => {
-  securityForm.expCaution = buildSecurityText(securitySelection.value)
-  securityForm.expDanger = buildSecurityText(dangerSelection.value)
-}
-
 const normalizeClassHour = (value) => {
   const raw = String(value ?? '').trim()
   if (!raw) return ''
@@ -268,10 +251,8 @@ const loadStep = async () => {
     securityForm.gradeId = draft.gradeId || ''
     securityForm.semesterId = draft.semesterId || draft.semester_id || ''
     securityForm.classHour = draft.classHour ?? ''
-    securityForm.expCaution = draft.expCaution || ''
-    securityForm.expDanger = draft.expDanger || ''
-    securitySelection.value = splitSecurityText(securityForm.expCaution)
-    dangerSelection.value = splitSecurityText(securityForm.expDanger)
+    securityForm.expCaution = normalizeLegacySecurityText(draft.expCaution)
+    securityForm.expDanger = normalizeLegacySecurityText(draft.expDanger)
     if (securityForm.subjectId) {
       await loadCoursebooksBySubject(securityForm.subjectId)
     }
@@ -289,7 +270,6 @@ const loadStep = async () => {
 
 const saveStep = async () => {
   if (!props.expId) return false
-  syncSecurityToForm()
   saving.value = true
   try {
     await updateExpStandard(String(props.expId).trim(), {
@@ -315,7 +295,6 @@ const saveStep = async () => {
 }
 
 const queueSave = async () => {
-  syncSecurityToForm()
   await saveStep()
 }
 
@@ -360,52 +339,6 @@ const handleChapterChange = async (value) => {
     await loadCoursebookChildren(securityForm.coursebookId, 'section', securityForm.chapterId)
   }
   await queueSave()
-}
-
-const getSecuritySelection = (type) => (type === 'danger' ? dangerSelection : securitySelection)
-
-const ensureSecurityOption = (label) => {
-  const value = String(label || '').trim()
-  if (!value) return false
-  const exists = materialSecurityOptions.value.some(item => String(item.label || '').trim() === value)
-  if (exists) return false
-  materialSecurityOptions.value = [...materialSecurityOptions.value, { id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, label: value, isCustom: true }]
-  return true
-}
-
-const toggleSecurityOption = async (type, label) => {
-  const value = String(label || '').trim()
-  if (!value) return
-  const target = getSecuritySelection(type)
-  const index = target.value.findIndex(item => String(item || '').trim() === value)
-  if (index >= 0) {
-    target.value.splice(index, 1)
-  } else {
-    target.value.push(value)
-    ensureSecurityOption(value)
-  }
-  await queueSave()
-}
-
-const addCustomSecurityOption = async (type) => {
-  const inputRef = type === 'danger' ? dangerCustomInput : securityCustomInput
-  const value = String(inputRef.value || '').trim()
-  if (!value) return
-  ensureSecurityOption(value)
-  const target = getSecuritySelection(type)
-  if (!target.value.includes(value)) target.value.push(value)
-  inputRef.value = ''
-  await queueSave()
-}
-
-const removeSecurityTag = async (type, label) => {
-  const target = getSecuritySelection(type)
-  const value = String(label || '').trim()
-  const index = target.value.findIndex(item => String(item || '').trim() === value)
-  if (index >= 0) {
-    target.value.splice(index, 1)
-    await queueSave()
-  }
 }
 
 onMounted(loadStep)

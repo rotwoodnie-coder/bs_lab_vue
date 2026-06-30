@@ -16,6 +16,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.base import ChannelVersions, Checkpoint, CheckpointMetadata
 from langgraph.checkpoint.memory import MemorySaver
 
+from agents_framework.db_url import diagnose_mysql_url, normalize_mysql_driver_url
 from agents_framework.mysql_checkpointer import MySQLSaver
 
 logger = logging.getLogger("agents_framework.checkpointer")
@@ -125,9 +126,11 @@ def create_checkpointer(
         return TTLMemorySaver(ttl_seconds=memory_ttl_seconds)
 
     if connection_string.startswith(("mysql://", "mysql+aiomysql://")):
-        # 标准化连接字符串
-        if connection_string.startswith("mysql://"):
-            connection_string = "mysql+aiomysql://" + connection_string[len("mysql://"):]
+        connection_string = normalize_mysql_driver_url(connection_string)
+        diagnosis = diagnose_mysql_url(connection_string)
+        if diagnosis:
+            logger.warning("MySQL 连接串无效，降级为 TTLMemorySaver: %s", diagnosis)
+            return TTLMemorySaver(ttl_seconds=memory_ttl_seconds)
         try:
             saver = MySQLSaver(connection_string)
             _run_async(saver.setup())

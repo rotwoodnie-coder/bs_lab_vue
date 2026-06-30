@@ -51,8 +51,13 @@ public class ExpScientistServiceImpl implements ExpScientistService {
     }
 
     private ExpScientist buildAndSave(String expId, Map<String, Object> scientist, Integer sortOrder) {
-        ExpScientist entity = new ExpScientist();
-        entity.setScientistId(hasText(scientist.get("scientistId")) ? asString(scientist.get("scientistId")) : randomId());
+        String scientistId = hasText(scientist.get("scientistId")) ? asString(scientist.get("scientistId")) : null;
+        ExpScientist entity = (scientistId != null)
+                ? repository.findById(scientistId).orElseGet(ExpScientist::new)
+                : new ExpScientist();
+        if (!StringUtils.hasText(entity.getScientistId())) {
+            entity.setScientistId(randomId());
+        }
         entity.setExpId(expId);
         entity.setScientistName(asString(scientist.get("scientistName")));
         entity.setStoryName(asString(scientist.get("storyName")));

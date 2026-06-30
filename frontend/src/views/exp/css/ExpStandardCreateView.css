@@ -153,6 +153,19 @@
   width: 100%;
 }
 
+.security-text-editor {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.security-option-hint {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #909399;
+}
+
 .security-tag-editor__input-row {
   display: flex;
   gap: 10px;
@@ -418,6 +431,7 @@
   gap: 16px;
   max-height: 480px;
   overflow: auto;
+  align-items: stretch;
 }
 
 .picker-card {
@@ -429,30 +443,42 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
 }
 
 .picker-card__preview {
   position: relative;
-  background: #fff;
+  background: #f5f7fa;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .picker-card__preview video,
 .picker-card__preview :deep(.el-image),
 .material-card__preview :deep(.el-image) {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
   display: block;
 }
 
-.picker-card__preview :deep(.el-image),
-.material-card__preview :deep(.el-image) {
-  background: #fff;
+.picker-card__preview :deep(.el-image__inner),
+.material-card__preview :deep(.el-image__inner),
+.picker-card__preview :deep(img),
+.material-card__preview :deep(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .picker-card__body {
   padding: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .picker-card__name {
@@ -474,7 +500,8 @@
 }
 
 .picker-card__actions {
-  margin-top: 12px;
+  margin-top: auto;
+  padding-top: 12px;
   display: flex;
   justify-content: flex-end;
 }
@@ -504,6 +531,7 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .picker-card.is-selected {
@@ -514,22 +542,29 @@
 
 .picker-card__preview {
   position: relative;
-  background: #fff;
+  background: #f5f7fa;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .picker-card__preview video,
 .picker-card__preview :deep(.el-image),
 .material-card__preview :deep(.el-image) {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
   display: block;
 }
 
-.picker-card__preview :deep(.el-image),
-.material-card__preview :deep(.el-image) {
-  background: #fff;
+.picker-card__preview :deep(.el-image__inner),
+.material-card__preview :deep(.el-image__inner),
+.picker-card__preview :deep(img),
+.material-card__preview :deep(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .picker-card__playing-mask {
@@ -546,6 +581,10 @@
 
 .picker-card__body {
   padding: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .picker-card__name {
@@ -567,7 +606,8 @@
 }
 
 .picker-card__actions {
-  margin-top: 12px;
+  margin-top: auto;
+  padding-top: 12px;
   display: flex;
   justify-content: flex-end;
 }
@@ -577,14 +617,14 @@
 }
 
 .material-card__empty {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
   color: #909399;
   font-size: 13px;
-  background: linear-gradient(135deg, #1f2937, #111827);
+  background: #f5f7fa;
 }
 
 .material-grid {
@@ -592,6 +632,7 @@
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
   margin-top: 12px;
+  align-items: stretch;
 }
 
 .material-card {
@@ -602,15 +643,21 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-width: 0;
 }
 
 .material-card__preview {
   position: relative;
-  background: #000;
+  background: #f5f7fa;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .material-card__preview :deep(.el-image) {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
@@ -618,6 +665,10 @@
 
 .material-card__body {
   padding: 12px 12px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .material-card__name {
