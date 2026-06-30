@@ -143,7 +143,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
     public Map<String, Object> getDetailView(String id) {
         Optional<ExpMsg> optional = repository.findById(id);
         Map mapDetail = optional.map(this::toMap).orElse(null);
-
+        System.out.println("mapDetail: " );
         //获取标准实验名称
         if(mapDetail.get("linkExpId")!=null ){
             String linkExpId = asString(mapDetail.get("linkExpId"));
@@ -155,6 +155,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
             }
         }
 
+        System.out.println("mapDetail9: " );
         //获取年级信息
         if(mapDetail.get("gradeId")!=null ){
             String gradeId = asString(mapDetail.get("gradeId"));
@@ -165,6 +166,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
                 }
             }
         }
+        System.out.println("mapDetail8: " );
         List<String> gradeNames = expGradeService.listGradeNames(id);
         String strGradeNames= "";
         if(gradeNames!=null && gradeNames.size()>0){
@@ -172,6 +174,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
         }
         mapDetail.put("gradeNames", strGradeNames);
 
+        System.out.println("mapDetail7: " );
         //获取学科信息
         if(mapDetail.get("subjectId")!=null ){
             String subjectId = asString(mapDetail.get("subjectId"));
@@ -183,6 +186,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
             }   
         }
 
+        System.out.println("mapDetail6: " );
         //semester_id
         if(mapDetail.get("semesterId")!=null ){
             String semesterId = asString(mapDetail.get("semesterId"));
@@ -194,6 +198,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
             }   
         }
 
+        System.out.println("mapDetail5: " );
         //coursebook_id
         if(mapDetail.get("coursebookId")!=null ){
             String coursebookId = asString(mapDetail.get("coursebookId"));
@@ -205,6 +210,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
             }   
         }
 
+        System.out.println("mapDetail4: " );
         //unit_id
         if(mapDetail.get("unitId")!=null ){
             String unitId = asString(mapDetail.get("unitId"));
@@ -216,6 +222,7 @@ public class ExpStandardServiceImpl implements ExpStandardService {
             }   
         }
 
+        System.out.println("mapDetail3: " );
         //chapter_id
         if(mapDetail.get("chapterId")!=null ){
             String chapterId = asString(mapDetail.get("chapterId"));
@@ -227,7 +234,9 @@ public class ExpStandardServiceImpl implements ExpStandardService {
             }   
         }
 
+        System.out.println("mapDetail2: " );
         //section_id
+        /*
         if(mapDetail.get("sectionId")!=null ){
             String sectionId = asString(mapDetail.get("sectionId"));
             if(sectionId!=null){
@@ -236,7 +245,8 @@ public class ExpStandardServiceImpl implements ExpStandardService {
                     mapDetail.put("sectionName", oUnit.getContentName());
                 }
             }   
-        }
+        }*/
+        System.out.println("mapDetail1: " );
         return mapDetail;
     }
 
