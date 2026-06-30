@@ -124,7 +124,7 @@
             <el-descriptions-item label="教材">{{ form.coursebookName }}</el-descriptions-item>
             <el-descriptions-item label="单元">{{ form.unitName }}</el-descriptions-item>
             <el-descriptions-item label="章">{{ form.chapterName }}</el-descriptions-item>
-            <el-descriptions-item label="节">{{ form.sectionName }}</el-descriptions-item>
+            <el-descriptions-item label="节">{{ form.sectionId }}</el-descriptions-item>
             <el-descriptions-item label="课时">{{ form.classHour ?? '-' }}</el-descriptions-item>
             <el-descriptions-item label="注意事项" :span="2">
               <div class="rich-view rich-view--panel" v-html="normalizeListHtml(form.expCaution)" />
@@ -284,6 +284,7 @@ const loadDetail = async () => {
         coursebookName: draft.coursebookName || '',
         unitName: draft.unitName || '',
         chapterName: draft.chapterName || '',
+        sectionId: draft.sectionId || '',
         sectionName: draft.sectionName || '',
         semesterName: draft.semesterName || '',
         difficultyId: draft.difficultyId || '',
