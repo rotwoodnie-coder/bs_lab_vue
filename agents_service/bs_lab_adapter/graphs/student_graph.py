@@ -759,9 +759,16 @@ async def call_llm_node(state: StudentState) -> dict[str, Any]:
 
     for attempt in range(1, max_attempts + 1):
         try:
+            # 日志：发送到 LLM 的消息
+            logger.info("LLM 请求 attempt=%d stage=%s messages=%s",
+                         attempt, state.get("current_stage", "UNKNOWN"),
+                         [(m.type, str(m.content)[:80]) for m in full_messages])
             # 使用异步 ainvoke 避免阻塞事件循环
             response = await llm.ainvoke(full_messages)
             raw_content = response.content.strip() if response.content else ""
+            # 日志：LLM 返回内容
+            logger.info("LLM 响应 attempt=%d reply=%.200s",
+                         attempt, raw_content[:200])
 
             # 防御性清除可能的 markdown 代码块标记
             if raw_content.startswith("```"):

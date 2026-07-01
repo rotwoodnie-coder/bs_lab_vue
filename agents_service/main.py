@@ -15,6 +15,9 @@ from agents_framework.router import AgentRouter
 from agents_framework.server import create_agent_app
 
 from bs_lab_adapter.graphs.student_graph import create_student_graph
+from bs_lab_adapter.graphs.free_chat_graph import create_free_chat_graph
+from bs_lab_adapter.graphs.plan_design_graph import create_plan_design_graph
+from bs_lab_adapter.graphs.post_experiment_graph import create_post_experiment_graph
 
 # ─── 日志配置 ─────────────────────────────────────────
 
@@ -39,6 +42,15 @@ router = AgentRouter()
 # 石头老师（学生端）
 student_graph = create_student_graph(checkpointer=checkpointer)
 router.register("student", student_graph)
+
+# 自由聊天（无阶段约束）
+router.register("free_chat", create_free_chat_graph(checkpointer=checkpointer))
+# 实验前引导（复用现有学生图）
+router.register("pre_experiment", create_student_graph(checkpointer=checkpointer))
+# 实验方案设计
+router.register("plan_design", create_plan_design_graph(checkpointer=checkpointer))
+# 实验后分析（4 阶段 FSM）
+router.register("post_experiment", create_post_experiment_graph(checkpointer=checkpointer))
 
 # TODO: 后续 PR 补充
 # from bs_lab_adapter.graphs.teacher_graph import create_teacher_graph

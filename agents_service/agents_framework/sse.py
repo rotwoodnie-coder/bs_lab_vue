@@ -30,6 +30,12 @@ def serialize_stage(stage: str, grade_level: str = "") -> str:
     return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
+def serialize_diagnosis_report(report: dict[str, Any]) -> str:
+    """生成诊断报告结构化数据事件（供前端直接填入 A4 报告）。"""
+    data = {"type": "diagnosis_report", "report": report}
+    return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
 def serialize_done() -> str:
     """生成结束标记。"""
     return "data: [DONE]\n\n"

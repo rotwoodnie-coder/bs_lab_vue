@@ -28,6 +28,12 @@ public class MobileProfileDto {
     private Integer worksCount;
     /** 学生作品累计获赞数 */
     private Integer totalLikes;
+    /** 年级名称，如：三年级 */
+    private String gradeName;
+    /** 班级名称，如：三年级2班 */
+    private String className;
+    /** 学段：低段 / 中段 / 高段 */
+    private String gradeSegment;
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -85,4 +91,13 @@ public class MobileProfileDto {
 
     public Integer getTotalLikes() { return totalLikes; }
     public void setTotalLikes(Integer totalLikes) { this.totalLikes = totalLikes; }
+
+    public String getGradeName() { return gradeName; }
+    public void setGradeName(String gradeName) { this.gradeName = gradeName; }
+
+    public String getClassName() { return className; }
+    public void setClassName(String className) { this.className = className; }
+
+    public String getGradeSegment() { return gradeSegment; }
+    public void setGradeSegment(String gradeSegment) { this.gradeSegment = gradeSegment; }
 }

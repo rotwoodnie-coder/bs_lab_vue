@@ -19,8 +19,17 @@ class Settings(BaseSettings):
     # ── LLM (OpenAI 兼容 API) ──
     llm_api_key: str = ""
     llm_base_url: str = "https://api.deepseek.com/v1"
-    llm_model: str = "deepseek-chat"
+    llm_model: str = "deepseek-v4-flash"
     llm_timeout_ms: int = 60_000
+
+    # ── 视觉分析（通义千问 Qwen-VL / 阿里云百炼） ──
+    vision_api_key: str = ""
+    vision_base_url: str = ""
+    vision_model: str = "qwen3-vl-plus"
+    vision_timeout_ms: int = 15_000
+    vision_retry_max: int = 3
+    vision_retry_base_delay: float = 1.0
+    vision_circuit_breaker_threshold: int = 5
 
     # ── Checkpointer 连接字符串 ──
     # 用于 LangGraph 检查点持久化。

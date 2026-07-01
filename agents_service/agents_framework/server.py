@@ -26,6 +26,7 @@ from agents_framework.sse import (
     serialize_token,
     serialize_stage,
     serialize_heartbeat,
+    serialize_diagnosis_report,
 )
 from agents_framework.errors import AgentError, classify_error
 
@@ -122,21 +123,23 @@ def create_agent_app(
     @app.post("/v1/chat")
     async def unified_chat(request: Request):
         body = await request.json()
-        body = await request.json()
         message = (body.get("message") or "").strip()
         role = (body.get("role") or "student").strip().lower()
         thread_id = body.get("thread_id")
         user_name = (body.get("user_name") or "").strip()
         user_id = body.get("user_id", thread_id or uuid.uuid4().hex[:16])
         grade_level = body.get("grade_level") or None
+        image_base64 = _normalize_image_base64(body.get("image_base64"))
 
+        if not message and not image_base64:
+            raise HTTPException(status_code=422, detail="message 或 image_base64 至少提供一个")
         if not message:
-            raise HTTPException(status_code=422, detail="message 不能为空")
+            message = "请结合上传的实验照片进行分析。"
 
         trace_id = request.headers.get("x-trace-id", uuid.uuid4().hex[:16])
         logger.info(
-            "[%s] /v1/chat role=%s grade=%s msg=%.40s tid=%s",
-            trace_id, role, grade_level, message, thread_id,
+            "[%s] /v1/chat role=%s grade=%s msg=%.40s image=%s tid=%s",
+            trace_id, role, grade_level, message, bool(image_base64), thread_id,
         )
 
         # 通过 Router 解析目标智能体
@@ -159,14 +162,14 @@ def create_agent_app(
         }
         resolved_thread_id = config["configurable"]["thread_id"]
 
-        # 构建输入状态（透传 grade_level）
+        # 构建输入状态（透传 grade_level 和 role）
         input_state = await _build_input_state(
             graph, config, message, user_id, user_name, resolved_thread_id,
-            grade_level=grade_level,
+            grade_level=grade_level, role=role, image_base64=image_base64,
         )
 
         return StreamingResponse(
-            _stream_agent_response(graph, input_state, config),
+            _stream_agent_response(graph, input_state, config, role=role),
             media_type="text/event-stream",
             headers={
                 "cache-control": "no-cache",
@@ -186,13 +189,20 @@ def create_agent_app(
         user_name = (body.get("user_name") or "").strip()
         user_id = body.get("user_id", thread_id or uuid.uuid4().hex[:16])
         grade_level = body.get("grade_level") or None
+        image_base64 = _normalize_image_base64(body.get("image_base64"))
+        experiment_title = (body.get("experiment_title") or "").strip()
 
+        if not message and not image_base64:
+            if role == "plan_design" and experiment_title:
+                message = f"请为「{experiment_title}」设计 3 个实验方案"
+            else:
+                raise HTTPException(status_code=422, detail="message 或 image_base64 至少提供一个")
         if not message:
-            raise HTTPException(status_code=422, detail="message 不能为空")
+            message = "请结合上传的实验照片进行分析。"
 
         trace_id = request.headers.get("x-trace-id", uuid.uuid4().hex[:16])
-        logger.info("[%s] /v1/chat/sync role=%s grade=%s msg=%.40s tid=%s",
-                     trace_id, role, grade_level, message, thread_id)
+        logger.info("[%s] /v1/chat/sync role=%s grade=%s msg=%.40s image=%s tid=%s",
+                     trace_id, role, grade_level, message, bool(image_base64), thread_id)
 
         graph, resolved_thread_id = await agent_router.resolve(
             role=role, thread_id=thread_id, checkpointer=checkpointer)
@@ -210,7 +220,8 @@ def create_agent_app(
 
         input_state = await _build_input_state(
             graph, config, message, user_id, user_name, resolved_thread_id,
-            grade_level=grade_level,
+            grade_level=grade_level, role=role, image_base64=image_base64,
+            experiment_title=experiment_title,
         )
 
         try:
@@ -218,19 +229,94 @@ def create_agent_app(
         except Exception as e:
             logger.error(f"[{trace_id}] Agent 调用失败: {e}", exc_info=True)
             return {"reply": "抱歉，石头老师现在有点忙，请稍后再试。",
-                    "thread_id": resolved_thread_id}
+                    "thread_id": resolved_thread_id, "plans": []}
 
         reply = ""
+        plans: list[Any] = []
+        diagnosis_report: dict[str, Any] = {}
         if isinstance(final_state, dict):
             reply = final_state.get("reply_content", "") or ""
+            plans = final_state.get("plans", []) or []
+            diagnosis_report = final_state.get("diagnosis_report", {}) or {}
             if not reply and final_state.get("messages"):
                 for m in reversed(final_state["messages"]):
                     if hasattr(m, "content") and isinstance(m.content, str) and m.content:
                         reply = m.content
                         break
 
-        return {"reply": reply or "收到你的问题，让我想想…",
-                "thread_id": resolved_thread_id}
+        # 序列化 Pydantic 方案对象
+        serialized_plans = []
+        for p in plans:
+            if hasattr(p, "model_dump"):
+                serialized_plans.append(p.model_dump())
+            elif isinstance(p, dict):
+                serialized_plans.append(p)
+            else:
+                serialized_plans.append(dict(p))
+
+        return {
+            "reply": reply or "收到你的问题，让我想想…",
+            "thread_id": resolved_thread_id,
+            "plans": serialized_plans,
+            "diagnosis_report": diagnosis_report,
+        }
+
+    # ─── 聊天历史(读取/清除) ──────────────────────────────
+    @app.get("/v1/chat/history/{thread_id}")
+    async def get_chat_history(thread_id: str):
+        """从 checkpointer 读取指定线程的聊天历史。"""
+        if not checkpointer:
+            return {"messages": [], "thread_id": thread_id}
+        try:
+            state = await checkpointer.aget_tuple(
+                {"configurable": {"thread_id": thread_id}}
+            )
+            if not state:
+                return {"messages": [], "thread_id": thread_id}
+
+            messages = []
+            if state.checkpoint and "channel_values" in state.checkpoint:
+                channel_msgs = state.checkpoint["channel_values"].get("messages", [])
+                for msg in channel_msgs:
+                    if hasattr(msg, "type") and hasattr(msg, "content"):
+                        messages.append({
+                            "role": "user" if msg.type == "human" else "assistant",
+                            "content": str(msg.content) if msg.content else "",
+                        })
+            return {"messages": messages, "thread_id": thread_id}
+        except Exception as e:
+            logger.error("获取聊天历史失败: %s", e, exc_info=True)
+            return {"messages": [], "thread_id": thread_id}
+
+    @app.delete("/v1/chat/clear/{thread_id}")
+    async def clear_chat_history(thread_id: str):
+        """清除指定线程的所有检查点数据。"""
+        if not checkpointer:
+            return {"status": "ok", "message": "未配置 checkpointer，无操作"}
+        try:
+            if hasattr(checkpointer, "adelete_thread"):
+                await checkpointer.adelete_thread(thread_id)
+                logger.info("已清除线程 %s 的检查点", thread_id)
+            return {"status": "ok", "message": f"已清除会话 {thread_id}"}
+        except Exception as e:
+            logger.error("清除聊天历史失败: %s", e, exc_info=True)
+            return {"status": "error", "message": str(e)}
+
+    # ─── 视觉分析（独立接口，供 Java proxy 转发）────────────
+    @app.post("/v1/vision/review")
+    async def vision_review(request: Request):
+        from bs_lab_adapter.tools.vision_review import VisionProvider
+        from bs_lab_adapter.schemas.vision import VisionReviewRequest
+
+        body = await request.json()
+        req = VisionReviewRequest(**body)
+        image_base64 = _normalize_image_base64(req.image_base64)
+        if not image_base64:
+            raise HTTPException(status_code=422, detail="image_base64 不能为空")
+
+        provider = VisionProvider()
+        result = await provider.review_image(image_base64, context=req.context)
+        return result
 
     return app
 
@@ -240,8 +326,46 @@ def create_agent_app(
 
 def _build_new_session_state(message: str, user_id: str, user_name: str,
                               session_id: str = "",
-                              grade_level: str | None = None) -> dict:
-    """构建全新会话的初始状态。"""
+                              grade_level: str | None = None,
+                              role: str = "student",
+                              image_base64: str = "",
+                              experiment_title: str = "") -> dict:
+    """构建全新会话的初始状态（角色感知）。"""
+    if role == "free_chat":
+        return {
+            "messages": [HumanMessage(content=message)],
+            "user_name": user_name or "同学",
+            "user_id": user_id,
+            "session_id": session_id,
+            "reply_content": "",
+        }
+
+    if role == "plan_design":
+        return {
+            "messages": [HumanMessage(content=message)],
+            "user_name": user_name or "同学",
+            "user_id": user_id,
+            "session_id": session_id,
+            "experiment_title": experiment_title or message,
+            "grade_level": grade_level or "中段",
+            "plans": [],
+            "reply_content": "",
+        }
+
+    if role == "post_experiment":
+        return {
+            "messages": [HumanMessage(content=message)],
+            "user_name": user_name or "同学",
+            "user_id": user_id,
+            "session_id": session_id,
+            "current_stage": "DATA_ANALYZE",
+            "grade_level": grade_level or "中段",
+            "image_base64": image_base64 or "",
+            "reply_content": "",
+            "stage_advanced": False,
+        }
+
+    # 默认：pre_experiment / student 格式
     return {
         "messages": [HumanMessage(content=message)],
         "user_name": user_name or "同学",
@@ -262,6 +386,18 @@ def _build_new_session_state(message: str, user_id: str, user_name: str,
     }
 
 
+def _normalize_image_base64(raw: Any) -> str:
+    """Strip data-URL prefix from base64 image payload."""
+    if not raw or not isinstance(raw, str):
+        return ""
+    value = raw.strip()
+    if value.startswith("data:"):
+        comma = value.find(",")
+        if comma >= 0:
+            value = value[comma + 1 :]
+    return value
+
+
 async def _build_input_state(
     graph,
     config: dict,
@@ -270,6 +406,9 @@ async def _build_input_state(
     user_name: str,
     session_id: str = "",
     grade_level: str | None = None,
+    role: str = "student",
+    image_base64: str = "",
+    experiment_title: str = "",
 ) -> dict:
     """构建本轮输入状态。"""
     try:
@@ -278,25 +417,37 @@ async def _build_input_state(
     except Exception:
         has_saved = False
     if has_saved:
-        return {"messages": [HumanMessage(content=message)]}
-    return _build_new_session_state(message, user_id, user_name, session_id,
-                                    grade_level=grade_level)
+        state_update: dict[str, Any] = {"messages": [HumanMessage(content=message)]}
+        if image_base64:
+            state_update["image_base64"] = image_base64
+        if role == "plan_design":
+            if experiment_title:
+                state_update["experiment_title"] = experiment_title
+            if grade_level:
+                state_update["grade_level"] = grade_level
+        return state_update
+    return _build_new_session_state(
+        message, user_id, user_name, session_id,
+        grade_level=grade_level, role=role, image_base64=image_base64,
+        experiment_title=experiment_title,
+    )
 
 
-async def _stream_agent_response(graph, input_state: dict, config: dict):
+# 这些角色不直接流式转发 LLM token，而是在图节点结束后输出整理好的 reply_content
+_JSON_REPLY_ROLES = frozenset({"student", "pre_experiment", "post_experiment"})
+
+
+async def _stream_agent_response(graph, input_state: dict, config: dict, role: str = "student"):
     """流式输出 Agent 响应，带 heartbeat 防网关超时。"""
-    import re as _re
     session_id = config.get("configurable", {}).get("thread_id", "")
-
     yield serialize_meta(session_id=session_id)
 
-    buf = ""
-    last_reply_end = 0
+    structured_json = role in _JSON_REPLY_ROLES
     reply_sent = False
     final_output = None
+    diagnosis_report: dict[str, Any] = {}
     HEARTBEAT_INTERVAL = 15.0
     _last_heartbeat = time.monotonic()
-    _REPLY_PATTERN = _re.compile(r'"reply"\s*:\s*"(.*?)(?<!\\)"', _re.DOTALL)
 
     try:
         async for event in graph.astream_events(input_state, config=config, version="v2"):
@@ -309,29 +460,36 @@ async def _stream_agent_response(graph, input_state: dict, config: dict):
             data = event.get("data", {})
 
             if event_type == "on_chat_model_stream":
+                if structured_json:
+                    continue
                 chunk = data.get("chunk")
                 if chunk and hasattr(chunk, "content") and chunk.content:
-                    buf += chunk.content
-                    m = _REPLY_PATTERN.search(buf)
-                    if m:
-                        start, end = m.start(1), m.end(1)
-                        if last_reply_end < end:
-                            begin = max(last_reply_end, start)
-                            new_text = buf[begin:end]
-                            if new_text:
-                                yield serialize_token(new_text)
-                                reply_sent = True
-                            last_reply_end = end
+                    yield serialize_token(chunk.content)
+                    reply_sent = True
+
+            elif event_type == "on_chat_model_end":
+                if structured_json or reply_sent:
+                    continue
+                output = data.get("output")
+                if output and hasattr(output, "content") and output.content:
+                    yield serialize_token(str(output.content))
+                    reply_sent = True
 
             elif event_type == "on_chain_end":
                 output = data.get("output", {})
                 if isinstance(output, dict):
-                    final_output = output
-                    m = _REPLY_PATTERN.search(buf)
-                    if m and last_reply_end < m.end(1):
-                        remain = buf[max(last_reply_end, m.start(1)):m.end(1)]
-                        if remain:
-                            yield serialize_token(remain)
+                    if output.get("diagnosis_report"):
+                        diagnosis_report = output["diagnosis_report"]
+                    if not reply_sent:
+                        final_output = output
+                        reply = output.get("reply_content")
+                        if not reply and output.get("messages"):
+                            for m in reversed(output["messages"]):
+                                if hasattr(m, "content") and isinstance(m.content, str) and m.content:
+                                    reply = m.content
+                                    break
+                        if reply:
+                            yield serialize_token(reply)
                             reply_sent = True
 
         if not reply_sent:
@@ -344,6 +502,9 @@ async def _stream_agent_response(graph, input_state: dict, config: dict):
                 stage=final_output.get("current_stage", ""),
                 grade_level=final_output.get("grade_level", ""),
             )
+
+        if diagnosis_report:
+            yield serialize_diagnosis_report(diagnosis_report)
 
         yield serialize_done()
 

@@ -94,6 +94,7 @@ class MySQLSaver(BaseCheckpointSaver):
                 pool_size=5,
                 max_overflow=10,
                 pool_recycle=300,
+                pool_pre_ping=True,
                 echo=False,
             )
             logger.info("MySQL checkpointer 引擎已创建 (pool_size=5, max_overflow=10)")

@@ -17,15 +17,9 @@ from typing import Optional, AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import settings
+from agents_framework.db_url import normalize_mysql_driver_url
 
 logger = logging.getLogger("bs_lab_adapter.database")
-
-
-def _normalize_mysql_url(url: str) -> str:
-    """确保 MySQL URL 使用 aiomysql 异步驱动前缀。"""
-    if url.startswith("mysql://"):
-        return url.replace("mysql://", "mysql+aiomysql://", 1)
-    return url
 
 
 # ─── 延迟初始化的引擎 ─────────────────────────────────────
@@ -46,7 +40,7 @@ def _ensure_engine() -> None:
 
     try:
         _engine = create_async_engine(
-            _normalize_mysql_url(settings.database_url),
+            normalize_mysql_driver_url(settings.database_url),
             pool_size=5,          # 减小池大小，适应 SSE 场景
             max_overflow=10,
             pool_recycle=300,     # 5 分钟回收，避免长时间空闲连接被 MySQL 断开

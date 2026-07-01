@@ -2,13 +2,37 @@
 
 from __future__ import annotations
 
-from urllib.parse import quote
+from urllib.parse import quote, urlparse, parse_qs, urlencode, ParseResult
+
+# aiomysql 不支持的 JDBC 专有参数，这些参数对 SQLAlchemy/aiomysql 无意义
+_JDBC_QUERY_PARAMS_TO_STRIP = frozenset({
+    "useUnicode",
+    "characterEncoding",
+    "useSSL",
+    "serverTimezone",
+    "autoReconnect",
+    "allowPublicKeyRetrieval",
+})
 
 
 def normalize_mysql_driver_url(url: str) -> str:
+    """标准化 MySQL 连接串：确保异步驱动前缀，并剥离 JDBC 专有参数。"""
     if url.startswith("mysql://"):
-        return url.replace("mysql://", "mysql+aiomysql://", 1)
-    return url
+        url = url.replace("mysql://", "mysql+aiomysql://", 1)
+    return strip_jdbc_params(url)
+
+
+def strip_jdbc_params(url: str) -> str:
+    """从 MySQL 连接串中移除 aiomysql 不支持的 JDBC 查询参数。"""
+    if "?" not in url:
+        return url
+    parsed: ParseResult = urlparse(url)
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    stripped = {k: v for k, v in params.items() if k not in _JDBC_QUERY_PARAMS_TO_STRIP}
+    if len(stripped) == len(params):
+        return url  # 没有需要移除的参数
+    new_query = urlencode(stripped, doseq=True) if stripped else ""
+    return parsed._replace(query=new_query).geturl()
 
 
 def diagnose_mysql_url(url: str) -> str | None:

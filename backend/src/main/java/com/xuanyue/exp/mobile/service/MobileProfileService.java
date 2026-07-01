@@ -6,6 +6,7 @@ import com.xuanyue.exp.exp.entity.ExpMsg;
 import com.xuanyue.exp.exp.repository.ExpMsgRepository;
 import com.xuanyue.exp.mobile.support.MobileMediaUrlSupport;
 import com.xuanyue.exp.mobile.support.MobileMinioKeySupport;
+import com.xuanyue.exp.mobile.support.MobileStudentOrgSupport;
 import com.xuanyue.exp.mobile.support.MobileWorkAuditStatus;
 import com.xuanyue.exp.mobile.dto.MobileProfileDto;
 import com.xuanyue.exp.system.entity.SysOrg;
@@ -36,17 +37,20 @@ public class MobileProfileService {
     private final DataDictService dataDictService;
     private final MinioStorageService minioStorageService;
     private final ExpMsgRepository expMsgRepository;
+    private final MobileStudentOrgSupport studentOrgSupport;
 
     public MobileProfileService(SysUserRepository sysUserRepository,
                                 SysOrgRepository sysOrgRepository,
                                 DataDictService dataDictService,
                                 MinioStorageService minioStorageService,
-                                ExpMsgRepository expMsgRepository) {
+                                ExpMsgRepository expMsgRepository,
+                                MobileStudentOrgSupport studentOrgSupport) {
         this.sysUserRepository = sysUserRepository;
         this.sysOrgRepository = sysOrgRepository;
         this.dataDictService = dataDictService;
         this.minioStorageService = minioStorageService;
         this.expMsgRepository = expMsgRepository;
+        this.studentOrgSupport = studentOrgSupport;
     }
 
     /**
@@ -103,6 +107,7 @@ public class MobileProfileService {
         // 学生：作品数（已提交，不含草稿）与累计获赞
         if ("Student".equalsIgnoreCase(StringUtils.hasText(user.getUserRoleId()) ? user.getUserRoleId().trim() : "")) {
             applyStudentWorkStats(dto, user.getUserId());
+            applyStudentOrgInfo(dto, user.getUserId());
         }
 
         // 解析职称
@@ -146,6 +151,62 @@ public class MobileProfileService {
             dto.setWorksCount(0);
             dto.setTotalLikes(0);
         }
+    }
+
+    /** 解析学生年级、班级与学段（低段/中段/高段） */
+    private void applyStudentOrgInfo(MobileProfileDto dto, String studentId) {
+        try {
+            MobileStudentOrgSupport.StudentOrgContext ctx = studentOrgSupport.resolve(studentId);
+            if (StringUtils.hasText(ctx.getGradeName())) {
+                dto.setGradeName(ctx.getGradeName().trim());
+            }
+            if (StringUtils.hasText(ctx.getClassName())) {
+                dto.setClassName(ctx.getClassName().trim());
+            }
+            String segment = mapSchoolGradeIdToSegment(ctx.getSchoolGradeId());
+            if (!StringUtils.hasText(segment) && StringUtils.hasText(ctx.getGradeName())) {
+                segment = mapGradeNameToSegment(ctx.getGradeName());
+            }
+            if (StringUtils.hasText(segment)) {
+                dto.setGradeSegment(segment);
+            }
+        } catch (Exception e) {
+            log.warn("解析学生年级信息失败 studentId={}", studentId, e);
+        }
+    }
+
+    private String mapSchoolGradeIdToSegment(String schoolGradeId) {
+        if (!StringUtils.hasText(schoolGradeId)) {
+            return null;
+        }
+        String id = schoolGradeId.trim().toLowerCase();
+        if ("g1".equals(id) || "g2".equals(id)) {
+            return "低段";
+        }
+        if ("g3".equals(id) || "g4".equals(id)) {
+            return "中段";
+        }
+        if ("g5".equals(id) || "g6".equals(id)) {
+            return "高段";
+        }
+        return null;
+    }
+
+    private String mapGradeNameToSegment(String gradeName) {
+        if (!StringUtils.hasText(gradeName)) {
+            return null;
+        }
+        String name = gradeName.trim();
+        if (name.contains("一") || name.contains("二")) {
+            return "低段";
+        }
+        if (name.contains("三") || name.contains("四")) {
+            return "中段";
+        }
+        if (name.contains("五") || name.contains("六")) {
+            return "高段";
+        }
+        return null;
     }
 
     private void resolveOrgName(MobileProfileDto dto, String orgId) {

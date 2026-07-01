@@ -49,6 +49,10 @@ export const useProfileStore = defineStore('profile', () => {
     if (data.userName) userStore.userInfo.username = data.userName
     if (data.rootOrgName) userStore.userInfo.rootOrgName = data.rootOrgName
     if (data.userRoleId) userStore.userInfo.userRoleId = data.userRoleId
+    if (data.userOrgName) userStore.userInfo.userOrgName = data.userOrgName
+    if (data.gradeName) userStore.userInfo.gradeName = data.gradeName
+    if (data.className) userStore.userInfo.className = data.className
+    if (data.gradeSegment) userStore.userInfo.gradeSegment = data.gradeSegment
   }
 
   function syncAvatarPreview() {
