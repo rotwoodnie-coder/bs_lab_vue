@@ -42,6 +42,19 @@
         <el-table-column prop="createUserName" label="创建人" min-width="120" show-overflow-tooltip>
           <template #default="scope">{{ scope.row.createUserName || scope.row.createUserId || '-' }}</template>
         </el-table-column>
+        <el-table-column label="模拟器" min-width="100" align="center">
+          <template #default="scope">
+            <el-button
+              v-if="scope.row.simulatorPreviewUrl"
+              link
+              type="primary"
+              @click="openSimulatorPreview(scope.row)"
+            >
+              预览
+            </el-button>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="scope">
             <el-tag :type="statusTagType(scope.row.status)" effect="light">
@@ -338,6 +351,11 @@ const openLogDialog = async (row) => {
   } finally {
     logLoading.value = false
   }
+}
+
+const openSimulatorPreview = (row) => {
+  const url = String(row?.simulatorPreviewUrl || '').trim()
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const handleSubmit = async () => {}

@@ -46,6 +46,22 @@
         <el-table-column prop="createUserName" label="创建人" min-width="120" show-overflow-tooltip>
           <template #default="scope">{{ scope.row.createUserName || scope.row.createUserId || '-' }}</template>
         </el-table-column>
+        <el-table-column label="模拟器" min-width="180" align="center">
+          <template #default="scope">
+            <div class="simulator-cell">
+              <el-button
+                v-if="scope.row.simulatorPreviewUrl"
+                link
+                type="primary"
+                @click="openSimulatorPreview(scope.row)"
+              >
+                预览
+              </el-button>
+              <span v-else>-</span>
+              <el-button link type="primary" @click="openChangeSimulatorDialog(scope.row)">更改</el-button>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="scope">
             <el-tag :type="statusTagType(scope.row.status)" effect="light">
@@ -88,7 +104,64 @@
         </div>
       </div>
     </el-card>
-
+    <el-dialog v-model="simulatorDialogVisible" title="实验模拟器" width="980px" class="user-dialog" destroy-on-close @closed="closeSimulatorDialog">
+      <div class="simulator-picker-toolbar">
+        <el-input v-model="simulatorQuery.keyword" placeholder="搜索模拟器名称/说明" clearable class="simulator-picker-search" @keyup.enter="loadSimulatorItems" style="width:180px;"/>
+        <el-button @click="loadSimulatorItems">查询</el-button>
+        <el-button @click="resetSimulatorQuery">重置</el-button>
+      </div>
+      <el-form ref="simulatorFormRef" :model="simulatorForm" :rules="simulatorRules" label-width="90px" class="user-form">
+          <el-table
+            :data="simulatorOptions"
+            border
+            stripe
+            v-loading="simulatorLoading"
+            class="user-table simulator-picker-table"
+            highlight-current-row
+            @row-click="selectSimulatorRow"
+          >
+            <el-table-column width="54" align="center">
+              <template #default="scope">
+                <el-radio v-model="simulatorForm.simulatorId" :value="scope.row.value" @change="selectSimulatorByValue(scope.row.value)" />
+              </template>
+            </el-table-column>
+            <el-table-column prop="label" label="模拟器名称" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="subjectName" label="学科" min-width="120" show-overflow-tooltip>
+              <template #default="scope">{{ scope.row.subjectName || '-' }}</template>
+            </el-table-column>
+            <el-table-column prop="comments" label="说明" min-width="220" show-overflow-tooltip>
+              <template #default="scope">{{ scope.row.comments || '-' }}</template>
+            </el-table-column>
+            <el-table-column label="预览" width="100" align="center">
+              <template #default="scope">
+                <el-button v-if="scope.row.previewUrl" link type="primary" @click.stop="openSimulatorPreviewByUrl(scope.row.previewUrl)">预览</el-button>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+          </el-table>
+      </el-form>
+      <div class="pagination-footer simulator-picker-pagination">
+        <div class="pagination-left">
+          <div class="pagination-summary">当前每页 {{ simulatorQuery.pageSize }} 条，共 {{ simulatorTotal }} 条数据</div>
+        </div>
+        <div class="pagination-wrap pagination-bar">
+          <el-pagination
+            background
+            layout="共 {total} 条, sizes, prev, pager, next, jumper"
+            :total="simulatorTotal"
+            :current-page="simulatorQuery.pageNum"
+            :page-size="simulatorQuery.pageSize"
+            :page-sizes="pageSizes"
+            @current-change="handleSimulatorPageChange"
+            @size-change="handleSimulatorSizeChange"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="simulatorDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="simulatorSubmitting" @click="handleSaveSimulator">确定</el-button>
+      </template>
+    </el-dialog>
     <el-dialog v-model="logDialogVisible" title="实验日志" width="980px" class="user-dialog">
       <el-table :data="logTableData" border stripe v-loading="logLoading" class="user-table">
         <el-table-column prop="logTime" label="时间" min-width="180">
@@ -132,7 +205,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ExpStandardDetailView from './ExpStandardDetailView.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { deleteExpStandard, fetchDataDictItems, fetchExpStandardsMy, fetchLatestExpStandardDraft } from '../../api/index'
+import { deleteExpStandard, fetchDataDictItems, fetchExpStandardsMy, fetchLatestExpStandardDraft,fetchExpSimulators, updateExpTeachSimulator } from '../../api/index'
 import { fetchExpLogs } from '../../api/exp'
 
 const router = useRouter()
@@ -155,6 +228,18 @@ const logLoading = ref(false)
 const logTableData = ref([])
 const viewDialogVisible = ref(false)
 const viewExpId = ref('')
+
+const simulatorDialogVisible = ref(false)
+const simulatorSubmitting = ref(false)
+const simulatorLoading = ref(false)
+const simulatorFormRef = ref()
+const simulatorOptions = ref([])
+const simulatorTotal = ref(0)
+const simulatorForm = reactive({ expId: '', simulatorId: '' })
+const simulatorQuery = reactive({ keyword: '', status: 'y', pageNum: 1, pageSize: 10 })
+const simulatorRules = {
+  simulatorId: [{ required: true, message: '请选择模拟器', trigger: 'change' }]
+}
 
 const query = reactive({ keyword: '', subjectId: '', status: '', expType: 'standard', pageNum: 1, pageSize: 10 })
 const form = reactive({ expName: '', chooseType: '', subjectId: '', schoolLevelId: '', gradeId: '', difficultyId: '', expPrinciple: '', expCaution: '', expDanger: '', classHour: null, status: 'c' })
@@ -349,6 +434,113 @@ const handleDelete = async (row) => {
   }
 }
 
+const openSimulatorPreview = (row) => {
+  const url = String(row?.simulatorPreviewUrl || '').trim()
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+const openSimulatorPreviewByUrl = (url) => {
+  const v = String(url || '').trim()
+  if (!v) return
+  window.open(v, '_blank', 'noopener,noreferrer')
+}
+
+const loadSimulatorItems = async () => {
+  simulatorLoading.value = true
+  try {
+    const res = await fetchExpSimulators({
+      ...simulatorQuery,
+      subjectId: simulatorForm.subjectId,
+      pageNum: simulatorQuery.pageNum,
+      pageSize: simulatorQuery.pageSize
+    })
+    if (res.data.code === 200) {
+      const records = res.data.data?.records || []
+      simulatorOptions.value = records.map(item => ({
+        value: String(item.simulatorId),
+        label: item.simulatorName,
+        subjectName: item.subjectName,
+        comments: item.comments,
+        previewUrl: item.simulatorPreviewUrl || item.simulatorUrl
+      }))
+      simulatorTotal.value = res.data.data?.total || 0
+    } else {
+      ElMessage.error(res.data.message || '加载模拟器失败')
+    }
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || '加载模拟器失败')
+  } finally {
+    simulatorLoading.value = false
+  }
+}
+
+const resetSimulatorQuery = () => {
+  simulatorQuery.keyword = ''
+  simulatorQuery.status = 'y'
+  simulatorQuery.pageNum = 1
+  simulatorQuery.pageSize = 10
+  loadSimulatorItems()
+}
+
+const handleSimulatorPageChange = (page) => {
+  simulatorQuery.pageNum = page
+  loadSimulatorItems()
+}
+
+const handleSimulatorSizeChange = (size) => {
+  simulatorQuery.pageSize = size
+  simulatorQuery.pageNum = 1
+  loadSimulatorItems()
+}
+
+const selectSimulatorRow = (row) => {
+  simulatorForm.simulatorId = row.value
+}
+
+const selectSimulatorByValue = (value) => {
+  simulatorForm.simulatorId = value
+}
+
+const openChangeSimulatorDialog = async (row) => {
+  const expId = String(row?.expId || '').trim()
+  if (!expId) {
+    ElMessage.warning('未找到实验ID')
+    return
+  }
+  simulatorForm.expId = expId
+  simulatorForm.subjectId = String(row?.subjectId || '').trim()
+  simulatorForm.simulatorId = String(row?.simulatorId || '')
+  simulatorDialogVisible.value = true
+  simulatorQuery.pageNum = 1
+  await loadSimulatorItems()
+}
+
+const closeSimulatorDialog = () => {
+  simulatorDialogVisible.value = false
+  simulatorForm.expId = ''
+  simulatorForm.simulatorId = ''
+}
+
+const handleSaveSimulator = async () => {
+  await simulatorFormRef.value?.validate(async (valid) => {
+    if (!valid) return
+    simulatorSubmitting.value = true
+    try {
+      const res = await updateExpTeachSimulator(simulatorForm.expId, simulatorForm.simulatorId)
+      if (res.data.code === 200) {
+        ElMessage.success('更改成功')
+        simulatorDialogVisible.value = false
+        loadItems()
+      } else {
+        ElMessage.error(res.data.message || '更改失败')
+      }
+    } catch (error) {
+      ElMessage.error(error?.response?.data?.message || '更改失败')
+    } finally {
+      simulatorSubmitting.value = false
+    }
+  })
+}
 
 onMounted(async () => {
   await loadDicts()
