@@ -263,6 +263,7 @@ const chooseTypeLabel = (value) => ({ must: '必做', choose: '选做' }[value] 
 const statusLabel = (value) => ({ c: '草稿', t: '待审核', y: '通过', n: '不通过' }[value] || value || '-')
 const statusTagType = (value) => ({ c: 'info', t: 'warning', y: 'success', n: 'danger' }[value] || 'info')
 const openCreateDialog = async () => {
+  /*
   try {
     const res = await fetchLatestExpTeachesDraft()
     const draft = res.data.data
@@ -272,7 +273,7 @@ const openCreateDialog = async () => {
     }
   } catch (error) {
     // ignore and create new draft
-  }
+  }*/
   router.push('/admin/exp/exp-teach/create')
 }
 
