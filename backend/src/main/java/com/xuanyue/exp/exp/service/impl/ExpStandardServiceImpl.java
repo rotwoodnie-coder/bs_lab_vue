@@ -88,6 +88,21 @@ public class ExpStandardServiceImpl implements ExpStandardService {
         List<Map<String, Object>> lstMap =  repository.findAll(spec(keyword, status, subjectId, schoolLevelId, gradeId, chooseType, expType,currentUserId,notstatus), pageable).getContent().stream().map(this::toMap).collect(Collectors.toList());
         for(Map<String, Object> map : lstMap){
             map.put("gradeNames", expGradeService.listGradeNamesString(map.get("expId").toString()));
+            if(map.get("simulatorId")!=null){
+            String simulatorId = asString(map.get("simulatorId"));
+            if(simulatorId!=null){
+                ExpSimulator oSimulator = expSimulatorRepository.findById(simulatorId).orElse(null);
+                if(oSimulator!=null){
+                    map.put("simulatorName", oSimulator.getSimulatorName());
+                    map.put("simulatorUrl", oSimulator.getSimulatorUrl());
+                    if(oSimulator.getSimulatorUrl()!=null && StringUtils.hasText(oSimulator.getSimulatorUrl()) && !oSimulator.getSimulatorUrl().startsWith("http")){
+                        map.put("simulatorPreviewUrl", minioStorageService.buildPreviewUrl(oSimulator.getSimulatorUrl()));
+                    }else{
+                        map.put("simulatorPreviewUrl", oSimulator.getSimulatorUrl());
+                    }
+                }
+            }
+           }
         }
         return lstMap;
     }
