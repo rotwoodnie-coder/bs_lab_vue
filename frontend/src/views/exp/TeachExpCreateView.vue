@@ -458,7 +458,7 @@ const handleSubmit = async () => {
   submitLoading.value = true
   try {
     await flushBeforeLeaveRichStep(activeStep.value)
-    await saveStep0()
+    //await saveStep0()
     await updateExpStandard(expId.value, { status: 'c' })
     ElMessage.success('提交草稿成功')
     router.push('/admin/exp/exp-teach')
@@ -470,14 +470,7 @@ const handleSubmit = async () => {
 }
 
 const handleSubmitToAudit = async () => {
-  //check  stepCompletion
-    console.log(completeStep0.value); 
-    console.log(stepStats.videos); 
-    console.log(stepStats.materials); 
-    console.log(stepStats.steps); 
-    console.log(stepStats.results); 
-    console.log(stepStats.safety); 
-    console.log(stepStats.references); 
+    //check  stepCompletion
     if(completeStep0.value<100){
       ElMessage.error("请先完善基础数据");
       return 
@@ -515,7 +508,7 @@ const handleSubmitToAudit = async () => {
   submitLoading.value = true
   try {
     await flushBeforeLeaveRichStep(activeStep.value)
-    await saveStep0()
+    //await saveStep0()
     await updateExpStandard(expId.value, { status: 't' })
     ElMessage.success('提交审核成功')
     router.push('/admin/exp/exp-teach')

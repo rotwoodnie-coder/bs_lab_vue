@@ -376,7 +376,7 @@ const handleSubmit = async () => {
   submitLoading.value = true
   try {
     await flushBeforeLeaveRichStep(activeStep.value)
-    await saveStep0()
+    //await saveStep0()
     await updateExpStandard(expId.value, { status: 'c' })
     ElMessage.success('提交草稿成功')
     router.push('/admin/exp/exp-standard')
@@ -400,7 +400,7 @@ const handleSubmitToAudit = async () => {
   submitLoading.value = true
   try {
     await flushBeforeLeaveRichStep(activeStep.value)
-    await saveStep0()
+    //await saveStep0()
     await updateExpStandard(expId.value, { status: 't' })
     ElMessage.success('提交审核成功')
     router.push('/admin/exp/exp-standard')
