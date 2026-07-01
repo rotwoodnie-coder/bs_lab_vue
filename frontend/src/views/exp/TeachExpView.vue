@@ -59,7 +59,16 @@
                 预览
               </el-button>
               <span v-else>-</span>
-              <el-button link type="primary" @click="openChangeSimulatorDialog(scope.row)">更改</el-button>
+              <el-button v-if="scope.row.simulatorPreviewUrl" link type="primary" @click="openChangeSimulatorDialog(scope.row)">更改</el-button>
+              <el-button v-else link type="primary" @click="openChangeSimulatorDialog(scope.row)">设置</el-button>
+              <el-button
+                v-if="scope.row.simulatorPreviewUrl"
+                link
+                type="primary"
+                @click="removeSimulator(scope.row)"
+              >
+                删除
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -475,6 +484,22 @@ const handleSaveSimulator = async () => {
       simulatorSubmitting.value = false
     }
   })
+}
+
+const removeSimulator = async (row) => {
+  try {
+    const res = await updateExpTeachSimulator(row.expId,'')
+    if (res.data.code === 200) {
+      ElMessage.success('删除成功')
+      loadItems()
+    } else {
+      ElMessage.error(res.data.message || '删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error?.response?.data?.message || '删除失败')
+    }
+  }
 }
 
 const openEditDialog = (row) => {
