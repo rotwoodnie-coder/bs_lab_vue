@@ -334,6 +334,7 @@ const handleSizeChange = (size) => {
 }
 
 const openCreateDialog = async () => {
+  /*
   try {
     const res = await fetchLatestExpStandardDraft()
     const draft = res.data.data
@@ -344,6 +345,7 @@ const openCreateDialog = async () => {
   } catch (error) {
     // ignore and create new draft
   }
+  */
   router.push('/admin/exp/exp-standard/create')
 }
 

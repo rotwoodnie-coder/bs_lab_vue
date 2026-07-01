@@ -340,6 +340,7 @@ const goCoursePage = () => {
 }
 
 const openCreateDialog = async () => {
+  /*
   try {
     const res = await fetchLatestExpTeachesDraft()
     const draft = res.data.data
@@ -349,7 +350,7 @@ const openCreateDialog = async () => {
     }
   } catch (error) {
     // ignore and create new draft
-  }
+  }*/
   router.push('/admin/exp/exp-teach/create')
 }
 
