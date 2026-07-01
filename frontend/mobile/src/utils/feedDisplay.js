@@ -23,6 +23,10 @@ export function detailRoute(item) {
   if (item.type === 'video') return `/video/${item.id}`
   if (item.type === 'simulation') {
     const simId = item.simulatorId || item.id
+    // 实验关联了模拟器：跳转到实验详情页，用户可在页面上点击"模拟实验"按钮进入模拟器
+    if (item.simulatorId && item.simulatorId !== item.id) {
+      return `/exp/${item.id}`
+    }
     return `/sim/${simId}`
   }
   return `/exp/${item.id}`
